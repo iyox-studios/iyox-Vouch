@@ -5,10 +5,9 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
-import androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
 import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_WEAK
+import androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
 import androidx.biometric.BiometricPrompt
-import androidx.biometric.BiometricViewModel
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import com.iyox.vouch.view.MainView
@@ -47,13 +46,16 @@ class MainActivity : FragmentActivity() {
             .setSubtitle("Authenticate to access the app")
             .setNegativeButtonText("Cancel")
             .build()
-
         if (BiometricManager.from(this)
-                .canAuthenticate(BIOMETRIC_STRONG or DEVICE_CREDENTIAL or BIOMETRIC_WEAK) == BiometricManager.BIOMETRIC_SUCCESS
+                .canAuthenticate(BIOMETRIC_STRONG or BIOMETRIC_WEAK or DEVICE_CREDENTIAL) == BiometricManager.BIOMETRIC_SUCCESS
         ) {
             biometricPrompt.authenticate(promptInfo)
         } else {
-            setContent { MainView() }
+            setContent {
+                MainView()
+            }
         }
+
     }
 }
+
