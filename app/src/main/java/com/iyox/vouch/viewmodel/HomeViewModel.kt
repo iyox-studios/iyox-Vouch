@@ -1,28 +1,42 @@
 package com.iyox.vouch.viewmodel
 
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.iyox.vouch.model.VouchData
-import com.iyox.vouch.model.VouchRepository;
+import com.iyox.vouch.model.Contact
+import com.iyox.vouch.model.ContactsRepository
 import kotlinx.coroutines.launch
 
-class HomeViewModel : ViewModel() {
+class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val vouchRepository = VouchRepository()
-    private val _vouchData = MutableLiveData<VouchData>()
-    val vouchData: LiveData<VouchData> = _vouchData
+    private val contactsRepository = ContactsRepository(application.contentResolver)
+    private val _contacts = MutableLiveData<List<Contact>>(emptyList())
+    val contacts: LiveData<List<Contact>> = _contacts
+    private val _isLoadingContacts = MutableLiveData<Boolean>()
+    val isLoadingContacts: LiveData<Boolean> = _isLoadingContacts
 
-    private val _isLoading = MutableLiveData<Boolean>()
-    val isLoading: LiveData<Boolean> = _isLoading
+    private val _hasContactsPermission = MutableLiveData<Boolean>(false)
+    val hasContactsPermission: LiveData<Boolean> = _hasContactsPermission
 
-    fun fetchVouchData() {
+    fun setPermissionGranted(granted: Boolean) {
+        _hasContactsPermission.value = granted
+        if (granted) {
+            fetchContacts()
+        }
+    }
+
+    fun fetchContacts() {
         viewModelScope.launch {
-            _isLoading.postValue(true)
-            val result = vouchRepository.fetchUserData()
-            _vouchData.postValue(result)
-            _isLoading.postValue(false)
+            _isLoadingContacts.postValue(true)
+            try {
+                val result = contactsRepository.fetchContacts()
+                _contacts.postValue(result)
+            } catch (e: Exception) {
+                _contacts.postValue(emptyList())
+            }
+            _isLoadingContacts.postValue(false)
         }
     }
 }
