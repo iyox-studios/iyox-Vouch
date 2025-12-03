@@ -5,7 +5,7 @@ import android.provider.ContactsContract
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-class ContactsRepository(private val contentResolver: ContentResolver) {
+class wContactsRepository(private val contentResolver: ContentResolver) {
 
     suspend fun fetchContacts(): List<Contact> = withContext(Dispatchers.IO) {
         val contacts = mutableListOf<Contact>()
