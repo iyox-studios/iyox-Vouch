@@ -19,6 +19,12 @@ class AddVouchViewModel(application: Application) : AndroidViewModel(application
     private val _amount = MutableStateFlow("")
     val amount: StateFlow<String> = _amount
 
+    private val _given = MutableStateFlow(true)
+    val given: StateFlow<Boolean> = _given
+
+    private val _person = MutableStateFlow("")
+    val person: StateFlow<String> = _person
+
     private val _currency = MutableStateFlow(Currency.getInstance("EUR"))
     val currency: StateFlow<Currency> = _currency
 
@@ -32,10 +38,18 @@ class AddVouchViewModel(application: Application) : AndroidViewModel(application
         _amount.value = value
     }
 
+    fun onGivenChange(value: Boolean) {
+        _given.value = value
+    }
+
+    fun onPersonChange(value: String) {
+        _person.value = value
+    }
+
+
     fun onCurrencyChange(value: Currency) {
         _currency.value = value
     }
-
 
     fun onDescriptionChange(value: String) {
         _description.value = value
@@ -68,6 +82,8 @@ class AddVouchViewModel(application: Application) : AndroidViewModel(application
                 id = System.currentTimeMillis().toInt(),
                 amount = amountBigDecimal,
                 description = _description.value,
+                person = _person.value,
+                given = _given.value,
                 currency = _currency.value,
             )
             repository.insert(vouch)
