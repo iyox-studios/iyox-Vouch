@@ -4,4 +4,3 @@ data class ContactData(
     val id: String,
     val name: String,
 )
-

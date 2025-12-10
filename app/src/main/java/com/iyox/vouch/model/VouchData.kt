@@ -10,7 +10,7 @@ data class VouchDataEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val amount: BigDecimal,
     val description: String = "",
-    val given : Boolean = true,
+    val given: Boolean = true,
     val currency: Currency,
     val timestamp: Timestamp = Timestamp(System.currentTimeMillis())
 )

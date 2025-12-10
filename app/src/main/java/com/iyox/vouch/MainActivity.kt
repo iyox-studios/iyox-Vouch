@@ -24,8 +24,7 @@ class MainActivity : FragmentActivity() {
     private fun authenticateUser() {
         val executor = ContextCompat.getMainExecutor(this)
         val biometricPrompt = BiometricPrompt(
-            this, executor,
-            object : BiometricPrompt.AuthenticationCallback() {
+            this, executor, object : BiometricPrompt.AuthenticationCallback() {
                 override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
                     super.onAuthenticationSucceeded(result)
                     setContent {
@@ -43,11 +42,8 @@ class MainActivity : FragmentActivity() {
                 }
             })
 
-        val promptInfo = BiometricPrompt.PromptInfo.Builder()
-            .setTitle("Biometric Authentication")
-            .setSubtitle("Authenticate to access the app")
-            .setNegativeButtonText("Cancel")
-            .build()
+        val promptInfo = BiometricPrompt.PromptInfo.Builder().setTitle("Biometric Authentication")
+            .setSubtitle("Authenticate to access the app").setNegativeButtonText("Cancel").build()
         if (BiometricManager.from(this)
                 .canAuthenticate(BIOMETRIC_STRONG or BIOMETRIC_WEAK or DEVICE_CREDENTIAL) == BiometricManager.BIOMETRIC_SUCCESS
         ) {
