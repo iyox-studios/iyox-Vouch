@@ -6,6 +6,8 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.outlined.ArrowOutward
+import androidx.compose.material.icons.outlined.SouthWest
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -21,7 +23,7 @@ import com.iyox.vouch.viewmodel.HomeViewModel
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel = viewModel(), onNavigateToAddVouch: () -> Unit = {}
@@ -34,7 +36,7 @@ fun HomeScreen(
 
     Scaffold(topBar = {
         TopAppBar(
-            title = { Text("Vouches", style = MaterialTheme.typography.displayLarge) })
+            title = { Text("Vouches", style = MaterialTheme.typography.displayLargeEmphasized) })
     }, floatingActionButton = {
         FloatingActionButton(
             onClick = onNavigateToAddVouch
@@ -61,12 +63,10 @@ fun HomeScreen(
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                itemsIndexed(vouches) { index, vouch ->
+                val displayed = vouches.asReversed()
+                itemsIndexed(displayed) { index, vouch ->
                     VouchItem(
                         vouch = vouch,
-                        isFirst = index == 0,
-                        isLast = index == vouches.lastIndex,
-                        isOnly = vouches.size == 1
                     )
                 }
             }
@@ -74,36 +74,16 @@ fun HomeScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun VouchItem(
     vouch: VouchDataEntity,
-    isFirst: Boolean = false,
-    isLast: Boolean = false,
-    isOnly: Boolean = false
 ) {
     val dateFormat = SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
 
-    val largeRadius = 28.dp
-    val smallRadius = 8.dp
+    val largeRadius = 20.dp
 
-    val shape = when {
-        isOnly -> RoundedCornerShape(largeRadius)
-        isFirst -> RoundedCornerShape(
-            topStart = largeRadius,
-            topEnd = largeRadius,
-            bottomStart = smallRadius,
-            bottomEnd = smallRadius
-        )
-
-        isLast -> RoundedCornerShape(
-            topStart = smallRadius,
-            topEnd = smallRadius,
-            bottomStart = largeRadius,
-            bottomEnd = largeRadius
-        )
-
-        else -> RoundedCornerShape(smallRadius)
-    }
+    val shape = RoundedCornerShape(largeRadius)
 
     Card(
         modifier = Modifier.fillMaxWidth(), shape = shape, colors = CardDefaults.cardColors(
@@ -118,14 +98,14 @@ fun VouchItem(
         ) {
             Surface(
                 shape = MaterialTheme.shapes.medium,
-                color = MaterialTheme.colorScheme.primaryContainer,
+                color = if (vouch.given) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.errorContainer,
                 modifier = Modifier.size(48.dp)
             ) {
                 Box(contentAlignment = Alignment.Center) {
-                    Text(
-                        text = "$",
-                        style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    Icon(
+                        imageVector = if (vouch.given) Icons.Outlined.ArrowOutward else Icons.Outlined.SouthWest,
+                        contentDescription = "Home",
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 }
             }
@@ -134,17 +114,26 @@ fun VouchItem(
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    text = "${vouch.amount}",
+                    text = vouch.amount.toString() + " " + vouch.currency.symbol,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Medium
                 )
                 Text(
                     text = vouch.description.ifBlank { dateFormat.format(vouch.timestamp) },
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1
                 )
             }
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            if (vouch.person != null) Text(
+                text = vouch.person,
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }

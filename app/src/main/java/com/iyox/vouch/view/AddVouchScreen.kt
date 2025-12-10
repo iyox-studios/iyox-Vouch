@@ -8,7 +8,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
+import androidx.compose.material3.ButtonGroup
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,6 +27,8 @@ fun AddVouchScreen(
 ) {
     val amount by viewModel.amount.collectAsState()
     val currency by viewModel.currency.collectAsState()
+    val given by viewModel.given.collectAsState()
+    val person by viewModel.person.collectAsState()
     val description by viewModel.description.collectAsState()
     val saveSuccess by viewModel.saveSuccess.collectAsState()
 
@@ -58,18 +62,19 @@ fun AddVouchScreen(
             ) {
                 Button(
                     onClick = { },
+                    modifier = Modifier.defaultMinSize(minWidth = 0.dp, minHeight = 0.dp),
                     shape = MaterialTheme.shapes.small,
                     elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color.Transparent,
                         contentColor = MaterialTheme.colorScheme.onSurface
-                    )
+                    ),
+                    contentPadding = PaddingValues(0.dp)
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             currency.symbol,
                             style = MaterialTheme.typography.displayLarge,
-                            modifier = Modifier.padding(end = 8.dp),
                         )
                         Icon(
                             imageVector = Icons.Filled.ArrowDropDown,
@@ -101,19 +106,73 @@ fun AddVouchScreen(
                 )
             }
 
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Button(
+                    onClick = {
+                        viewModel.onGivenChange(true)
+                    },
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (given) MaterialTheme.colorScheme.primary else Color.Transparent,
+                        contentColor = if (given) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
+                    ),
+                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp),
+                    shape = MaterialTheme.shapes.small,
+                    contentPadding = PaddingValues(8.dp)
+                ) {
+                    Text("Given")
+                }
+
+                Button(
+                    onClick = {
+                        viewModel.onGivenChange(false)
+                    },
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (!given) MaterialTheme.colorScheme.primary else Color.Transparent,
+                        contentColor = if (!given) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
+                    ),
+                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp),
+                    shape = MaterialTheme.shapes.small,
+                    contentPadding = PaddingValues(8.dp)
+                ) {
+                    Text("Received")
+                }
+            }
+
+            OutlinedTextField(
+                value = person,
+                onValueChange = {
+                    viewModel.onPersonChange(it)
+                },
+                modifier = Modifier.fillMaxWidth(),
+                textStyle = MaterialTheme.typography.titleLarge,
+                label = { Text("Person") },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Filled.Person, contentDescription = null
+                    )
+                },
+                maxLines = 3,
+            )
+
             OutlinedTextField(
                 value = description,
                 onValueChange = {
                     viewModel.onDescriptionChange(it)
                 },
                 modifier = Modifier.fillMaxWidth(),
+                textStyle = MaterialTheme.typography.titleLarge,
                 label = { Text("Description") },
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Filled.Description, contentDescription = null
                     )
                 },
-                maxLines = 3
+                maxLines = 3,
             )
 
             Spacer(modifier = Modifier.weight(1f))
