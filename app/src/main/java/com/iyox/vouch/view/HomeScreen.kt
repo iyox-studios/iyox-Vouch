@@ -36,7 +36,7 @@ fun HomeScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Vouches") }
+                title = { Text("Vouches", style = MaterialTheme.typography.displayLarge) }
             )
         },
         floatingActionButton = {
@@ -100,12 +100,14 @@ fun VouchItem(
             bottomStart = smallRadius,
             bottomEnd = smallRadius
         )
+
         isLast -> RoundedCornerShape(
             topStart = smallRadius,
             topEnd = smallRadius,
             bottomStart = largeRadius,
             bottomEnd = largeRadius
         )
+
         else -> RoundedCornerShape(smallRadius)
     }
 

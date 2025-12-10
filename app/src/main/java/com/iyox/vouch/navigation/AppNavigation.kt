@@ -84,6 +84,7 @@ fun AppNavigation() {
                             navController.navigate(item.screen.route) {
                                 popUpTo(navController.graph.findStartDestination().id) {
                                     saveState = true
+                                    inclusive = true
                                 }
                                 launchSingleTop = true
                                 restoreState = true
