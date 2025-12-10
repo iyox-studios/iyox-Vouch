@@ -5,10 +5,10 @@ import android.provider.ContactsContract
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-class wContactsRepository(private val contentResolver: ContentResolver) {
+class ContactsRepository(private val contentResolver: ContentResolver) {
 
-    suspend fun fetchContacts(): List<Contact> = withContext(Dispatchers.IO) {
-        val contacts = mutableListOf<Contact>()
+    suspend fun fetchContacts(): List<ContactData> = withContext(Dispatchers.IO) {
+        val contactData = mutableListOf<ContactData>()
 
         val projection = arrayOf(
             ContactsContract.Contacts._ID,
@@ -31,11 +31,11 @@ class wContactsRepository(private val contentResolver: ContentResolver) {
                 val id = it.getString(idIndex)
                 val name = it.getString(nameIndex) ?: "Unknown"
 
-                contacts.add(Contact(id, name))
+                contactData.add(ContactData(id, name))
             }
         }
 
-        contacts
+        contactData
     }
 }
 

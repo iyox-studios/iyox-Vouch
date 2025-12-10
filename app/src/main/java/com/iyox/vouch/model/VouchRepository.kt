@@ -1,11 +1,13 @@
 package com.iyox.vouch.model
 
 import android.content.Context
+import android.icu.util.Currency
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverter
 import androidx.room.TypeConverters
+import java.math.BigDecimal
 import java.sql.Timestamp
 
 class TimestampConverter {
@@ -20,8 +22,39 @@ class TimestampConverter {
     }
 }
 
+class CurrencyConverter {
+
+    @TypeConverter
+    fun fromCurrency(currency: Currency): String {
+        return currency.currencyCode
+    }
+
+    @TypeConverter
+    fun toCurrency(currencyCode: String): Currency {
+        return try {
+            Currency.getInstance(currencyCode)
+        } catch (e: Exception) {
+            Currency.getInstance("USD")
+        }
+    }
+}
+
+class BigDecimalConverter {
+
+    @TypeConverter
+    fun fromBigDecimal(bigDecimal: BigDecimal): String {
+
+        return bigDecimal.toString()
+    }
+
+    @TypeConverter
+    fun toBigDecimal(string: String): BigDecimal {
+        return BigDecimal(string)
+    }
+}
+
 @Database(entities = [VouchDataEntity::class], version = 1, exportSchema = false)
-@TypeConverters(TimestampConverter::class)
+@TypeConverters(TimestampConverter::class, CurrencyConverter::class, BigDecimalConverter::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun vouchDataDao(): VouchDataDao
 }

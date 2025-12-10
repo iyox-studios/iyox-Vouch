@@ -1,20 +1,17 @@
 package com.iyox.vouch.model
 
+import android.icu.util.Currency
 import androidx.room.*
+import java.math.BigDecimal
 import java.sql.Timestamp
-
-data class VouchData(
-    val id: Int = 0,
-    val amount: Int = 0,
-    val description: String = "",
-    val timestamp: Timestamp = Timestamp(System.currentTimeMillis())
-)
 
 @Entity
 data class VouchDataEntity(
-    @PrimaryKey val id: Int = 0,
-    val amount: Int = 0,
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val amount: BigDecimal,
     val description: String = "",
+    val given : Boolean = true,
+    val currency: Currency,
     val timestamp: Timestamp = Timestamp(System.currentTimeMillis())
 )
 
