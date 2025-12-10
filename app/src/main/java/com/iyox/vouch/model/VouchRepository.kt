@@ -62,10 +62,8 @@ abstract class AppDatabase : RoomDatabase() {
 class VouchRepository private constructor(context: Context) {
 
     private val database = Room.databaseBuilder(
-        context.applicationContext,
-        AppDatabase::class.java,
-        "vouch_database"
-                ).build()
+        context.applicationContext, AppDatabase::class.java, "vouch_database"
+    ).build()
     private val vouchDataDao = database.vouchDataDao()
 
     suspend fun getAll(): List<VouchDataEntity> {

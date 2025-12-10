@@ -24,8 +24,7 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    viewModel: HomeViewModel = viewModel(),
-    onNavigateToAddVouch: () -> Unit = {}
+    viewModel: HomeViewModel = viewModel(), onNavigateToAddVouch: () -> Unit = {}
 ) {
     val vouches by viewModel.vouches.collectAsState()
 
@@ -33,23 +32,18 @@ fun HomeScreen(
         viewModel.loadVouches()
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Vouches", style = MaterialTheme.typography.displayLarge) }
+    Scaffold(topBar = {
+        TopAppBar(
+            title = { Text("Vouches", style = MaterialTheme.typography.displayLarge) })
+    }, floatingActionButton = {
+        FloatingActionButton(
+            onClick = onNavigateToAddVouch
+        ) {
+            Icon(
+                imageVector = Icons.Default.Add, contentDescription = "Add Vouch"
             )
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = onNavigateToAddVouch
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Add Vouch"
-                )
-            }
         }
-    ) { innerPadding ->
+    }) { innerPadding ->
         if (vouches.isEmpty()) {
             Box(
                 modifier = Modifier
@@ -112,9 +106,7 @@ fun VouchItem(
     }
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = shape,
-        colors = CardDefaults.cardColors(
+        modifier = Modifier.fillMaxWidth(), shape = shape, colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
         )
     ) {

@@ -34,9 +34,7 @@ import com.iyox.vouch.view.HomeScreen
 import com.iyox.vouch.view.SettingsScreen
 
 data class NavigationItem(
-    val screen: Screen,
-    val icon: ImageVector,
-    val iconSelected: ImageVector
+    val screen: Screen, val icon: ImageVector, val iconSelected: ImageVector
 )
 
 @Composable
@@ -54,8 +52,7 @@ fun AppNavigation() {
             context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
         vibratorManager.defaultVibrator
     } else {
-        @Suppress("DEPRECATION")
-        context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        @Suppress("DEPRECATION") context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
     }
 
     Scaffold(
@@ -67,18 +64,18 @@ fun AppNavigation() {
                 navigationItems.forEach { item ->
                     ShortNavigationBarItem(
                         icon = {
-                            val isSelected = currentDestination?.hierarchy?.any { it.route == item.screen.route } == true
-                            val icon = if (isSelected) item.iconSelected else item.icon
-                            Icon(imageVector = icon, contentDescription = item.screen.title)
-                        },
+                        val isSelected =
+                            currentDestination?.hierarchy?.any { it.route == item.screen.route } == true
+                        val icon = if (isSelected) item.iconSelected else item.icon
+                        Icon(imageVector = icon, contentDescription = item.screen.title)
+                    },
                         label = { Text(item.screen.title) },
                         selected = currentDestination?.hierarchy?.any { it.route == item.screen.route } == true,
                         onClick = {
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                                 vibrator.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK))
                             } else {
-                                @Suppress("DEPRECATION")
-                                vibrator.vibrate(50)
+                                @Suppress("DEPRECATION") vibrator.vibrate(50)
                             }
 
                             navController.navigate(item.screen.route) {
@@ -92,8 +89,7 @@ fun AppNavigation() {
                         })
                 }
             }
-        }
-    ) { innerPadding ->
+        }) { innerPadding ->
         NavHost(
             navController = navController,
             startDestination = Screen.Home.route,
@@ -101,22 +97,19 @@ fun AppNavigation() {
             enterTransition = { EnterTransition.None },
             exitTransition = { ExitTransition.None },
             popEnterTransition = { EnterTransition.None },
-            popExitTransition = { ExitTransition.None }
-        ) {
+            popExitTransition = { ExitTransition.None }) {
             composable(Screen.Home.route) {
                 HomeScreen(
                     onNavigateToAddVouch = {
                         navController.navigate(Screen.AddVouch.route)
-                    }
-                )
+                    })
             }
             composable(Screen.Settings.route) { SettingsScreen() }
             composable(Screen.AddVouch.route) {
                 AddVouchScreen(
                     onNavigateBack = {
                         navController.popBackStack()
-                    }
-                )
+                    })
             }
         }
     }

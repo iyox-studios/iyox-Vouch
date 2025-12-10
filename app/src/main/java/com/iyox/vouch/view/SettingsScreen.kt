@@ -14,13 +14,14 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun SettingsScreen() {
     Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "Settings Screen",
-            style = MaterialTheme.typography.headlineMedium
+            text = "Settings Screen", style = MaterialTheme.typography.headlineMedium
         )
         Text(
             text = "App settings and preferences will be displayed here",

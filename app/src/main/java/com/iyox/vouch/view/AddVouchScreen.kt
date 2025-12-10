@@ -110,8 +110,7 @@ fun AddVouchScreen(
                 label = { Text("Description") },
                 leadingIcon = {
                     Icon(
-                        imageVector = Icons.Filled.Description,
-                        contentDescription = null
+                        imageVector = Icons.Filled.Description, contentDescription = null
                     )
                 },
                 maxLines = 3
