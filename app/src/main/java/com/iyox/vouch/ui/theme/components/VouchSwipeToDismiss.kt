@@ -10,10 +10,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxState
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberSwipeToDismissBoxState
@@ -21,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -29,7 +33,10 @@ import androidx.compose.ui.unit.sp
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VouchSwipeToDismiss(
-    onDismiss: () -> Unit,
+    onStartToEnd: () -> Unit = {},
+    onEndToStart: () -> Unit = {},
+    enableDismissFromStartToEnd: Boolean = false,
+    enableDismissFromEndToStart: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val dismissState = rememberSwipeToDismissBoxState()
@@ -38,64 +45,100 @@ fun VouchSwipeToDismiss(
         state = dismissState,
         onDismiss = {
             if (it == SwipeToDismissBoxValue.StartToEnd) {
-                onDismiss()
+                onStartToEnd()
+            }
+            if (it == SwipeToDismissBoxValue.EndToStart) {
+                onEndToStart()
             }
         },
         backgroundContent = {
             val direction = dismissState.dismissDirection
 
             if (direction == SwipeToDismissBoxValue.StartToEnd) {
-                val density = LocalDensity.current
-                val offsetPx = try {
-                    dismissState.requireOffset()
-                } catch (_: Exception) {
-                    0f
-                }
-
-                val widthDp = with(density) {
-                    if (offsetPx.isNaN()) 0.dp else offsetPx.coerceAtLeast(0f).toDp()
-                }
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize(),
-                    contentAlignment = Alignment.CenterStart
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .width(widthDp)
-                            .fillMaxHeight()
-                            .background(Color(0xFF156A5B), RoundedCornerShape(20.dp)),
-                        contentAlignment = Alignment.CenterStart,
-
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.wrapContentWidth(align = Alignment.Start, unbounded = true)
-                        ) {
-                            Spacer(modifier = Modifier.width(16.dp))
-                            Icon(
-                                imageVector = Icons.Default.Done,
-                                contentDescription = "Settle",
-                                tint = Color.White,
-                            )
-
-                            Spacer(modifier = Modifier.width(16.dp))
-
-                            Text(
-                                text = "Settle",
-                                color = Color.White,
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
-                }
+                VouchSwipeToDismissBackground(dismissState, Color(0xFF156A5B), "Settle", Icons.Default.Done)
+            } else if (direction == SwipeToDismissBoxValue.EndToStart) {
+                VouchSwipeToDismissBackground(dismissState, MaterialTheme.colorScheme.errorContainer, "Delete", Icons.Default.Delete)
             }
         },
         content = {
             content()
         },
-        enableDismissFromEndToStart = false
+        enableDismissFromEndToStart = enableDismissFromEndToStart,
+        enableDismissFromStartToEnd = enableDismissFromStartToEnd
     )
+}
+
+@Composable
+private fun VouchSwipeToDismissBackground(
+    dismissState: SwipeToDismissBoxState, color: Color, text: String, icon: ImageVector
+) {
+    val density = LocalDensity.current
+    val direction = dismissState.dismissDirection
+    val contentAlignment =
+        if (direction == SwipeToDismissBoxValue.StartToEnd) Alignment.CenterStart else Alignment.CenterEnd
+    val offsetPx = try {
+        dismissState.requireOffset()
+    } catch (_: Exception) {
+        0f
+    }
+
+    val widthDp = with(density) {
+        if (offsetPx.isNaN()) 0.dp else kotlin.math.abs(offsetPx).toDp()
+    }
+
+    Box(
+        modifier = Modifier.fillMaxSize(), contentAlignment = contentAlignment
+    ) {
+        Box(
+            modifier = Modifier
+                .width(widthDp)
+                .fillMaxHeight()
+                .background(color, RoundedCornerShape(20.dp)),
+            contentAlignment = contentAlignment,
+
+            ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.wrapContentWidth(
+                    align = if (direction == SwipeToDismissBoxValue.StartToEnd) Alignment.Start else Alignment.End,
+                    unbounded = true
+                )
+            ) {
+                val icon = @Composable {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = text,
+                        tint = Color.White,
+                    )
+                }
+
+                val text = @Composable {
+                    Text(
+                        text = text,
+                        color = Color.White,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                val spacer = @Composable {
+                    Spacer(modifier = Modifier.width(16.dp))
+                }
+
+
+                if (direction == SwipeToDismissBoxValue.StartToEnd) {
+                    spacer()
+                    icon()
+                    spacer()
+                    text()
+                } else {
+                    spacer()
+                    text()
+                    spacer()
+                    icon()
+                    spacer()
+                }
+            }
+        }
+    }
 }

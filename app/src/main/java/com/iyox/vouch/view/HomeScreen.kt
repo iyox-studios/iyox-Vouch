@@ -114,12 +114,16 @@ fun HomeScreen(
                     if (vouch.settled) {
                         Box(modifier = Modifier.alpha(0.6f)) {
                             VouchItem(
-                                vouch = vouch, onSettle = { viewModel.settleVouch(vouch) }, false
-                            )
+                                vouch = vouch,
+                                canSettle = false,
+                                onSettle = { viewModel.settleVouch(vouch) },
+                                onDelete = { viewModel.deleteVouch(vouch) })
                         }
                     } else {
                         VouchItem(
-                            vouch = vouch, onSettle = { viewModel.settleVouch(vouch) })
+                            vouch = vouch,
+                            onSettle = { viewModel.settleVouch(vouch) },
+                            onDelete = { viewModel.deleteVouch(vouch) })
                     }
                 }
             }
@@ -130,7 +134,10 @@ fun HomeScreen(
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun VouchItem(
-    vouch: VouchDataEntity, onSettle: () -> Unit, canSettle: Boolean = true
+    vouch: VouchDataEntity,
+    canSettle: Boolean = true,
+    onSettle: () -> Unit,
+    onDelete: () -> Unit = {}
 ) {
     val dateFormat = SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
 
@@ -194,13 +201,19 @@ fun VouchItem(
 
     if (canSettle) {
         VouchSwipeToDismiss(
-            onDismiss = {
-                onSettle()
-            },
+            enableDismissFromStartToEnd = true,
+            onStartToEnd = onSettle,
+            enableDismissFromEndToStart = true,
+            onEndToStart = onDelete
         ) {
             content()
         }
     } else {
-        content()
+        VouchSwipeToDismiss(
+            enableDismissFromEndToStart = true,
+            onEndToStart = onDelete
+        ) {
+            content()
+        }
     }
 }
