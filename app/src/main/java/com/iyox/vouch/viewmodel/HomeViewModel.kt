@@ -24,5 +24,12 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
             _vouches.value = repository.getAll()
         }
     }
+
+    fun deleteVouch(vouch: VouchDataEntity) {
+        viewModelScope.launch {
+            repository.delete(vouch)
+            loadVouches()
+        }
+    }
 }
 
