@@ -9,10 +9,11 @@ import java.sql.Timestamp
 data class VouchDataEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val amount: BigDecimal,
+    val currency: Currency,
     val description: String = "",
     val person: String? = null,
     val given: Boolean = true,
-    val currency: Currency,
+    val settled: Boolean = false,
     val timestamp: Timestamp = Timestamp(System.currentTimeMillis())
 )
 
@@ -26,5 +27,8 @@ interface VouchDataDao {
 
     @Delete
     suspend fun delete(vouchData: VouchDataEntity)
+
+    @Update
+    suspend fun update(vouchData: VouchDataEntity)
 }
 

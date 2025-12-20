@@ -16,27 +16,28 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.ArrowOutward
 import androidx.compose.material.icons.outlined.SouthWest
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -52,18 +53,34 @@ fun HomeScreen(
     viewModel: HomeViewModel = viewModel(), onNavigateToAddVouch: () -> Unit = {}
 ) {
     val vouches by viewModel.vouches.collectAsState()
+    val showSettled by viewModel.showSettled.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.loadVouches()
     }
 
     Scaffold(topBar = {
-        TopAppBar(
-            title = {
-                Text(
-                    "Vouches", style = MaterialTheme.typography.displayLargeEmphasized
-                )
-            })
+        TopAppBar(title = {
+            Text(
+                "Vouches", style = MaterialTheme.typography.displayLargeEmphasized
+            )
+        }, actions = {
+            FilterChip(
+                selected = showSettled,
+                onClick = { viewModel.toggleShowSettled() },
+                label = { Text("Settled") },
+                leadingIcon = {
+                    if (showSettled) {
+                        Icon(
+                            imageVector = Icons.Default.Check,
+                            contentDescription = "Selected",
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                },
+                modifier = Modifier.padding(end = 16.dp)
+            )
+        })
     }, floatingActionButton = {
         FloatingActionButton(
             onClick = onNavigateToAddVouch
@@ -90,12 +107,20 @@ fun HomeScreen(
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                val displayed = vouches.asReversed()
-                itemsIndexed(displayed) { _, vouch ->
-                    VouchItem(
-                        vouch = vouch,
-                        onDelete = { viewModel.deleteVouch(vouch) }
-                    )
+                val displayed =
+                    (if (showSettled) vouches else vouches.filter { !it.settled }).reversed()
+                itemsIndexed(
+                    displayed, { _, item -> item.id }) { _, vouch ->
+                    if (vouch.settled) {
+                        Box(modifier = Modifier.alpha(0.6f)) {
+                            VouchItem(
+                                vouch = vouch, onSettle = { viewModel.settleVouch(vouch) }, false
+                            )
+                        }
+                    } else {
+                        VouchItem(
+                            vouch = vouch, onSettle = { viewModel.settleVouch(vouch) })
+                    }
                 }
             }
         }
@@ -105,18 +130,13 @@ fun HomeScreen(
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun VouchItem(
-    vouch: VouchDataEntity,
-    onDelete: () -> Unit
+    vouch: VouchDataEntity, onSettle: () -> Unit, canSettle: Boolean = true
 ) {
     val dateFormat = SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
 
     val largeRadius = 20.dp
 
-    VouchSwipeToDismiss(
-        onDelete = {
-            onDelete()
-        },
-    ) {
+    val content = @Composable {
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(largeRadius),
@@ -170,5 +190,17 @@ fun VouchItem(
                 )
             }
         }
+    }
+
+    if (canSettle) {
+        VouchSwipeToDismiss(
+            onDismiss = {
+                onSettle()
+            },
+        ) {
+            content()
+        }
+    } else {
+        content()
     }
 }

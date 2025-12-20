@@ -78,6 +78,10 @@ class VouchRepository private constructor(context: Context) {
         vouchDataDao.delete(vouchData)
     }
 
+    suspend fun update(vouchData: VouchDataEntity) {
+        vouchDataDao.update(vouchData)
+    }
+
     companion object {
         @Volatile
         private var INSTANCE: VouchRepository? = null
