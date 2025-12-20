@@ -13,7 +13,12 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = VouchRepository.getInstance(application)
 
     private val _vouches = MutableStateFlow<List<VouchDataEntity>>(emptyList())
+    private val _showSettled = MutableStateFlow(false)
+
     val vouches: StateFlow<List<VouchDataEntity>> = _vouches
+    val showSettled: StateFlow<Boolean> = _showSettled
+
+
 
     init {
         loadVouches()
@@ -30,6 +35,17 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
             repository.delete(vouch)
             loadVouches()
         }
+    }
+
+    fun settleVouch(vouch: VouchDataEntity) {
+        viewModelScope.launch {
+            repository.update(vouch.copy(settled = true))
+            loadVouches()
+        }
+    }
+
+    fun toggleShowSettled() {
+        _showSettled.value = !_showSettled.value
     }
 }
 
