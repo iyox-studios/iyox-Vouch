@@ -42,7 +42,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.best.deskclock.compose_migration.VouchSwipeToDismiss
+import com.iyox.vouch.ui.components.VouchSwipeToDismiss
 import com.iyox.vouch.model.VouchDataEntity
 import com.iyox.vouch.viewmodel.HomeViewModel
 import java.text.SimpleDateFormat
@@ -141,7 +141,7 @@ fun HomeScreen(
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                val displayed = viewModel.getDisplayedVouches(showOnlyUnsettled, showOnlyGiven)
+                val displayed = viewModel.getDisplayedVouches(showOnlyUnsettled, showOnlyGiven, vouches)
                 itemsIndexed(
                     displayed, { _, item -> item.id }) { _, vouch ->
                     if (vouch.settled) {
@@ -149,7 +149,7 @@ fun HomeScreen(
                             VouchItem(
                                 vouch = vouch,
                                 canSettle = false,
-                                onSettle = { viewModel.settleVouch(vouch) },
+                                onSettle = { viewModel.unSettleVouch(vouch) },
                                 onDelete = { viewModel.deleteVouch(vouch) })
                         }
                     } else {
@@ -243,7 +243,11 @@ fun VouchItem(
         }
     } else {
         VouchSwipeToDismiss(
-            enableDismissFromEndToStart = true, onEndToStart = onDelete
+            enableDismissFromStartToEnd = true,
+            onStartToEnd = onSettle,
+            enableDismissFromEndToStart = true,
+            onEndToStart = onDelete,
+            settleText = "Unsettle"
         ) {
             content()
         }

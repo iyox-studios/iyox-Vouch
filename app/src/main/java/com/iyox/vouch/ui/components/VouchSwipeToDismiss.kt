@@ -1,4 +1,4 @@
-package com.best.deskclock.compose_migration
+package com.iyox.vouch.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -29,6 +29,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlin.math.abs
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,6 +38,7 @@ fun VouchSwipeToDismiss(
     onEndToStart: () -> Unit = {},
     enableDismissFromStartToEnd: Boolean = false,
     enableDismissFromEndToStart: Boolean = false,
+    settleText: String = "Settle",
     content: @Composable () -> Unit
 ) {
     val dismissState = rememberSwipeToDismissBoxState()
@@ -55,7 +57,7 @@ fun VouchSwipeToDismiss(
             val direction = dismissState.dismissDirection
 
             if (direction == SwipeToDismissBoxValue.StartToEnd) {
-                VouchSwipeToDismissBackground(dismissState, Color(0xFF156A5B), "Settle", Icons.Default.Done)
+                VouchSwipeToDismissBackground(dismissState, Color(0xFF156A5B), settleText, Icons.Default.Done)
             } else if (direction == SwipeToDismissBoxValue.EndToStart) {
                 VouchSwipeToDismissBackground(dismissState, MaterialTheme.colorScheme.errorContainer, "Delete", Icons.Default.Delete)
             }
@@ -83,7 +85,7 @@ private fun VouchSwipeToDismissBackground(
     }
 
     val widthDp = with(density) {
-        if (offsetPx.isNaN()) 0.dp else kotlin.math.abs(offsetPx).toDp()
+        if (offsetPx.isNaN()) 0.dp else abs(offsetPx).toDp()
     }
 
     Box(
