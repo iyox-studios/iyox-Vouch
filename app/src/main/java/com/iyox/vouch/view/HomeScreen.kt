@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -53,34 +54,67 @@ fun HomeScreen(
     viewModel: HomeViewModel = viewModel(), onNavigateToAddVouch: () -> Unit = {}
 ) {
     val vouches by viewModel.vouches.collectAsState()
-    val showSettled by viewModel.showSettled.collectAsState()
+    val showOnlyUnsettled by viewModel.showOnlyUnsettled.collectAsState()
+    val showOnlyGiven by viewModel.showOnlyGiven.collectAsState()
+
 
     LaunchedEffect(Unit) {
         viewModel.loadVouches()
     }
 
     Scaffold(topBar = {
-        TopAppBar(title = {
-            Text(
-                "Vouches", style = MaterialTheme.typography.displayLargeEmphasized
-            )
-        }, actions = {
-            FilterChip(
-                selected = showSettled,
-                onClick = { viewModel.toggleShowSettled() },
-                label = { Text("Settled") },
-                leadingIcon = {
-                    if (showSettled) {
-                        Icon(
-                            imageVector = Icons.Default.Check,
-                            contentDescription = "Selected",
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
-                },
-                modifier = Modifier.padding(end = 16.dp)
-            )
-        })
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+        ) {
+            TopAppBar(title = {
+                Text(
+                    "Vouches", style = MaterialTheme.typography.displayLargeEmphasized
+                )
+            })
+            Spacer(modifier = Modifier.height(10.dp))
+            Row {
+                FilterChip(
+                    selected = showOnlyUnsettled,
+                    onClick = { viewModel.toggleShowOnlyUnsettled() },
+                    label = { Text("Unsettled") },
+                    leadingIcon = {
+                        if (showOnlyUnsettled) {
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = "Selected",
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    },
+                    modifier = Modifier.padding(end = 16.dp)
+                )
+                FilterChip(
+                    selected = showOnlyGiven > 0,
+                    onClick = { viewModel.toggleShowOnlyGiven() },
+                    label = {
+                        when (showOnlyGiven) {
+                            0 -> Text("Given or Rec.")
+                            1 -> Text("Given")
+                            2 -> Text("Received")
+                        }
+                    },
+                    leadingIcon = {
+                        if (showOnlyGiven > 0) {
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = "Selected",
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    },
+                    modifier = Modifier.padding(end = 16.dp)
+                )
+
+            }
+        }
+
     }, floatingActionButton = {
         FloatingActionButton(
             onClick = onNavigateToAddVouch
@@ -107,8 +141,7 @@ fun HomeScreen(
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                val displayed =
-                    (if (showSettled) vouches else vouches.filter { !it.settled }).reversed()
+                val displayed = viewModel.getDisplayedVouches(showOnlyUnsettled, showOnlyGiven)
                 itemsIndexed(
                     displayed, { _, item -> item.id }) { _, vouch ->
                     if (vouch.settled) {
@@ -210,8 +243,7 @@ fun VouchItem(
         }
     } else {
         VouchSwipeToDismiss(
-            enableDismissFromEndToStart = true,
-            onEndToStart = onDelete
+            enableDismissFromEndToStart = true, onEndToStart = onDelete
         ) {
             content()
         }

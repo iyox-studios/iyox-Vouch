@@ -13,11 +13,12 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = VouchRepository.getInstance(application)
 
     private val _vouches = MutableStateFlow<List<VouchDataEntity>>(emptyList())
-    private val _showSettled = MutableStateFlow(false)
+    private val _showOnlyUnsettled = MutableStateFlow(true)
+    private val _showOnlyGiven = MutableStateFlow(0)
 
     val vouches: StateFlow<List<VouchDataEntity>> = _vouches
-    val showSettled: StateFlow<Boolean> = _showSettled
-
+    val showOnlyUnsettled: StateFlow<Boolean> = _showOnlyUnsettled
+    val showOnlyGiven: StateFlow<Int> = _showOnlyGiven
 
 
     init {
@@ -44,8 +45,26 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun toggleShowSettled() {
-        _showSettled.value = !_showSettled.value
+    fun toggleShowOnlyUnsettled() {
+        _showOnlyUnsettled.value = !_showOnlyUnsettled.value
+    }
+
+    fun toggleShowOnlyGiven() {
+        _showOnlyGiven.value = (_showOnlyGiven.value + 1) % 3
+    }
+
+    fun getDisplayedVouches(showOnlyUnsettled: Boolean, showOnlyGiven: Int): List<VouchDataEntity> {
+        return vouches.value.filter {
+            when (showOnlyUnsettled) {
+                true -> !it.settled
+                else -> true
+            } && when (showOnlyGiven) {
+                0 -> true
+                1 -> it.given
+                2 -> !it.given
+                else -> true
+            }
+        }.reversed()
     }
 }
 
