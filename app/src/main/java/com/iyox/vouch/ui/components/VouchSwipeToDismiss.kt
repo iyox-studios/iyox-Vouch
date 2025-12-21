@@ -25,7 +25,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -41,11 +43,31 @@ fun VouchSwipeToDismiss(
     settleText: String = "Settle",
     content: @Composable () -> Unit
 ) {
-    val dismissState = rememberSwipeToDismissBoxState()
+    val haptics = LocalHapticFeedback.current
+
+    lateinit var dismissState: SwipeToDismissBoxState
+    val strictConfirmValueChange: (SwipeToDismissBoxValue) -> Boolean = { targetValue ->
+        if (targetValue == SwipeToDismissBoxValue.Settled) {
+            true
+        } else {
+            val currentOffset = try {
+                dismissState.requireOffset()
+            } catch (e: Exception) {
+                0f
+            }
+            abs(currentOffset) >= 500
+        }
+    }
+
+
+    dismissState = rememberSwipeToDismissBoxState(
+        confirmValueChange = strictConfirmValueChange
+    )
 
     SwipeToDismissBox(
         state = dismissState,
         onDismiss = {
+            haptics.performHapticFeedback(HapticFeedbackType.GestureEnd)
             if (it == SwipeToDismissBoxValue.StartToEnd) {
                 onStartToEnd()
             }
@@ -57,9 +79,19 @@ fun VouchSwipeToDismiss(
             val direction = dismissState.dismissDirection
 
             if (direction == SwipeToDismissBoxValue.StartToEnd) {
-                VouchSwipeToDismissBackground(dismissState, Color(0xFF156A5B), settleText, Icons.Default.Done)
+                VouchSwipeToDismissBackground(
+                    dismissState,
+                    Color(0xFF156A5B),
+                    settleText,
+                    Icons.Default.Done
+                )
             } else if (direction == SwipeToDismissBoxValue.EndToStart) {
-                VouchSwipeToDismissBackground(dismissState, MaterialTheme.colorScheme.errorContainer, "Delete", Icons.Default.Delete)
+                VouchSwipeToDismissBackground(
+                    dismissState,
+                    MaterialTheme.colorScheme.errorContainer,
+                    "Delete",
+                    Icons.Default.Delete
+                )
             }
         },
         content = {

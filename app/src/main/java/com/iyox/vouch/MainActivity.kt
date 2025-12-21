@@ -8,16 +8,22 @@ import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
 import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_WEAK
 import androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
 import androidx.biometric.BiometricPrompt
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
+import com.iyox.vouch.utils.LocalVibrationManager
+import com.iyox.vouch.utils.VibrationManager
 import com.iyox.vouch.view.MainView
 
 class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        val vibrationManager = VibrationManager(this)
         setContent {
-            MainView()
+            CompositionLocalProvider(LocalVibrationManager provides vibrationManager) {
+                MainView()
+            }
         }
     }
 

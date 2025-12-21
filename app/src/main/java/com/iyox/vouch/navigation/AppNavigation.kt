@@ -25,6 +25,8 @@ import androidx.compose.material3.ShortNavigationBar
 import androidx.compose.material3.ShortNavigationBarItem
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -40,20 +42,12 @@ data class NavigationItem(
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
-    val context = LocalContext.current
+    val haptic = LocalHapticFeedback.current
 
     val navigationItems = listOf(
         NavigationItem(Screen.Home, Icons.Outlined.Home, Icons.Filled.Home),
         NavigationItem(Screen.Settings, Icons.Outlined.Settings, Icons.Filled.Settings)
     )
-
-    val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-        val vibratorManager =
-            context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
-        vibratorManager.defaultVibrator
-    } else {
-        @Suppress("DEPRECATION") context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-    }
 
     Scaffold(
         bottomBar = {
@@ -72,12 +66,7 @@ fun AppNavigation() {
                         label = { Text(item.screen.title) },
                         selected = currentDestination?.hierarchy?.any { it.route == item.screen.route } == true,
                         onClick = {
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                                vibrator.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK))
-                            } else {
-                                @Suppress("DEPRECATION") vibrator.vibrate(50)
-                            }
-
+                            haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
                             navController.navigate(item.screen.route) {
                                 popUpTo(navController.graph.findStartDestination().id) {
                                     saveState = true

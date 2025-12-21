@@ -39,6 +39,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -53,6 +55,8 @@ import java.util.Locale
 fun HomeScreen(
     viewModel: HomeViewModel = viewModel(), onNavigateToAddVouch: () -> Unit = {}
 ) {
+    val haptics = LocalHapticFeedback.current
+
     val vouches by viewModel.vouches.collectAsState()
     val showOnlyUnsettled by viewModel.showOnlyUnsettled.collectAsState()
     val showOnlyGiven by viewModel.showOnlyGiven.collectAsState()
@@ -76,10 +80,11 @@ fun HomeScreen(
             Spacer(modifier = Modifier.height(10.dp))
             Row {
                 FilterChip(
-                    selected = showOnlyUnsettled,
-                    onClick = { viewModel.toggleShowOnlyUnsettled() },
-                    label = { Text("Unsettled") },
-                    leadingIcon = {
+                    selected = showOnlyUnsettled, onClick = {
+                        if (showOnlyUnsettled) haptics.performHapticFeedback(HapticFeedbackType.ToggleOff)
+                        else haptics.performHapticFeedback(HapticFeedbackType.ToggleOn)
+                        viewModel.toggleShowOnlyUnsettled()
+                    }, label = { Text("Unsettled") }, leadingIcon = {
                         if (showOnlyUnsettled) {
                             Icon(
                                 imageVector = Icons.Default.Check,
@@ -87,20 +92,20 @@ fun HomeScreen(
                                 modifier = Modifier.size(18.dp)
                             )
                         }
-                    },
-                    modifier = Modifier.padding(end = 16.dp)
+                    }, modifier = Modifier.padding(end = 16.dp)
                 )
                 FilterChip(
-                    selected = showOnlyGiven > 0,
-                    onClick = { viewModel.toggleShowOnlyGiven() },
-                    label = {
+                    selected = showOnlyGiven > 0, onClick = {
+                        if (showOnlyGiven == 2) haptics.performHapticFeedback(HapticFeedbackType.ToggleOff)
+                        else haptics.performHapticFeedback(HapticFeedbackType.ToggleOn)
+                        viewModel.toggleShowOnlyGiven()
+                    }, label = {
                         when (showOnlyGiven) {
                             0 -> Text("Given or Rec.")
                             1 -> Text("Given")
                             2 -> Text("Received")
                         }
-                    },
-                    leadingIcon = {
+                    }, leadingIcon = {
                         if (showOnlyGiven > 0) {
                             Icon(
                                 imageVector = Icons.Default.Check,
@@ -108,8 +113,7 @@ fun HomeScreen(
                                 modifier = Modifier.size(18.dp)
                             )
                         }
-                    },
-                    modifier = Modifier.padding(end = 16.dp)
+                    }, modifier = Modifier.padding(end = 16.dp)
                 )
 
             }
@@ -141,7 +145,8 @@ fun HomeScreen(
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                val displayed = viewModel.getDisplayedVouches(showOnlyUnsettled, showOnlyGiven, vouches)
+                val displayed =
+                    viewModel.getDisplayedVouches(showOnlyUnsettled, showOnlyGiven, vouches)
                 itemsIndexed(
                     displayed, { _, item -> item.id }) { _, vouch ->
                     if (vouch.settled) {
