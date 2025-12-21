@@ -45,6 +45,13 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun unSettleVouch(vouch: VouchDataEntity) {
+        viewModelScope.launch {
+            repository.update(vouch.copy(settled = false))
+            loadVouches()
+        }
+    }
+
     fun toggleShowOnlyUnsettled() {
         _showOnlyUnsettled.value = !_showOnlyUnsettled.value
     }
@@ -53,8 +60,8 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         _showOnlyGiven.value = (_showOnlyGiven.value + 1) % 3
     }
 
-    fun getDisplayedVouches(showOnlyUnsettled: Boolean, showOnlyGiven: Int): List<VouchDataEntity> {
-        return vouches.value.filter {
+    fun getDisplayedVouches(showOnlyUnsettled: Boolean, showOnlyGiven: Int, vouches: List<VouchDataEntity>): List<VouchDataEntity> {
+        return vouches.filter {
             when (showOnlyUnsettled) {
                 true -> !it.settled
                 else -> true
