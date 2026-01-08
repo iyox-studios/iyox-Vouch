@@ -13,8 +13,8 @@ activityCompose = "1.11.0"
 composeBom = "2025.11.00"
 runtimeLivedata = "1.9.4"
 material3 = "1.5.0-alpha08"
-navigationRuntimeKtx = "2.8.9"
-navigationCompose = "2.8.9"
+navigationRuntimeKtx = "2.0.0"
+navigationCompose = "2.7.1"
 room = "2.8.4"
 
 [libraries]

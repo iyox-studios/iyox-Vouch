@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -72,12 +73,17 @@ fun HomeScreen(
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
         ) {
-            TopAppBar(title = {
-                Text(
-                    "Vouches", style = MaterialTheme.typography.displayLargeEmphasized
+            TopAppBar(
+                title = {
+                    Text(
+                        "Vouches", style = MaterialTheme.typography.displayLargeEmphasized
+                    )
+                },
+                windowInsets = WindowInsets(
+                    top = 15.dp,
                 )
-            })
-            Spacer(modifier = Modifier.height(10.dp))
+            )
+            Spacer(modifier = Modifier.height(50.dp))
             Row {
                 FilterChip(
                     selected = showOnlyUnsettled, onClick = {
