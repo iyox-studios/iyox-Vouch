@@ -1,8 +1,11 @@
 package com.iyox.vouch.view
 
-import android.os.Build
-import androidx.annotation.RequiresApi
+import android.icu.util.Currency
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -10,12 +13,12 @@ import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
-import androidx.compose.material3.ButtonGroup
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.iyox.vouch.viewmodel.AddVouchViewModel
@@ -32,11 +35,23 @@ fun AddVouchScreen(
     val description by viewModel.description.collectAsState()
     val saveSuccess by viewModel.saveSuccess.collectAsState()
 
+    var showCurrencyDialog by remember { mutableStateOf(false) }
+
     LaunchedEffect(saveSuccess) {
         if (saveSuccess) {
             viewModel.resetSaveSuccess()
             onNavigateBack()
         }
+    }
+
+    if (showCurrencyDialog) {
+        CurrencySelectionDialog(
+            currentCurrency = currency,
+            onDismiss = { showCurrencyDialog = false },
+            onCurrencySelected = { selectedCurrency ->
+                viewModel.onCurrencyChange(selectedCurrency)
+                showCurrencyDialog = false
+            })
     }
 
     Scaffold(
@@ -61,7 +76,7 @@ fun AddVouchScreen(
                 modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically
             ) {
                 Button(
-                    onClick = { },
+                    onClick = { showCurrencyDialog = true },
                     modifier = Modifier.defaultMinSize(minWidth = 0.dp, minHeight = 0.dp),
                     shape = MaterialTheme.shapes.small,
                     elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp),
@@ -75,11 +90,14 @@ fun AddVouchScreen(
                         Text(
                             currency.symbol,
                             style = MaterialTheme.typography.displayLarge,
+                            modifier = Modifier.padding(start = 10.dp) //strangely more padding than for icon, but only this looks right
                         )
                         Icon(
                             imageVector = Icons.Filled.ArrowDropDown,
                             contentDescription = null,
-                            modifier = Modifier.size(24.dp),
+                            modifier = Modifier
+                                .size(24.dp)
+                                .padding(end = 4.dp)
                         )
                     }
                 }
@@ -94,7 +112,9 @@ fun AddVouchScreen(
                     singleLine = true,
                     placeholder = {
                         Text(
-                            "00.00", style = MaterialTheme.typography.displayLarge
+                            "00" + (if (currency.defaultFractionDigits > 0) "." else "") + "0".repeat(
+                                currency.defaultFractionDigits
+                            ), style = MaterialTheme.typography.displayLarge
                         )
                     },
                     colors = TextFieldDefaults.colors(
@@ -184,4 +204,70 @@ fun AddVouchScreen(
             }
         }
     }
+}
+
+@Composable
+fun CurrencySelectionDialog(
+    currentCurrency: Currency, onDismiss: () -> Unit, onCurrencySelected: (Currency) -> Unit
+) {
+    val currencies = remember {
+        listOf(
+            Currency.getInstance("USD"), // US Dollar
+            Currency.getInstance("EUR"), // Euro
+            Currency.getInstance("GBP"), // British Pound
+            Currency.getInstance("JPY"), // Japanese Yen
+            Currency.getInstance("CHF"), // Swiss Franc
+            Currency.getInstance("CAD"), // Canadian Dollar
+            Currency.getInstance("AUD"), // Australian Dollar
+            Currency.getInstance("CNY"), // Chinese Yuan
+            Currency.getInstance("INR")  // Indian Rupee
+        )
+    }
+
+    AlertDialog(onDismissRequest = onDismiss, title = { Text("Select Currency") }, text = {
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(3),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            items(currencies) { currency ->
+                Card(
+                    modifier = Modifier
+                        .aspectRatio(1f)
+                        .clickable { onCurrencySelected(currency) },
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (currency.currencyCode == currentCurrency.currencyCode) {
+                            MaterialTheme.colorScheme.primaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.surface
+                        }
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = currency.symbol,
+                            style = MaterialTheme.typography.headlineMedium,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = currency.currencyCode,
+                            style = MaterialTheme.typography.bodySmall,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
+            }
+        }
+    }, confirmButton = {
+        TextButton(onClick = onDismiss) {
+            Text("Cancel")
+        }
+    })
 }
