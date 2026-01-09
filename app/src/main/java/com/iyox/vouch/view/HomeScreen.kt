@@ -69,9 +69,7 @@ fun HomeScreen(
 
     Scaffold(topBar = {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
+            modifier = Modifier.fillMaxWidth()
         ) {
             TopAppBar(
                 title = {
@@ -80,11 +78,13 @@ fun HomeScreen(
                     )
                 },
                 windowInsets = WindowInsets(
-                    top = 15.dp,
+                    top = 15.dp
                 )
             )
             Spacer(modifier = Modifier.height(50.dp))
-            Row {
+            Row(
+                modifier = Modifier.padding(horizontal = 16.dp)
+            ) {
                 FilterChip(
                     selected = showOnlyUnsettled, onClick = {
                         if (showOnlyUnsettled) haptics.performHapticFeedback(HapticFeedbackType.ToggleOff)
