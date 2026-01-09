@@ -15,10 +15,12 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     private val _vouches = MutableStateFlow<List<VouchDataEntity>>(emptyList())
     private val _showOnlyUnsettled = MutableStateFlow(true)
     private val _showOnlyGiven = MutableStateFlow(0)
+    private val _sortedBy = MutableStateFlow(0)
 
     val vouches: StateFlow<List<VouchDataEntity>> = _vouches
     val showOnlyUnsettled: StateFlow<Boolean> = _showOnlyUnsettled
     val showOnlyGiven: StateFlow<Int> = _showOnlyGiven
+    val sortedBy: StateFlow<Int> = _sortedBy
 
 
     init {
@@ -59,6 +61,11 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     fun toggleShowOnlyGiven() {
         _showOnlyGiven.value = (_showOnlyGiven.value + 1) % 3
     }
+
+    fun toggleSortedBy() {
+        _sortedBy.value = (_sortedBy.value + 1) % 3
+    }
+
 
     fun getDisplayedVouches(showOnlyUnsettled: Boolean, showOnlyGiven: Int, vouches: List<VouchDataEntity>): List<VouchDataEntity> {
         return vouches.filter {

@@ -5,6 +5,7 @@ import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
@@ -18,6 +19,7 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.compose.material3.ShortNavigationBar
 import androidx.compose.material3.ShortNavigationBarItem
 import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Payments
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -39,7 +41,7 @@ fun AppNavigation() {
     val haptic = LocalHapticFeedback.current
 
     val navigationItems = listOf(
-        NavigationItem(Screen.Home, Icons.Outlined.Home, Icons.Filled.Home),
+        NavigationItem(Screen.Vouches, Icons.Outlined.Payments, Icons.Filled.Payments),
         NavigationItem(Screen.Settings, Icons.Outlined.Settings, Icons.Filled.Settings)
     )
 
@@ -75,13 +77,13 @@ fun AppNavigation() {
         }) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = Screen.Home.route,
+            startDestination = Screen.Vouches.route,
             modifier = Modifier.padding(innerPadding),
             enterTransition = { EnterTransition.None },
             exitTransition = { ExitTransition.None },
             popEnterTransition = { EnterTransition.None },
             popExitTransition = { ExitTransition.None }) {
-            composable(Screen.Home.route) {
+            composable(Screen.Vouches.route) {
                 HomeScreen(
                     onNavigateToAddVouch = {
                         navController.navigate(Screen.AddVouch.route)

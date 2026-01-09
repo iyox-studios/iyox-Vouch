@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.outlined.ArrowOutward
 import androidx.compose.material.icons.outlined.SouthWest
 import androidx.compose.material3.Card
@@ -61,6 +62,7 @@ fun HomeScreen(
     val vouches by viewModel.vouches.collectAsState()
     val showOnlyUnsettled by viewModel.showOnlyUnsettled.collectAsState()
     val showOnlyGiven by viewModel.showOnlyGiven.collectAsState()
+    val sortedBy by viewModel.sortedBy.collectAsState()
 
 
     LaunchedEffect(Unit) {
@@ -78,13 +80,31 @@ fun HomeScreen(
                     )
                 },
                 windowInsets = WindowInsets(
-                    top = 15.dp
+                    top = 20.dp
                 )
             )
             Spacer(modifier = Modifier.height(50.dp))
             Row(
                 modifier = Modifier.padding(horizontal = 16.dp)
             ) {
+                FilterChip(
+                    selected = true, onClick = {
+                        haptics.performHapticFeedback(HapticFeedbackType.ToggleOn)
+                        viewModel.toggleSortedBy()
+                    }, label = {
+                        when (sortedBy) {
+                            0 -> Text("Date")
+                            1 -> Text("Amount")
+                            2 -> Text("Person")
+                        }
+                    }, leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.FilterList,
+                            contentDescription = "Selected",
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }, modifier = Modifier.padding(end = 16.dp)
+                )
                 FilterChip(
                     selected = showOnlyUnsettled, onClick = {
                         if (showOnlyUnsettled) haptics.performHapticFeedback(HapticFeedbackType.ToggleOff)
@@ -121,7 +141,6 @@ fun HomeScreen(
                         }
                     }, modifier = Modifier.padding(end = 16.dp)
                 )
-
             }
         }
 
@@ -153,8 +172,14 @@ fun HomeScreen(
             ) {
                 val displayed =
                     viewModel.getDisplayedVouches(showOnlyUnsettled, showOnlyGiven, vouches)
+                val displayedSorted = when (sortedBy) {
+                    0 -> displayed.sortedBy { it.timestamp }
+                    1 -> displayed.sortedBy { it.amount }
+                    2 -> displayed.sortedBy { it.person ?: "" }
+                    else -> displayed.sortedBy { it.timestamp }
+                }.reversed()
                 itemsIndexed(
-                    displayed, { _, item -> item.id }) { _, vouch ->
+                    displayedSorted, { _, item -> item.id }) { _, vouch ->
                     if (vouch.settled) {
                         Box(modifier = Modifier.alpha(0.6f)) {
                             VouchItem(
@@ -203,7 +228,7 @@ fun VouchItem(
             ) {
                 Surface(
                     shape = MaterialTheme.shapes.medium,
-                    color = if (vouch.given) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.errorContainer,
+                    color = if (vouch.given) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.tertiaryContainer,
                     modifier = Modifier.size(48.dp)
                 ) {
                     Box(contentAlignment = Alignment.Center) {
