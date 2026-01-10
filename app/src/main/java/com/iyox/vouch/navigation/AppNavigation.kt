@@ -23,6 +23,7 @@ import androidx.compose.material.icons.outlined.Payments
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -31,6 +32,8 @@ import com.iyox.vouch.view.AddVouchScreen
 import com.iyox.vouch.view.HomeScreen
 import com.iyox.vouch.view.PersonsScreen
 import com.iyox.vouch.view.SettingsScreen
+import com.iyox.vouch.viewmodel.HomeViewModel
+import com.iyox.vouch.viewmodel.PersonsViewModel
 
 data class NavigationItem(
     val screen: Screen, val icon: ImageVector, val iconSelected: ImageVector
@@ -85,13 +88,18 @@ fun AppNavigation() {
             exitTransition = { ExitTransition.None },
             popEnterTransition = { EnterTransition.None },
             popExitTransition = { ExitTransition.None }) {
-            composable(Screen.Vouches.route) {
+            composable(Screen.Vouches.route) { backStackEntry ->
+                val homeViewModel: HomeViewModel = viewModel(viewModelStoreOwner = backStackEntry)
                 HomeScreen(
+                    viewModel = homeViewModel,
                     onNavigateToAddVouch = {
                         navController.navigate(Screen.AddVouch.route)
                     })
             }
-            composable(Screen.Persons.route ) { PersonsScreen() }
+            composable(Screen.Persons.route ) { backStackEntry ->
+                val personsViewModel: PersonsViewModel = viewModel(viewModelStoreOwner = backStackEntry)
+                PersonsScreen(viewModel = personsViewModel)
+            }
             composable(Screen.Settings.route) { SettingsScreen() }
             composable(Screen.AddVouch.route) {
                 AddVouchScreen(

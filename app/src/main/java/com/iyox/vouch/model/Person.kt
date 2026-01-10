@@ -25,7 +25,7 @@ interface PersonDao {
     @Query("SELECT * FROM Person WHERE name LIKE '%' || :query || '%'")
     suspend fun findPersonsByName(query: String): List<Person>
 
-    @Query("SELECT Person.*, SUM(CASE WHEN Vouch.settled = 0 THEN Vouch.amount ELSE 0 END) AS totalAmount, COUNT(Vouch.id) AS vouchCount FROM Person INNER JOIN Vouch ON Person.name = Vouch.personName WHERE (:query IS NULL OR Person.name LIKE '%' || :query || '%') GROUP BY Person.id")
+    @Query("SELECT Person.*, SUM(CASE WHEN Vouch.settled = 0 THEN Vouch.amount ELSE 0 END) AS totalAmount, SUM(CASE WHEN Vouch.settled = 0 THEN 1 ELSE 0 END) AS vouchCount FROM Person INNER JOIN Vouch ON Person.name = Vouch.personName WHERE (:query IS NULL OR Person.name LIKE '%' || :query || '%') GROUP BY Person.id")
     suspend fun getPersonsWithTotal(query: String? = null): List<PersonWithTotal>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
