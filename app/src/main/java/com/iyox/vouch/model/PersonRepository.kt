@@ -5,20 +5,31 @@ import android.content.Context
 class PersonRepository private constructor(context: Context) {
 
     private val personDao = AppDatabase.getDatabase(context).personDao()
-    private val contactsRepository = ContactsRepository(context.contentResolver)
 
-    data class CombinedPersonResult(
-        val id: String,
-        val name: String,
-    )
+    suspend fun searchPersons(query: String): List<Person> {
+        val localResults = personDao.findPersonsByName(query)
 
-    suspend fun searchPersonsCombined(query: String): List<Person> {
-        val localResults = personDao.searchPersons(query)
-        val deviceResults = contactsRepository.searchContacts(query)
-
-        return (localResults + deviceResults)
-            .sortedBy { it.firstName }
+        return (localResults).sortedBy { it.name }
     }
+
+    suspend fun getPersonsWithTotal(): List<PersonWithTotal> {
+        return personDao.getPersonsWithTotal()
+    }
+
+    suspend fun onVouchInserted(vouch: Vouch) {
+        if(vouch.personName == null) return
+        val existingPerson = personDao.findPersonsByName(vouch.personName)
+        if (existingPerson.isEmpty()) {
+            val newPerson = Person(name = vouch.personName)
+            personDao.insert(newPerson)
+        }
+    }
+
+
+    suspend fun insertPerson(person: Person) {
+        personDao.insert(person)
+    }
+
 
     companion object {
         @Volatile

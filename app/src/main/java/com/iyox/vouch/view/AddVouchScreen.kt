@@ -1,11 +1,14 @@
 package com.iyox.vouch.view
 
 import android.icu.util.Currency
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -32,6 +35,7 @@ fun AddVouchScreen(
     val currency by viewModel.currency.collectAsState()
     val given by viewModel.given.collectAsState()
     val person by viewModel.person.collectAsState()
+    val personSearchResults by viewModel.personSearchResults.collectAsState()
     val description by viewModel.description.collectAsState()
     val saveSuccess by viewModel.saveSuccess.collectAsState()
 
@@ -178,6 +182,29 @@ fun AddVouchScreen(
                 },
                 maxLines = 3,
             )
+
+            AnimatedVisibility(visible = personSearchResults.isNotEmpty()) {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 200.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    items(items = personSearchResults, key = { it.id }) { searchResult ->
+                        Card(modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                viewModel.onPersonSelected(searchResult)
+                            }) {
+                            Text(
+                                text = searchResult.name,
+                                modifier = Modifier.padding(16.dp),
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                        }
+                    }
+                }
+            }
 
             OutlinedTextField(
                 value = description,

@@ -6,23 +6,30 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.PrimaryKey
 import androidx.room.Query
+import androidx.room.Embedded
+import java.math.BigDecimal
 
 
 @Entity
 data class Person(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    val firstName: String,
-    val secondName: String?
+    val name: String
+)
+
+data class PersonWithTotal(
+    @Embedded val person: Person,
+    val totalAmount: BigDecimal?,
+    val vouchCount: Int
 )
 
 @Dao
 interface PersonDao {
-    @Query("SELECT * FROM Person WHERE firstName LIKE '%' || :query || '%' OR secondName LIKE '%' || :query || '%'")
-    suspend fun searchPersons(query: String): List<Person>
+    @Query("SELECT * FROM Person WHERE name LIKE '%' || :query || '%'")
+    suspend fun findPersonsByName(query: String): List<Person>
+
+    @Query("SELECT Person.*, SUM(Vouch.amount) as totalAmount, COUNT(Vouch.id) as vouchCount FROM Person LEFT JOIN Vouch ON Person.name = Vouch.personName GROUP BY Person.id")
+    suspend fun getPersonsWithTotal(): List<PersonWithTotal>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(person: Person): Long
-
-    @Query("SELECT * FROM Person WHERE firstName = :firstName AND secondName = :secondName LIMIT 1")
-    suspend fun findByName(firstName: String, secondName: String): Person?
 }

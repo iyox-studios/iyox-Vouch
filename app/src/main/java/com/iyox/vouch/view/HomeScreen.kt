@@ -176,7 +176,7 @@ fun HomeScreen(
                 val displayedSorted = when (sortedBy) {
                     0 -> displayed.sortedBy { it.timestamp }
                     1 -> displayed.sortedBy { it.amount }
-                    2 -> displayed.sortedBy { it.person ?: "" }
+                    2 -> displayed.sortedBy { it.personName ?: "" }
                     else -> displayed.sortedBy { it.timestamp }
                 }.reversed()
                 itemsIndexed(
@@ -258,8 +258,8 @@ fun VouchItem(
 
                 Spacer(modifier = Modifier.width(16.dp))
 
-                if (vouch.person != null) Text(
-                    text = vouch.person,
+                if (vouch.personName != null) Text(
+                    text = vouch.personName,
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant

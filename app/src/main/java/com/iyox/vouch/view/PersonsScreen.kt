@@ -27,7 +27,7 @@ fun PersonsScreen(
     val persons by viewModel.persons.collectAsState()
 
     LaunchedEffect(Unit) {
-        viewModel.loadVouches()
+        viewModel.loadPersons()
     }
 
     Scaffold(
@@ -55,11 +55,11 @@ fun PersonsScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            items(persons) { person ->
+            items(persons) { personWithTotal ->
                 PersonCard(
-                    name = "",
-                    amount = BigDecimal.ZERO,
-                    vouchCount = 0
+                    name = personWithTotal.person.name,
+                    amount = personWithTotal.totalAmount ?: BigDecimal.ZERO,
+                    vouchCount = personWithTotal.vouchCount
                 )
             }
         }

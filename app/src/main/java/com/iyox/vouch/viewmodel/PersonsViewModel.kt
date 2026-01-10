@@ -1,50 +1,27 @@
-package com.iyox.vouch.viewmodel;
+package com.iyox.vouch.viewmodel
 
-import android.app.Application;
+import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.iyox.vouch.model.Person
-import com.iyox.vouch.model.Vouch
-import com.iyox.vouch.model.VouchRepository
+import com.iyox.vouch.model.PersonRepository
+import com.iyox.vouch.model.PersonWithTotal
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class PersonsViewModel(application: Application) : AndroidViewModel(application) {
-    private val repository = VouchRepository.getInstance(application)
-    private val _vouches = MutableStateFlow<List<Vouch>>(emptyList())
-    val vouches: StateFlow<List<Vouch>> = _vouches
-    val persons: StateFlow<List<Person>> = _vouches
-        .map { vouches ->
-            vouches
-                .filter { !it.person.isNullOrBlank() && !it.settled }
-                .groupBy { it.person!! }
-                .map { (personName, personVouches) ->
-                    val totalAmount = personVouches.sumOf { vouch ->
-                        if (vouch.given) {
-                            vouch.amount
-                        } else {
-                            -vouch.amount
-                        }
-                    }
-                    Person(
-                        TODO(), TODO(), TODO()
-                    )
-                }
-                //.sortedByDescending { it.totalAmount }
-        }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    private val repository = PersonRepository.getInstance(application)
 
-init {
-    loadVouches()
-}
+    private val _persons = MutableStateFlow<List<PersonWithTotal>>(emptyList())
+    val persons: StateFlow<List<PersonWithTotal>> = _persons
 
-fun loadVouches() {
-    viewModelScope.launch {
-        _vouches.value = repository.getAll()
+    init {
+        loadPersons()
     }
-}
+
+    fun loadPersons() {
+        viewModelScope.launch {
+            _persons.value = repository.getPersonsWithTotal()
+        }
+    }
 }

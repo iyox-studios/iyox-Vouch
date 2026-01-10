@@ -4,8 +4,11 @@ import android.app.Application
 import android.icu.util.Currency
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.iyox.vouch.model.Person
+import com.iyox.vouch.model.PersonRepository
 import com.iyox.vouch.model.Vouch
 import com.iyox.vouch.model.VouchRepository
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -14,6 +17,7 @@ import java.math.BigDecimal
 class AddVouchViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = VouchRepository.getInstance(application)
+    private val personRepository = PersonRepository.getInstance(application)
 
     private val _amount = MutableStateFlow("")
     val amount: StateFlow<String> = _amount
@@ -21,8 +25,11 @@ class AddVouchViewModel(application: Application) : AndroidViewModel(application
     private val _given = MutableStateFlow(true)
     val given: StateFlow<Boolean> = _given
 
-    private val _person = MutableStateFlow("")
-    val person: StateFlow<String> = _person
+    private val _personName = MutableStateFlow("")
+    val person: StateFlow<String> = _personName
+
+    private val _personSearchResults = MutableStateFlow<List<Person>>(emptyList())
+    val personSearchResults: StateFlow<List<Person>> = _personSearchResults
 
     private val _currency = MutableStateFlow(Currency.getInstance("EUR"))
     val currency: StateFlow<Currency> = _currency
@@ -33,6 +40,8 @@ class AddVouchViewModel(application: Application) : AndroidViewModel(application
     private val _saveSuccess = MutableStateFlow(false)
     val saveSuccess: StateFlow<Boolean> = _saveSuccess
 
+    private var searchJob: Job? = null
+
     fun onAmountChange(value: String) {
         _amount.value = value
     }
@@ -42,7 +51,21 @@ class AddVouchViewModel(application: Application) : AndroidViewModel(application
     }
 
     fun onPersonChange(value: String) {
-        _person.value = value
+        _personName.value = value
+        searchJob?.cancel()
+        searchJob = viewModelScope.launch {
+            if (value.isNotBlank()) {
+                _personSearchResults.value = personRepository.searchPersons(value)
+            } else {
+                _personSearchResults.value = emptyList()
+            }
+        }
+    }
+
+    fun onPersonSelected(person: Person) {
+        _personName.value = person.name
+        _personSearchResults.value = emptyList()
+        searchJob?.cancel()
     }
 
 
@@ -81,7 +104,7 @@ class AddVouchViewModel(application: Application) : AndroidViewModel(application
                 id = System.currentTimeMillis().toInt(),
                 amount = amountBigDecimal,
                 description = _description.value,
-                person = _person.value,
+                personName = _personName.value,
                 given = _given.value,
                 currency = _currency.value,
             )
@@ -94,4 +117,3 @@ class AddVouchViewModel(application: Application) : AndroidViewModel(application
         _saveSuccess.value = false
     }
 }
-
