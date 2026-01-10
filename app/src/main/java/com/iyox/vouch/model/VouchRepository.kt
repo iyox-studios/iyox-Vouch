@@ -1,29 +1,21 @@
 package com.iyox.vouch.model
 
 import android.content.Context
+import java.math.BigDecimal
+
 class VouchRepository private constructor(context: Context) {
 
     private val database = AppDatabase.getDatabase(context)
     private val vouchDataDao = database.vouchDataDao()
+    private val personRepository = PersonRepository.getInstance(context)
 
     suspend fun getAll(): List<Vouch> {
         return vouchDataDao.getAll()
     }
 
-    suspend fun insert(vouch: Vouch, name: String? = null) {
+    suspend fun insert(vouch: Vouch) {
         vouchDataDao.insert(vouch)
-        val personID = vouch.personID
-        if (personID == null)
-        {
-            val split = name?.split(" ")
-            val firstName = split?.getOrNull(0)
-            val secondName = split?.getOrNull(1)
-
-            if (firstName != null && secondName != null) {
-                val person = Person(firstName = firstName, secondName = secondName)
-                database.personDao().insert(person)
-            }
-        }
+        personRepository.onVouchInserted(vouch)
     }
 
     suspend fun delete(vouch: Vouch) {

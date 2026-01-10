@@ -11,7 +11,7 @@ data class Vouch(
     val amount: BigDecimal,
     val currency: Currency,
     val description: String = "",
-    val personID: Int? = null,
+    val personName: String? = null,
     val given: Boolean = true,
     val settled: Boolean = false,
     val timestamp: Timestamp = Timestamp(System.currentTimeMillis())
@@ -21,6 +21,9 @@ data class Vouch(
 interface VouchDataDao {
     @Query("SELECT * FROM Vouch")
     suspend fun getAll(): List<Vouch>
+
+    @Query("SELECT SUM(amount) FROM Vouch WHERE personName = :personName")
+    suspend fun getSumAllVouches(personName: String): BigDecimal
 
     @Insert
     suspend fun insert(vouch: Vouch)
