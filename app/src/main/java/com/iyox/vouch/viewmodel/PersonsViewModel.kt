@@ -3,8 +3,8 @@ package com.iyox.vouch.viewmodel;
 import android.app.Application;
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.iyox.vouch.model.PersonData
-import com.iyox.vouch.model.VouchDataEntity
+import com.iyox.vouch.model.Person
+import com.iyox.vouch.model.Vouch
 import com.iyox.vouch.model.VouchRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -15,9 +15,9 @@ import kotlinx.coroutines.launch
 
 class PersonsViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = VouchRepository.getInstance(application)
-    private val _vouches = MutableStateFlow<List<VouchDataEntity>>(emptyList())
-    val vouches: StateFlow<List<VouchDataEntity>> = _vouches
-    val persons: StateFlow<List<PersonData>> = _vouches
+    private val _vouches = MutableStateFlow<List<Vouch>>(emptyList())
+    val vouches: StateFlow<List<Vouch>> = _vouches
+    val persons: StateFlow<List<Person>> = _vouches
         .map { vouches ->
             vouches
                 .filter { !it.person.isNullOrBlank() && !it.settled }
@@ -30,12 +30,11 @@ class PersonsViewModel(application: Application) : AndroidViewModel(application)
                             -vouch.amount
                         }
                     }
-                    PersonData(
-                        name = personName,
-                        totalAmount = totalAmount
+                    Person(
+                        TODO(), TODO(), TODO()
                     )
                 }
-                .sortedByDescending { it.totalAmount }
+                //.sortedByDescending { it.totalAmount }
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 

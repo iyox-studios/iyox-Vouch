@@ -2,11 +2,9 @@ package com.iyox.vouch.viewmodel
 
 import android.app.Application
 import android.icu.util.Currency
-import android.icu.util.CurrencyAmount
-import androidx.compose.ui.text.Placeholder
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.iyox.vouch.model.VouchDataEntity
+import com.iyox.vouch.model.Vouch
 import com.iyox.vouch.model.VouchRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -79,7 +77,7 @@ class AddVouchViewModel(application: Application) : AndroidViewModel(application
                 _saveSuccess.value = false
                 return@launch
             }
-            val vouch = VouchDataEntity(
+            val vouch = Vouch(
                 id = System.currentTimeMillis().toInt(),
                 amount = amountBigDecimal,
                 description = _description.value,

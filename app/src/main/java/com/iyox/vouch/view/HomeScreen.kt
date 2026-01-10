@@ -19,10 +19,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material.icons.outlined.ArrowOutward
 import androidx.compose.material.icons.outlined.SouthWest
 import androidx.compose.material3.Card
@@ -50,7 +48,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.iyox.vouch.ui.components.VouchSwipeToDismiss
-import com.iyox.vouch.model.VouchDataEntity
+import com.iyox.vouch.model.Vouch
 import com.iyox.vouch.viewmodel.HomeViewModel
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -206,7 +204,7 @@ fun HomeScreen(
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun VouchItem(
-    vouch: VouchDataEntity,
+    vouch: Vouch,
     canSettle: Boolean = true,
     onSettle: () -> Unit,
     onDelete: () -> Unit = {}

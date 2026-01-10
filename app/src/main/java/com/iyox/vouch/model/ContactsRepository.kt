@@ -7,31 +7,42 @@ import kotlinx.coroutines.withContext
 
 class ContactsRepository(private val contentResolver: ContentResolver) {
 
-    suspend fun fetchContacts(): List<ContactData> = withContext(Dispatchers.IO) {
-        val contactData = mutableListOf<ContactData>()
+    suspend fun searchContacts(query: String): List<Person> = withContext(Dispatchers.IO) {
+        val contactData = mutableListOf<Person>()
 
         val projection = arrayOf(
             ContactsContract.Contacts._ID,
-            ContactsContract.Contacts.DISPLAY_NAME_PRIMARY,
+            ContactsContract.Contacts.DISPLAY_NAME_PRIMARY
         )
+
+        val selection = "${ContactsContract.Contacts.DISPLAY_NAME_PRIMARY} LIKE ?"
+
+        val selectionArgs = arrayOf("%$query%")
+
+        val sortOrder = "${ContactsContract.Contacts.DISPLAY_NAME_PRIMARY} ASC"
 
         val cursor = contentResolver.query(
             ContactsContract.Contacts.CONTENT_URI,
             projection,
-            null,
-            null,
-            ContactsContract.Contacts.DISPLAY_NAME_PRIMARY + " ASC"
+            selection,
+            selectionArgs,
+            sortOrder
         )
 
         cursor?.use {
-            val idIndex = it.getColumnIndex(ContactsContract.Contacts._ID)
             val nameIndex = it.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME_PRIMARY)
 
-            while (it.moveToNext()) {
-                val id = it.getString(idIndex)
+            var count = 0
+            while (it.moveToNext() && count < 20) {
                 val name = it.getString(nameIndex) ?: "Unknown"
 
-                contactData.add(ContactData(id, name))
+                if (name.isNotBlank()) {
+                    val parts = name.trim().split("\\s+".toRegex())
+                    val firstName = parts.getOrNull(0) ?: ""
+                    val secondName = parts.drop(1).joinToString(" ")
+                    contactData.add(Person(-1, firstName, secondName))
+                    count++
+                }
             }
         }
 

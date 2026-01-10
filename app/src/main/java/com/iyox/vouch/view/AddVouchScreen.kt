@@ -212,8 +212,8 @@ fun CurrencySelectionDialog(
 ) {
     val currencies = remember {
         listOf(
-            Currency.getInstance("USD"), // US Dollar
             Currency.getInstance("EUR"), // Euro
+            Currency.getInstance("USD"), // US Dollar
             Currency.getInstance("GBP"), // British Pound
             Currency.getInstance("JPY"), // Japanese Yen
             Currency.getInstance("CHF"), // Swiss Franc
