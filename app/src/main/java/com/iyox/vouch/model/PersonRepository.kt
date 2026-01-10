@@ -13,7 +13,11 @@ class PersonRepository private constructor(context: Context) {
     }
 
     suspend fun getPersonsWithTotal(query: String? = null): List<PersonWithTotal> {
-        return personDao.getPersonsWithTotal(query)
+        return if (query.isNullOrEmpty()) {
+            personDao.getPersonsWithTotalAll()
+        } else {
+            personDao.getPersonsWithTotalFiltered(query)
+        }
     }
 
     suspend fun onVouchInserted(vouch: Vouch) {
