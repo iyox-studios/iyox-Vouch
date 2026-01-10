@@ -213,14 +213,13 @@ fun VouchItem(
 ) {
     val dateFormat = SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
 
-    val largeRadius = 20.dp
 
     val content = @Composable {
         Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(largeRadius),
+            shape = RoundedCornerShape(24.dp),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                containerColor = MaterialTheme.colorScheme.surfaceContainer
             )
         ) {
             Row(
@@ -231,7 +230,7 @@ fun VouchItem(
             ) {
                 Surface(
                     shape = MaterialTheme.shapes.medium,
-                    color = if (vouch.given) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.tertiaryContainer,
+                    color = if (vouch.given) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onError,
                     modifier = Modifier.size(48.dp)
                 ) {
                     Box(contentAlignment = Alignment.Center) {
