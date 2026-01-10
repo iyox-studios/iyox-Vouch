@@ -77,7 +77,7 @@ fun PersonCard(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainer
         ),
-        shape = RoundedCornerShape(24.dp),
+        shape = MaterialTheme.shapes.largeIncreased,
         modifier = Modifier
             .fillMaxWidth()
             .aspectRatio(1f)
