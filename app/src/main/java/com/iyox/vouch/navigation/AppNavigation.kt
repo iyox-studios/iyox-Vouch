@@ -4,9 +4,10 @@ import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.outlined.Group
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -18,7 +19,6 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.compose.material3.ShortNavigationBar
 import androidx.compose.material3.ShortNavigationBarItem
-import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Payments
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -29,6 +29,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.iyox.vouch.view.AddVouchScreen
 import com.iyox.vouch.view.HomeScreen
+import com.iyox.vouch.view.PersonsScreen
 import com.iyox.vouch.view.SettingsScreen
 
 data class NavigationItem(
@@ -42,6 +43,7 @@ fun AppNavigation() {
 
     val navigationItems = listOf(
         NavigationItem(Screen.Vouches, Icons.Outlined.Payments, Icons.Filled.Payments),
+        NavigationItem(Screen.Persons, Icons.Outlined.Group, Icons.Filled.Group),
         NavigationItem(Screen.Settings, Icons.Outlined.Settings, Icons.Filled.Settings)
     )
 
@@ -89,6 +91,7 @@ fun AppNavigation() {
                         navController.navigate(Screen.AddVouch.route)
                     })
             }
+            composable(Screen.Persons.route ) { PersonsScreen() }
             composable(Screen.Settings.route) { SettingsScreen() }
             composable(Screen.AddVouch.route) {
                 AddVouchScreen(

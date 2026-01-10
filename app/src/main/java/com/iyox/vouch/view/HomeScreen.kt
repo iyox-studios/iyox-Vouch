@@ -17,9 +17,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material.icons.outlined.ArrowOutward
 import androidx.compose.material.icons.outlined.SouthWest
 import androidx.compose.material3.Card
@@ -76,7 +79,7 @@ fun HomeScreen(
             TopAppBar(
                 title = {
                     Text(
-                        "Vouches", style = MaterialTheme.typography.displayLargeEmphasized
+                        "Vouches", style = MaterialTheme.typography.displayMedium
                     )
                 },
                 windowInsets = WindowInsets(
@@ -99,25 +102,10 @@ fun HomeScreen(
                         }
                     }, leadingIcon = {
                         Icon(
-                            imageVector = Icons.Default.FilterList,
+                            imageVector = Icons.AutoMirrored.Filled.Sort,
                             contentDescription = "Selected",
                             modifier = Modifier.size(18.dp)
                         )
-                    }, modifier = Modifier.padding(end = 16.dp)
-                )
-                FilterChip(
-                    selected = showOnlyUnsettled, onClick = {
-                        if (showOnlyUnsettled) haptics.performHapticFeedback(HapticFeedbackType.ToggleOff)
-                        else haptics.performHapticFeedback(HapticFeedbackType.ToggleOn)
-                        viewModel.toggleShowOnlyUnsettled()
-                    }, label = { Text("Unsettled") }, leadingIcon = {
-                        if (showOnlyUnsettled) {
-                            Icon(
-                                imageVector = Icons.Default.Check,
-                                contentDescription = "Selected",
-                                modifier = Modifier.size(18.dp)
-                            )
-                        }
                     }, modifier = Modifier.padding(end = 16.dp)
                 )
                 FilterChip(
@@ -127,12 +115,27 @@ fun HomeScreen(
                         viewModel.toggleShowOnlyGiven()
                     }, label = {
                         when (showOnlyGiven) {
-                            0 -> Text("Given or Rec.")
+                            0 -> Text("Giv. & Rec.")
                             1 -> Text("Given")
                             2 -> Text("Received")
                         }
                     }, leadingIcon = {
                         if (showOnlyGiven > 0) {
+                            Icon(
+                                imageVector = Icons.Default.FilterList,
+                                contentDescription = "Selected",
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    }, modifier = Modifier.padding(end = 16.dp)
+                )
+                FilterChip(
+                    selected = showOnlyUnsettled, onClick = {
+                        if (showOnlyUnsettled) haptics.performHapticFeedback(HapticFeedbackType.ToggleOff)
+                        else haptics.performHapticFeedback(HapticFeedbackType.ToggleOn)
+                        viewModel.toggleShowOnlyUnsettled()
+                    }, label = { Text("Unsettled") }, leadingIcon = {
+                        if (showOnlyUnsettled) {
                             Icon(
                                 imageVector = Icons.Default.Check,
                                 contentDescription = "Selected",
