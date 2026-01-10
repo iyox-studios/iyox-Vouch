@@ -3,7 +3,7 @@ package com.iyox.vouch.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.iyox.vouch.model.VouchDataEntity
+import com.iyox.vouch.model.Vouch
 import com.iyox.vouch.model.VouchRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -12,12 +12,12 @@ import kotlinx.coroutines.launch
 class HomeViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = VouchRepository.getInstance(application)
 
-    private val _vouches = MutableStateFlow<List<VouchDataEntity>>(emptyList())
+    private val _vouches = MutableStateFlow<List<Vouch>>(emptyList())
     private val _showOnlyUnsettled = MutableStateFlow(true)
     private val _showOnlyGiven = MutableStateFlow(0)
     private val _sortedBy = MutableStateFlow(0)
 
-    val vouches: StateFlow<List<VouchDataEntity>> = _vouches
+    val vouches: StateFlow<List<Vouch>> = _vouches
     val showOnlyUnsettled: StateFlow<Boolean> = _showOnlyUnsettled
     val showOnlyGiven: StateFlow<Int> = _showOnlyGiven
     val sortedBy: StateFlow<Int> = _sortedBy
@@ -33,21 +33,21 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun deleteVouch(vouch: VouchDataEntity) {
+    fun deleteVouch(vouch: Vouch) {
         viewModelScope.launch {
             repository.delete(vouch)
             loadVouches()
         }
     }
 
-    fun settleVouch(vouch: VouchDataEntity) {
+    fun settleVouch(vouch: Vouch) {
         viewModelScope.launch {
             repository.update(vouch.copy(settled = true))
             loadVouches()
         }
     }
 
-    fun unSettleVouch(vouch: VouchDataEntity) {
+    fun unSettleVouch(vouch: Vouch) {
         viewModelScope.launch {
             repository.update(vouch.copy(settled = false))
             loadVouches()
@@ -67,7 +67,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     }
 
 
-    fun getDisplayedVouches(showOnlyUnsettled: Boolean, showOnlyGiven: Int, vouches: List<VouchDataEntity>): List<VouchDataEntity> {
+    fun getDisplayedVouches(showOnlyUnsettled: Boolean, showOnlyGiven: Int, vouches: List<Vouch>): List<Vouch> {
         return vouches.filter {
             when (showOnlyUnsettled) {
                 true -> !it.settled

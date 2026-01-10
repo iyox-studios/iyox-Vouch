@@ -57,8 +57,8 @@ fun PersonsScreen(
         ) {
             items(persons) { person ->
                 PersonCard(
-                    name = person.name,
-                    amount = person.totalAmount,
+                    name = "",
+                    amount = BigDecimal.ZERO,
                     vouchCount = 0
                 )
             }
