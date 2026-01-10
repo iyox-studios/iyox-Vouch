@@ -1,14 +1,11 @@
 package com.iyox.vouch.view
 
 import android.icu.util.Currency
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -167,41 +164,94 @@ fun AddVouchScreen(
                 }
             }
 
-            OutlinedTextField(
-                value = person,
-                onValueChange = {
-                    viewModel.onPersonChange(it)
-                },
-                modifier = Modifier.fillMaxWidth(),
-                textStyle = MaterialTheme.typography.titleLarge,
-                label = { Text("Person") },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Filled.Person, contentDescription = null
-                    )
-                },
-                maxLines = 3,
-            )
+            var expanded by remember { mutableStateOf(false) }
 
-            AnimatedVisibility(visible = personSearchResults.isNotEmpty()) {
-                LazyColumn(
+            LaunchedEffect(personSearchResults) {
+                expanded = personSearchResults.isNotEmpty()
+            }
+
+            ExposedDropdownMenuBox(
+                expanded = expanded,
+                onExpandedChange = { newExpanded ->
+                    if (!newExpanded) {
+                        expanded = false
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                OutlinedTextField(
+                    value = person,
+                    onValueChange = {
+                        viewModel.onPersonChange(it)
+                        expanded = true
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .heightIn(max = 200.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                        .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable),
+                    textStyle = MaterialTheme.typography.titleLarge,
+                    label = { Text("Person") },
+                    shape = MaterialTheme.shapes.medium,
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Filled.Person,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    },
+                    colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                    ),
+                    singleLine = true
+                )
+
+                ExposedDropdownMenu(
+                    expanded = expanded && personSearchResults.isNotEmpty(),
+                    onDismissRequest = { expanded = false },
+                    shape = MaterialTheme.shapes.medium,
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    modifier = Modifier
+                        .exposedDropdownSize()
+                        .padding(horizontal = 8.dp)
                 ) {
-                    items(items = personSearchResults, key = { it.id }) { searchResult ->
-                        Card(modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                viewModel.onPersonSelected(searchResult)
-                            }) {
-                            Text(
-                                text = searchResult.name,
-                                modifier = Modifier.padding(16.dp),
-                                style = MaterialTheme.typography.bodyLarge
-                            )
-                        }
+                    personSearchResults.forEach { searchResult ->
+                        DropdownMenuItem(
+                            text = {
+                                ListItem(
+                                    headlineContent = {
+                                        Text(
+                                            searchResult.person.name,
+                                            style = MaterialTheme.typography.bodyLarge
+                                        )
+                                    },
+                                    leadingContent = {
+                                        Surface(
+                                            shape = androidx.compose.foundation.shape.CircleShape,
+                                            color = MaterialTheme.colorScheme.primaryContainer,
+                                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                            modifier = Modifier.size(32.dp)
+                                        ) {
+                                            Box(contentAlignment = Alignment.Center) {
+                                                Text(
+                                                    text = searchResult.person.name.take(1)
+                                                        .uppercase(),
+                                                    style = MaterialTheme.typography.titleMedium
+                                                )
+                                            }
+                                        }
+                                    },
+                                    trailingContent = { Text(
+                                        text = searchResult.totalAmount.toString() + "€",
+                                        style = MaterialTheme.typography.titleMedium
+                                    ) },
+                                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                                )
+                            }, onClick = {
+                                viewModel.onPersonSelected(searchResult.person)
+                                expanded = false
+                            }, contentPadding = PaddingValues(0.dp)
+                        )
+
                     }
                 }
             }
@@ -220,6 +270,7 @@ fun AddVouchScreen(
                     )
                 },
                 maxLines = 3,
+                shape = MaterialTheme.shapes.medium,
             )
 
             Spacer(modifier = Modifier.weight(1f))

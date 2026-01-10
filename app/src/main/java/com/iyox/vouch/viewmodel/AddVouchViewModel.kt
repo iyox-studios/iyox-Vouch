@@ -6,6 +6,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.iyox.vouch.model.Person
 import com.iyox.vouch.model.PersonRepository
+import com.iyox.vouch.model.PersonWithTotal
 import com.iyox.vouch.model.Vouch
 import com.iyox.vouch.model.VouchRepository
 import kotlinx.coroutines.Job
@@ -28,8 +29,8 @@ class AddVouchViewModel(application: Application) : AndroidViewModel(application
     private val _personName = MutableStateFlow("")
     val person: StateFlow<String> = _personName
 
-    private val _personSearchResults = MutableStateFlow<List<Person>>(emptyList())
-    val personSearchResults: StateFlow<List<Person>> = _personSearchResults
+    private val _personSearchResults = MutableStateFlow<List<PersonWithTotal>>(emptyList())
+    val personSearchResults: StateFlow<List<PersonWithTotal>> = _personSearchResults
 
     private val _currency = MutableStateFlow(Currency.getInstance("EUR"))
     val currency: StateFlow<Currency> = _currency
@@ -55,7 +56,7 @@ class AddVouchViewModel(application: Application) : AndroidViewModel(application
         searchJob?.cancel()
         searchJob = viewModelScope.launch {
             if (value.isNotBlank()) {
-                _personSearchResults.value = personRepository.searchPersons(value)
+                _personSearchResults.value = personRepository.getPersonsWithTotal(value)
             } else {
                 _personSearchResults.value = emptyList()
             }

@@ -12,8 +12,8 @@ class PersonRepository private constructor(context: Context) {
         return (localResults).sortedBy { it.name }
     }
 
-    suspend fun getPersonsWithTotal(): List<PersonWithTotal> {
-        return personDao.getPersonsWithTotal()
+    suspend fun getPersonsWithTotal(query: String? = null): List<PersonWithTotal> {
+        return personDao.getPersonsWithTotal(query)
     }
 
     suspend fun onVouchInserted(vouch: Vouch) {

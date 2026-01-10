@@ -215,7 +215,7 @@ fun VouchItem(
     val content = @Composable {
         Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(24.dp),
+            shape = MaterialTheme.shapes.medium,
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceContainer
             )
