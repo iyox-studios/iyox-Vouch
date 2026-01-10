@@ -7,6 +7,7 @@ class VouchRepository private constructor(context: Context) {
 
     private val database = AppDatabase.getDatabase(context)
     private val vouchDataDao = database.vouchDataDao()
+    private val personDataDao = database.personDao()
     private val personRepository = PersonRepository.getInstance(context)
 
     suspend fun getAll(): List<Vouch> {
@@ -20,7 +21,10 @@ class VouchRepository private constructor(context: Context) {
 
     suspend fun delete(vouch: Vouch) {
         vouchDataDao.delete(vouch)
-        //delete person if last vouch
+        if (vouch.personName == null) return
+        if (personDataDao.getVouchCount(vouch.personName) == 0) {
+            personDataDao.deleteByName(vouch.personName)
+        }
     }
 
     suspend fun update(vouch: Vouch) {

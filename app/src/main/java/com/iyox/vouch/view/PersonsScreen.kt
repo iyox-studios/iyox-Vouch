@@ -121,7 +121,7 @@ fun PersonCard(
                     shape = CircleShape,
                 ) {
                     Text(
-                        text = "$vouchCount Vouches",
+                        text = "$vouchCount " + if (vouchCount == 1) "Vouch" else "Vouches",
                         style = MaterialTheme.typography.labelSmall,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                         color = MaterialTheme.colorScheme.onSurfaceVariant
