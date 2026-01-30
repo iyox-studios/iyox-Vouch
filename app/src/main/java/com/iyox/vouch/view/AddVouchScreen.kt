@@ -31,7 +31,7 @@ fun AddVouchScreen(
     val amount by viewModel.amount.collectAsState()
     val currency by viewModel.currency.collectAsState()
     val given by viewModel.given.collectAsState()
-    val person by viewModel.person.collectAsState()
+    val person by viewModel.personName.collectAsState()
     val personSearchResults by viewModel.personSearchResults.collectAsState()
     val description by viewModel.description.collectAsState()
     val saveSuccess by viewModel.saveSuccess.collectAsState()

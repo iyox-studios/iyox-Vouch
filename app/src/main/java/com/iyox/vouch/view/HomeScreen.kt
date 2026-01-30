@@ -178,7 +178,7 @@ fun HomeScreen(
                     .fillMaxSize()
                     .padding(innerPadding),
                 contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 val displayed =
                     viewModel.getDisplayedVouches(showOnlyUnsettled, showOnlyGiven, vouches)
@@ -224,7 +224,7 @@ fun VouchItem(
     val content = @Composable {
         Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = MaterialTheme.shapes.medium,
+            shape = MaterialTheme.shapes.largeIncreased,
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceContainer
             )
