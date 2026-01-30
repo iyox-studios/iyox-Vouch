@@ -28,10 +28,10 @@ interface PersonDao {
     @Query("SELECT * FROM Person")
     suspend fun getAllPersons(): List<Person>
 
-    @Query("SELECT Person.*, COALESCE(SUM(Vouch.amount), 0) AS totalAmount, COUNT(Vouch.id) AS vouchCount FROM Person LEFT JOIN Vouch ON Person.name = Vouch.personName AND Vouch.settled = 0 GROUP BY Person.id")
+    @Query("SELECT Person.*, COALESCE(SUM(CASE WHEN Vouch.given = 0 THEN -Vouch.amount ELSE Vouch.amount END), 0) AS totalAmount, COUNT(Vouch.id) AS vouchCount FROM Person LEFT JOIN Vouch ON Person.name = Vouch.personName AND Vouch.settled = 0 GROUP BY Person.id")
     suspend fun getPersonsWithTotalAll(): List<PersonWithTotal>
 
-    @Query("SELECT Person.*, COALESCE(SUM(Vouch.amount), 0) AS totalAmount, COUNT(Vouch.id) AS vouchCount FROM Person LEFT JOIN Vouch ON Person.name = Vouch.personName AND Vouch.settled = 0 WHERE Person.name LIKE '%' || :query || '%' GROUP BY Person.id")
+    @Query("SELECT Person.*, COALESCE(SUM(CASE WHEN Vouch.given = 0 THEN -Vouch.amount ELSE Vouch.amount END), 0) AS totalAmount, COUNT(Vouch.id) AS vouchCount FROM Person LEFT JOIN Vouch ON Person.name = Vouch.personName AND Vouch.settled = 0 WHERE Person.name LIKE '%' || :query || '%' GROUP BY Person.id")
     suspend fun getPersonsWithTotalFiltered(query: String): List<PersonWithTotal>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)

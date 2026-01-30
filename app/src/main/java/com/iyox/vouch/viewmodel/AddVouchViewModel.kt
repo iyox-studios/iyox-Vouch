@@ -27,7 +27,7 @@ class AddVouchViewModel(application: Application) : AndroidViewModel(application
     val given: StateFlow<Boolean> = _given
 
     private val _personName = MutableStateFlow("")
-    val person: StateFlow<String> = _personName
+    val personName: StateFlow<String> = _personName
 
     private val _personSearchResults = MutableStateFlow<List<PersonWithTotal>>(emptyList())
     val personSearchResults: StateFlow<List<PersonWithTotal>> = _personSearchResults
