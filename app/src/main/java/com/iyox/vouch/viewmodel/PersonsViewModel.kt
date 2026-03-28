@@ -15,8 +15,15 @@ class PersonsViewModel(application: Application) : AndroidViewModel(application)
     private val _persons = MutableStateFlow<List<PersonWithTotal>>(emptyList())
     val persons: StateFlow<List<PersonWithTotal>> = _persons
 
+    private val _showOnlyNonZero = MutableStateFlow(true)
+    val showOnlyNonZero: StateFlow<Boolean> = _showOnlyNonZero
+
     init {
         loadPersons()
+    }
+
+    fun toggleShowOnlyNonZero() {
+        _showOnlyNonZero.value = !_showOnlyNonZero.value
     }
 
     fun loadPersons() {
