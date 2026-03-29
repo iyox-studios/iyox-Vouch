@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Add
@@ -67,6 +68,10 @@ fun HomeScreen(
     val showOnlyGiven by viewModel.showOnlyGiven.collectAsState()
     val sortedBy by viewModel.sortedBy.collectAsState()
 
+    val listState = androidx.compose.runtime.remember(showOnlyUnsettled, showOnlyGiven, sortedBy) {
+        androidx.compose.foundation.lazy.LazyListState()
+    }
+
     DisposableEffect(lifecycleOwner) {
         val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
@@ -93,7 +98,7 @@ fun HomeScreen(
                     top = 20.dp
                 )
             )
-            Spacer(modifier = Modifier.height(50.dp))
+            Spacer(modifier = Modifier.height(20.dp))
             Row(
                 modifier = Modifier.padding(horizontal = 16.dp)
             ) {
@@ -174,11 +179,12 @@ fun HomeScreen(
             }
         } else {
             LazyColumn(
+                state = listState,
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(innerPadding),
+                    .padding(top = innerPadding.calculateTopPadding()),
                 contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(2.dp)
+                verticalArrangement = Arrangement.spacedBy(2.dp, Alignment.Top)
             ) {
                 val displayed =
                     viewModel.getDisplayedVouches(showOnlyUnsettled, showOnlyGiven, vouches)
@@ -191,7 +197,9 @@ fun HomeScreen(
                 itemsIndexed(
                     displayedSorted, { _, item -> item.id }) { _, vouch ->
                     if (vouch.settled) {
-                        Box(modifier = Modifier.alpha(0.6f)) {
+                        Box(modifier = Modifier
+                            .animateItem()
+                            .alpha(0.6f)) {
                             VouchItem(
                                 vouch = vouch,
                                 canSettle = false,
@@ -199,10 +207,12 @@ fun HomeScreen(
                                 onDelete = { viewModel.deleteVouch(vouch) })
                         }
                     } else {
-                        VouchItem(
-                            vouch = vouch,
-                            onSettle = { viewModel.settleVouch(vouch) },
-                            onDelete = { viewModel.deleteVouch(vouch) })
+                        Box(modifier = Modifier.animateItem()) {
+                            VouchItem(
+                                vouch = vouch,
+                                onSettle = { viewModel.settleVouch(vouch) },
+                                onDelete = { viewModel.deleteVouch(vouch) })
+                        }
                     }
                 }
             }
