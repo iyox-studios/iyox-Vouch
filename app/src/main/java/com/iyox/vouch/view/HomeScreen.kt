@@ -51,6 +51,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.iyox.vouch.ui.components.VouchSwipeToDismiss
 import com.iyox.vouch.model.Vouch
+import com.iyox.vouch.ui.components.PageHeader
 import com.iyox.vouch.viewmodel.HomeViewModel
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -85,80 +86,62 @@ fun HomeScreen(
     }
 
     Scaffold(topBar = {
-        Column(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            TopAppBar(
-                title = {
-                    Text(
-                        "Vouches", style = MaterialTheme.typography.displayMedium
-                    )
-                },
-                windowInsets = WindowInsets(
-                    top = 20.dp
+        PageHeader("Vouches") {
+            FilterChip(
+                selected = true, onClick = {
+                haptics.performHapticFeedback(HapticFeedbackType.ToggleOn)
+                viewModel.toggleSortedBy()
+            }, label = {
+                when (sortedBy) {
+                    0 -> Text("Date")
+                    1 -> Text("Amount")
+                    2 -> Text("Person")
+                }
+            }, leadingIcon = {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.Sort,
+                    contentDescription = "Selected",
+                    modifier = Modifier.size(18.dp)
                 )
+            }, modifier = Modifier.padding(end = 16.dp)
             )
-            Spacer(modifier = Modifier.height(20.dp))
-            Row(
-                modifier = Modifier.padding(horizontal = 16.dp)
-            ) {
-                FilterChip(
-                    selected = true, onClick = {
-                        haptics.performHapticFeedback(HapticFeedbackType.ToggleOn)
-                        viewModel.toggleSortedBy()
-                    }, label = {
-                        when (sortedBy) {
-                            0 -> Text("Date")
-                            1 -> Text("Amount")
-                            2 -> Text("Person")
-                        }
-                    }, leadingIcon = {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.Sort,
-                            contentDescription = "Selected",
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }, modifier = Modifier.padding(end = 16.dp)
-                )
-                FilterChip(
-                    selected = showOnlyGiven > 0, onClick = {
-                        if (showOnlyGiven == 2) haptics.performHapticFeedback(HapticFeedbackType.ToggleOff)
-                        else haptics.performHapticFeedback(HapticFeedbackType.ToggleOn)
-                        viewModel.toggleShowOnlyGiven()
-                    }, label = {
-                        when (showOnlyGiven) {
-                            0 -> Text("Giv. & Rec.")
-                            1 -> Text("Given")
-                            2 -> Text("Received")
-                        }
-                    }, leadingIcon = {
-                        if (showOnlyGiven > 0) {
-                            Icon(
-                                imageVector = Icons.Default.FilterList,
-                                contentDescription = "Selected",
-                                modifier = Modifier.size(18.dp)
-                            )
-                        }
-                    }, modifier = Modifier.padding(end = 16.dp)
-                )
-                FilterChip(
-                    selected = showOnlyUnsettled, onClick = {
-                        if (showOnlyUnsettled) haptics.performHapticFeedback(HapticFeedbackType.ToggleOff)
-                        else haptics.performHapticFeedback(HapticFeedbackType.ToggleOn)
-                        viewModel.toggleShowOnlyUnsettled()
-                    }, label = { Text("Unsettled") }, leadingIcon = {
-                        if (showOnlyUnsettled) {
-                            Icon(
-                                imageVector = Icons.Default.Check,
-                                contentDescription = "Selected",
-                                modifier = Modifier.size(18.dp)
-                            )
-                        }
-                    }, modifier = Modifier.padding(end = 16.dp)
-                )
-            }
+            FilterChip(
+                selected = showOnlyGiven > 0, onClick = {
+                if (showOnlyGiven == 2) haptics.performHapticFeedback(HapticFeedbackType.ToggleOff)
+                else haptics.performHapticFeedback(HapticFeedbackType.ToggleOn)
+                viewModel.toggleShowOnlyGiven()
+            }, label = {
+                when (showOnlyGiven) {
+                    0 -> Text("Giv. & Rec.")
+                    1 -> Text("Given")
+                    2 -> Text("Received")
+                }
+            }, leadingIcon = {
+                if (showOnlyGiven > 0) {
+                    Icon(
+                        imageVector = Icons.Default.FilterList,
+                        contentDescription = "Selected",
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }, modifier = Modifier.padding(end = 16.dp)
+            )
+            FilterChip(
+                selected = showOnlyUnsettled, onClick = {
+                if (showOnlyUnsettled) haptics.performHapticFeedback(HapticFeedbackType.ToggleOff)
+                else haptics.performHapticFeedback(HapticFeedbackType.ToggleOn)
+                viewModel.toggleShowOnlyUnsettled()
+            }, label = { Text("Unsettled") }, leadingIcon = {
+                if (showOnlyUnsettled) {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = "Selected",
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }, modifier = Modifier.padding(end = 16.dp)
+            )
         }
-
     }, floatingActionButton = {
         FloatingActionButton(
             onClick = onNavigateToAddVouch
@@ -197,9 +180,11 @@ fun HomeScreen(
                 itemsIndexed(
                     displayedSorted, { _, item -> item.id }) { _, vouch ->
                     if (vouch.settled) {
-                        Box(modifier = Modifier
-                            .animateItem()
-                            .alpha(0.6f)) {
+                        Box(
+                            modifier = Modifier
+                                .animateItem()
+                                .alpha(0.6f)
+                        ) {
                             VouchItem(
                                 vouch = vouch,
                                 canSettle = false,
@@ -223,10 +208,7 @@ fun HomeScreen(
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun VouchItem(
-    vouch: Vouch,
-    canSettle: Boolean = true,
-    onSettle: () -> Unit,
-    onDelete: () -> Unit = {}
+    vouch: Vouch, canSettle: Boolean = true, onSettle: () -> Unit, onDelete: () -> Unit = {}
 ) {
     val dateFormat = SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
 

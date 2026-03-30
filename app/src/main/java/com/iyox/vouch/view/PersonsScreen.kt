@@ -46,6 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.iyox.vouch.ui.components.PageHeader
 import com.iyox.vouch.viewmodel.PersonsViewModel
 import java.math.BigDecimal
 
@@ -74,20 +75,9 @@ fun PersonsScreen(
 
     Scaffold(
         topBar = {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                TopAppBar(
-                    title = {
-                        Text(
-                            "Persons", style = MaterialTheme.typography.displayMedium
-                        )
-                    }, windowInsets = WindowInsets(top = 20.dp)
-                )
-                Spacer(modifier = Modifier.height(20.dp))
-                Row(
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                ) {
-                    FilterChip(
-                        selected = showOnlyNonZero, onClick = {
+            PageHeader("Persons") {
+                FilterChip(
+                    selected = showOnlyNonZero, onClick = {
                         haptics.performHapticFeedback(HapticFeedbackType.ToggleOn)
                         viewModel.toggleShowOnlyNonZero()
                     }, label = {
@@ -99,9 +89,9 @@ fun PersonsScreen(
                             modifier = Modifier.size(18.dp)
                         )
                     }, modifier = Modifier.padding(end = 16.dp)
-                    )
-                }
+                )
             }
+
         }) { innerPadding ->
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
