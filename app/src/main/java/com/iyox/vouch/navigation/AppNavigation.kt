@@ -34,6 +34,7 @@ import com.iyox.vouch.view.PersonsScreen
 import com.iyox.vouch.view.SettingsScreen
 import com.iyox.vouch.viewmodel.HomeViewModel
 import com.iyox.vouch.viewmodel.PersonsViewModel
+import com.iyox.vouch.viewmodel.SettingsViewModel
 
 data class NavigationItem(
     val screen: Screen, val icon: ImageVector, val iconSelected: ImageVector
@@ -59,11 +60,11 @@ fun AppNavigation() {
                 navigationItems.forEach { item ->
                     ShortNavigationBarItem(
                         icon = {
-                        val isSelected =
-                            currentDestination?.hierarchy?.any { it.route == item.screen.route } == true
-                        val icon = if (isSelected) item.iconSelected else item.icon
-                        Icon(imageVector = icon, contentDescription = item.screen.title)
-                    },
+                            val isSelected =
+                                currentDestination?.hierarchy?.any { it.route == item.screen.route } == true
+                            val icon = if (isSelected) item.iconSelected else item.icon
+                            Icon(imageVector = icon, contentDescription = item.screen.title)
+                        },
                         label = { Text(item.screen.title) },
                         selected = currentDestination?.hierarchy?.any { it.route == item.screen.route } == true,
                         onClick = {
@@ -96,11 +97,16 @@ fun AppNavigation() {
                         navController.navigate(Screen.AddVouch.route)
                     })
             }
-            composable(Screen.Persons.route ) { backStackEntry ->
-                val personsViewModel: PersonsViewModel = viewModel(viewModelStoreOwner = backStackEntry)
+            composable(Screen.Persons.route) { backStackEntry ->
+                val personsViewModel: PersonsViewModel =
+                    viewModel(viewModelStoreOwner = backStackEntry)
                 PersonsScreen(viewModel = personsViewModel)
             }
-            composable(Screen.Settings.route) { SettingsScreen() }
+            composable(Screen.Settings.route) { backStackEntry ->
+                val settingsViewModel: SettingsViewModel =
+                    viewModel(viewModelStoreOwner = backStackEntry)
+                SettingsScreen(viewModel = settingsViewModel)
+            }
             composable(Screen.AddVouch.route) {
                 AddVouchScreen(
                     onNavigateBack = {
