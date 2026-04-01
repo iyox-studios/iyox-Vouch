@@ -61,6 +61,7 @@ dependencies {
     implementation(libs.androidx.appcompat)
     ksp(libs.androidx.room.compiler)
     implementation("androidx.compose.material:material-icons-extended")
+    implementation("androidx.core:core-splashscreen:1.0.1")
     implementation(libs.androidx.fragment)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
