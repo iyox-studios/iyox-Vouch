@@ -22,6 +22,9 @@ interface VouchDataDao {
     @Query("SELECT * FROM Vouch")
     suspend fun getAll(): List<Vouch>
 
+    @Query("SELECT * FROM Vouch WHERE id = :id")
+    suspend fun getById(id: Int): Vouch?
+
     @Query("SELECT SUM(amount) FROM Vouch WHERE personName = :personName")
     suspend fun getSumAllVouches(personName: String): BigDecimal
 
@@ -34,4 +37,3 @@ interface VouchDataDao {
     @Update
     suspend fun update(vouch: Vouch)
 }
-

@@ -1,5 +1,6 @@
 package com.iyox.vouch.navigation
 
+
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.layout.padding
@@ -28,7 +29,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.iyox.vouch.view.AddVouchScreen
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
+import com.iyox.vouch.view.VouchScreen
 import com.iyox.vouch.view.HomeScreen
 import com.iyox.vouch.view.PersonsScreen
 import com.iyox.vouch.view.SettingsScreen
@@ -95,7 +98,11 @@ fun AppNavigation() {
                     viewModel = homeViewModel,
                     onNavigateToAddVouch = {
                         navController.navigate(Screen.AddVouch.route)
-                    })
+                    },
+                    onNavigateToEditVouch = { vouchId ->
+                        navController.navigate(Screen.EditVouch.createRoute(vouchId))
+                    }
+                )
             }
             composable(Screen.Persons.route) { backStackEntry ->
                 val personsViewModel: PersonsViewModel =
@@ -108,7 +115,19 @@ fun AppNavigation() {
                 SettingsScreen(viewModel = settingsViewModel)
             }
             composable(Screen.AddVouch.route) {
-                AddVouchScreen(
+                VouchScreen(
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    })
+            }
+            composable(
+                route = Screen.EditVouch.route,
+                arguments = listOf(navArgument("vouchId") { type = NavType.IntType })
+            ) { backStackEntry ->
+                val vouchId = backStackEntry.arguments?.getInt("vouchId") ?: return@composable
+                VouchScreen(
+                    vouchId = vouchId.toLong(),
+                    edit = true,
                     onNavigateBack = {
                         navController.popBackStack()
                     })
@@ -116,4 +135,3 @@ fun AppNavigation() {
         }
     }
 }
-

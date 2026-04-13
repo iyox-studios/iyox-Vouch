@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 
-class AddVouchViewModel(application: Application) : AndroidViewModel(application) {
+class VouchViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = VouchRepository.getInstance(application)
     private val personRepository = PersonRepository.getInstance(application)
@@ -41,7 +41,34 @@ class AddVouchViewModel(application: Application) : AndroidViewModel(application
     private val _saveSuccess = MutableStateFlow(false)
     val saveSuccess: StateFlow<Boolean> = _saveSuccess
 
+    private val _isLoading = MutableStateFlow(true)
+    val isLoading: StateFlow<Boolean> = _isLoading
+
     private var searchJob: Job? = null
+
+    private var editingVouchId: Int? = null
+    private var originalVouch: Vouch? = null
+
+    fun loadVouch(id: Long?) {
+        if (id == null) {
+            _isLoading.value = false
+            return
+        }
+        val intId = id.toInt()
+        viewModelScope.launch {
+            val vouch = repository.getById(intId)
+            if (vouch != null) {
+                editingVouchId = vouch.id
+                originalVouch = vouch
+                _amount.value = vouch.amount.toPlainString()
+                _given.value = vouch.given
+                _personName.value = vouch.personName ?: ""
+                _description.value = vouch.description
+                _currency.value = vouch.currency
+            }
+            _isLoading.value = false
+        }
+    }
 
     fun onAmountChange(value: String) {
         _amount.value = value
@@ -101,15 +128,28 @@ class AddVouchViewModel(application: Application) : AndroidViewModel(application
                 _saveSuccess.value = false
                 return@launch
             }
-            val vouch = Vouch(
-                id = System.currentTimeMillis().toInt(),
-                amount = amountBigDecimal,
-                description = _description.value,
-                personName = _personName.value,
-                given = _given.value,
-                currency = _currency.value,
-            )
-            repository.insert(vouch)
+
+            if (editingVouchId != null) {
+                val newVouch = originalVouch!!.copy(
+                    amount = amountBigDecimal,
+                    description = _description.value.trim(),
+                    personName = if (_personName.value.isBlank()) null else _personName.value.trim(),
+                    given = _given.value,
+                    currency = _currency.value
+                )
+                repository.update(originalVouch, newVouch)
+            } else {
+                val vouch = Vouch(
+                    id = 0,
+                    amount = amountBigDecimal,
+                    description = _description.value.trim(),
+                    personName = if (_personName.value.isBlank()) null else _personName.value.trim(),
+                    given = _given.value,
+                    currency = _currency.value,
+                )
+                repository.insert(vouch)
+            }
+
             _saveSuccess.value = true
         }
     }
