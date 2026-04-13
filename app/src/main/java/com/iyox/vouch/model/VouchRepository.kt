@@ -14,6 +14,10 @@ class VouchRepository private constructor(context: Context) {
         return vouchDataDao.getAll()
     }
 
+    suspend fun getById(id: Int): Vouch? {
+        return vouchDataDao.getById(id)
+    }
+
     suspend fun insert(vouch: Vouch) {
         vouchDataDao.insert(vouch)
         personRepository.onVouchInserted(vouch)
@@ -24,6 +28,16 @@ class VouchRepository private constructor(context: Context) {
         if (vouch.personName == null) return
         if (personDataDao.getVouchCount(vouch.personName) == 0) {
             personDataDao.deleteByName(vouch.personName)
+        }
+    }
+
+    suspend fun update(oldVouch: Vouch?, newVouch: Vouch) {
+        vouchDataDao.update(newVouch)
+        personRepository.onVouchInserted(newVouch)
+        if (oldVouch != null && oldVouch.personName != null && oldVouch.personName != newVouch.personName) {
+            if (personDataDao.getVouchCount(oldVouch.personName) == 0) {
+                personDataDao.deleteByName(oldVouch.personName)
+            }
         }
     }
 

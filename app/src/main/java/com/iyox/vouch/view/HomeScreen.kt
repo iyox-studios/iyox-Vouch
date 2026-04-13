@@ -1,21 +1,20 @@
 package com.iyox.vouch.view
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Add
@@ -34,7 +33,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
@@ -42,6 +40,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
@@ -49,9 +48,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.iyox.vouch.ui.components.VouchSwipeToDismiss
 import com.iyox.vouch.model.Vouch
 import com.iyox.vouch.ui.components.PageHeader
+import com.iyox.vouch.ui.components.VouchSwipeToDismiss
 import com.iyox.vouch.viewmodel.HomeViewModel
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -59,7 +58,7 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun HomeScreen(
-    viewModel: HomeViewModel = viewModel(), onNavigateToAddVouch: () -> Unit = {}
+    viewModel: HomeViewModel = viewModel(), onNavigateToAddVouch: () -> Unit = {}, onNavigateToEditVouch: (Int) -> Unit = {}
 ) {
     val haptics = LocalHapticFeedback.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -189,14 +188,18 @@ fun HomeScreen(
                                 vouch = vouch,
                                 canSettle = false,
                                 onSettle = { viewModel.unSettleVouch(vouch) },
-                                onDelete = { viewModel.deleteVouch(vouch) })
+                                onDelete = { viewModel.deleteVouch(vouch) },
+                                onEdit = { onNavigateToEditVouch(vouch.id) }
+                            )
                         }
                     } else {
                         Box(modifier = Modifier.animateItem()) {
                             VouchItem(
                                 vouch = vouch,
                                 onSettle = { viewModel.settleVouch(vouch) },
-                                onDelete = { viewModel.deleteVouch(vouch) })
+                                onDelete = { viewModel.deleteVouch(vouch) },
+                                onEdit = { onNavigateToEditVouch(vouch.id) }
+                            )
                         }
                     }
                 }
@@ -205,17 +208,19 @@ fun HomeScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun VouchItem(
-    vouch: Vouch, canSettle: Boolean = true, onSettle: () -> Unit, onDelete: () -> Unit = {}
+    vouch: Vouch, canSettle: Boolean = true, onSettle: () -> Unit, onDelete: () -> Unit = {}, onEdit: () -> Unit = {}
 ) {
     val dateFormat = SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
 
-
     val content = @Composable {
         Card(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(MaterialTheme.shapes.largeIncreased)
+                .combinedClickable(onClick = {}, onLongClick = onEdit),
             shape = MaterialTheme.shapes.largeIncreased,
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceContainer

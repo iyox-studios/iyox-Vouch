@@ -5,4 +5,7 @@ sealed class Screen(val route: String, val title: String) {
     object Persons : Screen("persons", "Persons")
     object Settings : Screen("settings", "Settings")
     object AddVouch : Screen("add_vouch", "Add Vouch")
+    object EditVouch : Screen("edit_vouch/{vouchId}", "Edit Vouch") {
+        fun createRoute(vouchId: Int) = "edit_vouch/$vouchId"
+    }
 }
