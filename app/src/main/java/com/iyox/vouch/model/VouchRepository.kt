@@ -1,7 +1,6 @@
 package com.iyox.vouch.model
 
 import android.content.Context
-import java.math.BigDecimal
 
 class VouchRepository private constructor(context: Context) {
 
