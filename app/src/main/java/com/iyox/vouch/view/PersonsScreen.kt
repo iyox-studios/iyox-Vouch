@@ -1,6 +1,7 @@
 package com.iyox.vouch.view
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -52,6 +53,7 @@ import java.math.BigDecimal
 @Composable
 fun PersonsScreen(
     viewModel: PersonsViewModel = viewModel(),
+    onNavigateToViewPerson: (String) -> Unit = {}
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
     val persons by viewModel.persons.collectAsState()
@@ -104,7 +106,8 @@ fun PersonsScreen(
                 PersonCard(
                     name = personWithTotal.person.name,
                     amount = personWithTotal.totalAmount ?: BigDecimal.ZERO,
-                    vouchCount = personWithTotal.vouchCount
+                    vouchCount = personWithTotal.vouchCount,
+                    onView = { onNavigateToViewPerson(personWithTotal.person.name) }
                 )
             }
         }
@@ -114,7 +117,7 @@ fun PersonsScreen(
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun PersonCard(
-    name: String, amount: BigDecimal, vouchCount: Int
+    name: String, amount: BigDecimal, vouchCount: Int, onView: () -> Unit
 ) {
     Card(
         colors = CardDefaults.cardColors(
@@ -124,6 +127,7 @@ fun PersonCard(
         modifier = Modifier
             .fillMaxWidth()
             .aspectRatio(1f)
+            .combinedClickable(onClick = onView, onLongClick = { }),
     ) {
         Column(
             modifier = Modifier
