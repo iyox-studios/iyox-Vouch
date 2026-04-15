@@ -73,7 +73,7 @@ fun PersonsScreen(
 
     Scaffold(
         topBar = {
-            PageHeader("Persons") {
+            PageHeader("People") {
                 FilterChip(
                     selected = showOnlyNonZero, onClick = {
                         haptics.performHapticFeedback(HapticFeedbackType.ToggleOn)
