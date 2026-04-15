@@ -1,5 +1,8 @@
 package com.iyox.vouch.view
 
+import android.content.Context
+import android.content.Intent
+import android.graphics.Bitmap
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,7 +22,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.CompareArrows
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DoneAll
-import androidx.compose.material.icons.filled.Upload
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -41,16 +44,26 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.graphics.layer.drawLayer
+import androidx.compose.ui.graphics.rememberGraphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.core.content.FileProvider
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.iyox.vouch.viewmodel.PersonViewModel
+import kotlinx.coroutines.launch
+import java.io.File
+import java.io.FileOutputStream
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -66,6 +79,11 @@ fun PersonScreen(
     val vouches by viewModel.vouches.collectAsState()
     val amountGiven by viewModel.amountGiven.collectAsState()
     val amountOwed by viewModel.amountOwed.collectAsState()
+
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    val graphicsLayer = rememberGraphicsLayer()
+    var isCapturing by remember { mutableStateOf(false) }
 
     var showSettleDialog by remember { mutableStateOf(false) }
     var fullySettle by remember { mutableStateOf(false) }
@@ -102,6 +120,17 @@ fun PersonScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .drawWithContent {
+                    graphicsLayer.record(size = this.size.let {
+                        androidx.compose.ui.unit.IntSize(
+                            it.width.toInt(),
+                            it.height.toInt()
+                        )
+                    }) {
+                        this@drawWithContent.drawContent()
+                    }
+                    drawLayer(graphicsLayer)
+                }
         ) {
             // Person Info Card (styled like in PersonsScreen)
             Card(
@@ -178,16 +207,17 @@ fun PersonScreen(
             }
 
             // Quick Actions Card
-            Card(
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainer
-                ),
-                shape = MaterialTheme.shapes.large,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .padding(bottom = 16.dp)
-            ) {
+            if (!isCapturing) {
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainer
+                    ),
+                    shape = MaterialTheme.shapes.large,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .padding(bottom = 16.dp)
+                ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -222,16 +252,25 @@ fun PersonScreen(
                         )
                     }
                     FilledTonalButton(
-                        onClick = { /* TODO */ },
+                        onClick = {
+                            coroutineScope.launch {
+                                isCapturing = true
+                                kotlinx.coroutines.delay(100) // allow recomposition to hide the row
+                                val bitmap = graphicsLayer.toImageBitmap().asAndroidBitmap()
+                                shareBitmap(context, bitmap, personName)
+                                isCapturing = false
+                            }
+                        },
                         shape = MaterialTheme.shapes.medium,
                         contentPadding = PaddingValues(0.dp)
                     ) {
                         Icon(
-                            imageVector = Icons.Filled.Upload,
+                            imageVector = Icons.Filled.Share,
                             contentDescription = "Export Vouch-List"
                         )
                     }
                 }
+            }
             }
 
             // Vouches List (like in HomeScreen)
@@ -333,4 +372,29 @@ fun PersonScreen(
             )
         }
     }
+}
+
+private fun shareBitmap(context: Context, bitmap: Bitmap, personName: String) {
+    val cachePath = File(context.cacheDir, "images")
+    cachePath.mkdirs()
+    val file = File(cachePath, "vouch_summary.png")
+    val fileOutputStream = FileOutputStream(file)
+    bitmap.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream)
+    fileOutputStream.flush()
+    fileOutputStream.close()
+
+    val uri = FileProvider.getUriForFile(
+        context,
+        "${context.packageName}.fileprovider",
+        file
+    )
+
+    val shareIntent = Intent(Intent.ACTION_SEND).apply {
+        type = "image/png"
+        putExtra(Intent.EXTRA_STREAM, uri)
+        clipData = android.content.ClipData.newUri(context.contentResolver, "Vouch Summary", uri)
+        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+    }
+
+    context.startActivity(Intent.createChooser(shareIntent, "Share Vouch Summary"))
 }
