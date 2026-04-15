@@ -45,4 +45,10 @@ interface PersonDao {
 
     @Query("SELECT COUNT(*) FROM Vouch WHERE personName = :personName")
     suspend fun getVouchCount(personName: String): Int
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(persons: List<Person>)
+
+    @Query("DELETE FROM Person")
+    suspend fun deleteAll()
 }

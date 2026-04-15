@@ -1,6 +1,8 @@
 package com.iyox.vouch.view
 
 import android.app.UiModeManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,9 +18,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Brightness4
+import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.Translate
+import androidx.compose.material.icons.outlined.Upload
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
@@ -46,6 +50,22 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
     val theme by viewModel.theme.collectAsState()
     val dynamicColors by viewModel.dynamicColors.collectAsState()
     var showThemeDropdown by remember { mutableStateOf(false) }
+
+    val exportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/json")
+    ) { uri ->
+        if (uri != null) {
+            viewModel.exportData(uri)
+        }
+    }
+
+    val importLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        if (uri != null) {
+            viewModel.importData(uri)
+        }
+    }
 
     Scaffold(topBar = { PageHeader("Settings") { } }) { paddingValues ->
         Column(
@@ -110,6 +130,22 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
                     )
                 },
                 onClick = { viewModel.setDynamicColors(!dynamicColors) }
+            )
+
+            SectionHeader("Data")
+
+            SettingItem(
+                icon = Icons.Outlined.Upload,
+                title = "Export Data",
+                subtitle = "Save your data to a file",
+                onClick = { exportLauncher.launch("vouch_backup.json") }
+            )
+
+            SettingItem(
+                icon = Icons.Outlined.Download,
+                title = "Import Data",
+                subtitle = "Restore data from a file",
+                onClick = { importLauncher.launch(arrayOf("application/json", "*/*")) }
             )
 
             Spacer(modifier = Modifier.weight(1f))

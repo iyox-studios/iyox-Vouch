@@ -5,6 +5,7 @@ import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Entity
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.PrimaryKey
 import androidx.room.Query
 import androidx.room.Update
@@ -42,4 +43,10 @@ interface VouchDataDao {
 
     @Update
     suspend fun update(vouch: Vouch)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(vouches: List<Vouch>)
+
+    @Query("DELETE FROM Vouch")
+    suspend fun deleteAll()
 }
