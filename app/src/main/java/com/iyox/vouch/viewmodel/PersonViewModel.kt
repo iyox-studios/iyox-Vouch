@@ -1,6 +1,7 @@
 package com.iyox.vouch.viewmodel
 
 import android.app.Application
+import android.icu.util.Currency
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.iyox.vouch.model.Person
@@ -86,4 +87,36 @@ class PersonViewModel(application: Application) : AndroidViewModel(application) 
             vouch.personName?.let { loadPerson(it) }
         }
     }
+
+    fun settlePerson() {
+        viewModelScope.launch {
+            val person = personData.value?.person
+            if (person != null) {
+                val vouches = vouches.value
+                for (vouch in vouches) {
+                    vouchRepository.update(vouch.copy(settled = true))
+                }
+                loadPerson(person.name)
+            }
+        }
+    }
+
+    fun netVouches() {
+        viewModelScope.launch {
+            val diff = amountGiven.value.subtract(amountOwed.value)
+            settlePerson()
+            if (diff != BigDecimal.ZERO) {
+                vouchRepository.insert(
+                    Vouch(
+                        personName = personData.value?.person?.name,
+                        amount = diff,
+                        description = "[NETTING]",
+                        given = diff > BigDecimal.ZERO,
+                        currency = Currency.getInstance("EUR")
+                    )
+                )
+            }
+        }
+    }
+
 }

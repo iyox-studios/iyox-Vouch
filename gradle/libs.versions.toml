@@ -17,6 +17,7 @@ navigationRuntimeKtx = "2.0.0"
 navigationCompose = "2.7.1"
 room = "2.8.4"
 appcompat = "1.7.1"
+foundation = "1.10.6"
 
 [libraries]
 androidx-biometric = { module = "androidx.biometric:biometric", version.ref = "biometric" }
@@ -43,6 +44,7 @@ androidx-compose-runtime-livedata = { group = "androidx.compose.runtime", name =
 androidx-navigation-runtime-ktx = { group = "androidx.navigation", name = "navigation-runtime-ktx", version.ref = "navigationRuntimeKtx" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
