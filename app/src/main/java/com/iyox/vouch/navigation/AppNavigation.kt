@@ -32,6 +32,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.iyox.vouch.view.HomeScreen
+import com.iyox.vouch.view.PersonScreen
 import com.iyox.vouch.view.PersonsScreen
 import com.iyox.vouch.view.SettingsScreen
 import com.iyox.vouch.view.VouchScreen
@@ -107,7 +108,9 @@ fun AppNavigation() {
             composable(Screen.Persons.route) { backStackEntry ->
                 val personsViewModel: PersonsViewModel =
                     viewModel(viewModelStoreOwner = backStackEntry)
-                PersonsScreen(viewModel = personsViewModel)
+                PersonsScreen(viewModel = personsViewModel, onNavigateToViewPerson = { personName ->
+                    navController.navigate(Screen.ViewPerson.createRoute(personName))
+                })
             }
             composable(Screen.Settings.route) { backStackEntry ->
                 val settingsViewModel: SettingsViewModel =
@@ -116,6 +119,18 @@ fun AppNavigation() {
             }
             composable(Screen.AddVouch.route) {
                 VouchScreen(
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    })
+            }
+            composable(
+                route = Screen.ViewPerson.route,
+                arguments = listOf(navArgument("personName") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val personName =
+                    backStackEntry.arguments?.getString("personName") ?: return@composable
+                PersonScreen(
+                    personName = personName,
                     onNavigateBack = {
                         navController.popBackStack()
                     })
