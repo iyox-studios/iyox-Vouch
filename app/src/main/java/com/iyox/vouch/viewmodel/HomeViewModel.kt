@@ -6,7 +6,10 @@ import androidx.lifecycle.viewModelScope
 import com.iyox.vouch.model.Vouch
 import com.iyox.vouch.model.VouchRepository
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class HomeViewModel(application: Application) : AndroidViewModel(application) {
@@ -21,6 +24,18 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     val showOnlyUnsettled: StateFlow<Boolean> = _showOnlyUnsettled
     val showOnlyGiven: StateFlow<Int> = _showOnlyGiven
     val sortedBy: StateFlow<Int> = _sortedBy
+
+    val uiState: StateFlow<List<Vouch>> = combine(
+        _vouches, _showOnlyUnsettled, _showOnlyGiven, _sortedBy
+    ) { vouches, showOnlyUnsettled, showOnlyGiven, sortedBy ->
+        val displayed = getDisplayedVouches(showOnlyUnsettled, showOnlyGiven, vouches)
+        when (sortedBy) {
+            0 -> displayed.sortedBy { it.timestamp }
+            1 -> displayed.sortedBy { it.amount }
+            2 -> displayed.sortedBy { it.personName ?: "" }
+            else -> displayed.sortedBy { it.timestamp }
+        }.reversed()
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
 
     init {
@@ -81,4 +96,3 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         }.reversed()
     }
 }
-

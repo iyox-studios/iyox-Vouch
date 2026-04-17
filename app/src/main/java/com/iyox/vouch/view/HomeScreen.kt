@@ -1,6 +1,7 @@
 package com.iyox.vouch.view
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -29,6 +30,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.iyox.vouch.ui.components.PageHeader
+import com.iyox.vouch.ui.components.vouches.VouchList
 import com.iyox.vouch.viewmodel.HomeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -36,10 +38,9 @@ import com.iyox.vouch.viewmodel.HomeViewModel
 fun HomeScreen(
     viewModel: HomeViewModel = viewModel(), onNavigateToAddVouch: () -> Unit = {}, onNavigateToEditVouch: (Int) -> Unit = {}
 ) {
-    val haptics = LocalHapticFeedback.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    val vouches by viewModel.vouches.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
     val showOnlyUnsettled by viewModel.showOnlyUnsettled.collectAsState()
     val showOnlyGiven by viewModel.showOnlyGiven.collectAsState()
     val sortedBy by viewModel.sortedBy.collectAsState()
@@ -62,59 +63,13 @@ fun HomeScreen(
 
     Scaffold(topBar = {
         PageHeader("Vouches") {
-            FilterChip(
-                selected = true, onClick = {
-                haptics.performHapticFeedback(HapticFeedbackType.ToggleOn)
-                viewModel.toggleSortedBy()
-            }, label = {
-                when (sortedBy) {
-                    0 -> Text("Date")
-                    1 -> Text("Amount")
-                    2 -> Text("Person")
-                }
-            }, leadingIcon = {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.Sort,
-                    contentDescription = "Selected",
-                    modifier = Modifier.size(18.dp)
-                )
-            }, modifier = Modifier.padding(end = 16.dp)
-            )
-            FilterChip(
-                selected = showOnlyGiven > 0, onClick = {
-                if (showOnlyGiven == 2) haptics.performHapticFeedback(HapticFeedbackType.ToggleOff)
-                else haptics.performHapticFeedback(HapticFeedbackType.ToggleOn)
-                viewModel.toggleShowOnlyGiven()
-            }, label = {
-                when (showOnlyGiven) {
-                    0 -> Text("Giv. & Rec.")
-                    1 -> Text("Given")
-                    2 -> Text("Received")
-                }
-            }, leadingIcon = {
-                if (showOnlyGiven > 0) {
-                    Icon(
-                        imageVector = Icons.Default.FilterList,
-                        contentDescription = "Selected",
-                        modifier = Modifier.size(18.dp)
-                    )
-                }
-            }, modifier = Modifier.padding(end = 16.dp)
-            )
-            FilterChip(
-                selected = showOnlyUnsettled, onClick = {
-                if (showOnlyUnsettled) haptics.performHapticFeedback(HapticFeedbackType.ToggleOff)
-                else haptics.performHapticFeedback(HapticFeedbackType.ToggleOn)
-                viewModel.toggleShowOnlyUnsettled()
-            }, label = { Text("Unsettled") }, leadingIcon = {
-                if (showOnlyUnsettled) {
-                    Icon(
-                        imageVector = Icons.Default.Check,
-                        contentDescription = "Selected",
-                        modifier = Modifier.size(18.dp)
-                    )
-                }
-            }, modifier = Modifier.padding(end = 16.dp)
+            VouchFilterRow(
+                sortedBy = sortedBy,
+                showOnlyGiven = showOnlyGiven,
+                showOnlyUnsettled = showOnlyUnsettled,
+                onToggleSort = viewModel::toggleSortedBy,
+                onToggleGiven = viewModel::toggleShowOnlyGiven,
+                onToggleUnsettled = viewModel::toggleShowOnlyUnsettled
             )
         }
     }, floatingActionButton = {
@@ -126,7 +81,7 @@ fun HomeScreen(
             )
         }
     }) { innerPadding ->
-        if (vouches.isEmpty()) {
+        if (uiState.isEmpty()) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -136,16 +91,8 @@ fun HomeScreen(
                 Text("Tap + to add a new vouch")
             }
         } else {
-            val displayed =
-                viewModel.getDisplayedVouches(showOnlyUnsettled, showOnlyGiven, vouches)
-            val displayedSorted = when (sortedBy) {
-                0 -> displayed.sortedBy { it.timestamp }
-                1 -> displayed.sortedBy { it.amount }
-                2 -> displayed.sortedBy { it.personName ?: "" }
-                else -> displayed.sortedBy { it.timestamp }
-            }.reversed()
-            com.iyox.vouch.ui.components.vouches.VouchList(
-                displayedSorted = displayedSorted,
+            VouchList(
+                displayedSorted = uiState,
                 listState = listState,
                 innerPadding = innerPadding,
                 onSettle = { viewModel.settleVouch(it) },
@@ -154,5 +101,82 @@ fun HomeScreen(
                 onEdit = { onNavigateToEditVouch(it) }
             )
         }
+    }
+}
+
+@Composable
+private fun VouchFilterRow(
+    sortedBy: Int,
+    showOnlyGiven: Int,
+    showOnlyUnsettled: Boolean,
+    onToggleSort: () -> Unit,
+    onToggleGiven: () -> Unit,
+    onToggleUnsettled: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val haptics = LocalHapticFeedback.current
+
+    // Helper to handle haptic + callback
+    val handleToggle: (Boolean, () -> Unit) -> Unit = { isTurningOff, callback ->
+        haptics.performHapticFeedback(
+            if (isTurningOff) HapticFeedbackType.ToggleOff else HapticFeedbackType.ToggleOn
+        )
+        callback()
+    }
+
+    Row(modifier = modifier) {
+        // Sort Chip
+        FilterChip(
+            selected = true,
+            onClick = { handleToggle(false, onToggleSort) },
+            label = {
+                Text(
+                    when (sortedBy) {
+                        0 -> "Date"
+                        1 -> "Amount"
+                        2 -> "Person"
+                        else -> "Date"
+                    }
+                )
+            },
+            leadingIcon = {
+                Icon(Icons.AutoMirrored.Filled.Sort, null, Modifier.size(18.dp))
+            },
+            modifier = Modifier.padding(end = 8.dp)
+        )
+
+        // Given/Received Filter Chip
+        FilterChip(
+            selected = showOnlyGiven > 0,
+            onClick = { handleToggle(showOnlyGiven == 2, onToggleGiven) },
+            label = {
+                Text(
+                    when (showOnlyGiven) {
+                        0 -> "Giv. & Rec."
+                        1 -> "Given"
+                        2 -> "Received"
+                        else -> ""
+                    }
+                )
+            },
+            leadingIcon = {
+                if (showOnlyGiven > 0) {
+                    Icon(Icons.Default.FilterList, null, Modifier.size(18.dp))
+                }
+            },
+            modifier = Modifier.padding(end = 8.dp)
+        )
+
+        // Unsettled Filter Chip
+        FilterChip(
+            selected = showOnlyUnsettled,
+            onClick = { handleToggle(showOnlyUnsettled, onToggleUnsettled) },
+            label = { Text("Unsettled") },
+            leadingIcon = {
+                if (showOnlyUnsettled) {
+                    Icon(Icons.Default.Check, null, Modifier.size(18.dp))
+                }
+            }
+        )
     }
 }
