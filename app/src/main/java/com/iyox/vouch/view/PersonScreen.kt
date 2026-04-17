@@ -57,11 +57,13 @@ import androidx.core.content.FileProvider
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.iyox.vouch.model.PersonWithTotal
 import com.iyox.vouch.ui.components.vouches.VouchList
 import com.iyox.vouch.viewmodel.PersonViewModel
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
+import java.math.BigDecimal
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -73,10 +75,11 @@ fun PersonScreen(
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    val personData by viewModel.personData.collectAsState()
-    val vouches by viewModel.vouches.collectAsState()
-    val amountGiven by viewModel.amountGiven.collectAsState()
-    val amountOwed by viewModel.amountOwed.collectAsState()
+    val state by viewModel.uiState.collectAsState()
+    val personData = state.personData
+    val vouches = state.vouches
+    val amountGiven = state.amountGiven
+    val amountOwed = state.amountOwed
 
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -114,240 +117,287 @@ fun PersonScreen(
             )
         }
     ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .drawWithContent {
-                    graphicsLayer.record(size = this.size.let {
-                        androidx.compose.ui.unit.IntSize(
-                            it.width.toInt(),
-                            it.height.toInt()
-                        )
-                    }) {
-                        this@drawWithContent.drawContent()
-                    }
-                    drawLayer(graphicsLayer)
-                }
-        ) {
-            // Person Info Card (styled like in PersonsScreen)
-            Card(
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainer
-                ),
-                shape = MaterialTheme.shapes.large,
+        if (state.isLoading) {
+            Box(
+                contentAlignment = Alignment.Center,
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
+                    .fillMaxSize()
+                    .padding(innerPadding)
             ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    val total = personData?.totalAmount?.toPlainString() ?: "0"
-                    val count = personData?.vouchCount ?: 0
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "Total Balance",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Surface(
-                            color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                            shape = androidx.compose.foundation.shape.CircleShape,
-                        ) {
-                            Text(
-                                text = "$count ${if (count == 1) "Vouch" else "Vouches"}",
-                                style = MaterialTheme.typography.labelLarge,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-                    Text(
-                        text = "$total€",
-                        style = MaterialTheme.typography.headlineLarge,
-                        fontWeight = FontWeight.Medium,
-                        color = if ((personData?.totalAmount?.signum()
-                                ?: 0) >= 0
-                        ) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.error
-                    )
-
-                    Spacer(modifier = Modifier.height(4.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Column {
-                            Text("Given", style = MaterialTheme.typography.labelMedium)
-                            Text(
-                                "${amountGiven.toPlainString()}€",
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                        Column(horizontalAlignment = Alignment.End) {
-                            Text("Received", style = MaterialTheme.typography.labelMedium)
-                            Text(
-                                "${amountOwed.toPlainString()}€",
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.error
-                            )
-                        }
-                    }
-                }
+                androidx.compose.material3.CircularProgressIndicator()
             }
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .drawWithContent {
+                        graphicsLayer.record(size = this.size.let {
+                            androidx.compose.ui.unit.IntSize(
+                                it.width.toInt(),
+                                it.height.toInt()
+                            )
+                        }) {
+                            this@drawWithContent.drawContent()
+                        }
+                        drawLayer(graphicsLayer)
+                    }
+            ) {
+                PersonInfoCard(
+                    personData = personData,
+                    amountGiven = amountGiven,
+                    amountOwed = amountOwed
+                )
 
-            // Quick Actions Card
-            if (!isCapturing) {
-                Card(
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainer
-                    ),
-                    shape = MaterialTheme.shapes.large,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                        .padding(bottom = 16.dp)
-                ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.SpaceAround
-                ) {
-                    FilledTonalButton(
-                        onClick = { /* TODO */ },
-                        shape = MaterialTheme.shapes.medium,
-                        contentPadding = PaddingValues(0.dp)
-                    ) {
-                        Icon(imageVector = Icons.Filled.Add, contentDescription = "Add Vouch")
-                    }
-                    FilledTonalButton(
-                        onClick = { /* TODO */ },
-                        shape = MaterialTheme.shapes.medium,
-                        contentPadding = PaddingValues(0.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.CompareArrows,
-                            contentDescription = "Auto-Settle Vouches"
-                        )
-                    }
-                    FilledTonalButton(
-                        onClick = { showSettleDialog = true },
-                        shape = MaterialTheme.shapes.medium,
-                        contentPadding = PaddingValues(0.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.DoneAll,
-                            contentDescription = "Settle Person"
-                        )
-                    }
-                    FilledTonalButton(
-                        onClick = {
+                if (!isCapturing) {
+                    QuickActionsCard(
+                        onSettleClick = { showSettleDialog = true },
+                        onShareClick = {
                             coroutineScope.launch {
                                 isCapturing = true
-                                kotlinx.coroutines.delay(100) // allow recomposition to hide the row
+                                kotlinx.coroutines.delay(100)
                                 val bitmap = graphicsLayer.toImageBitmap().asAndroidBitmap()
                                 shareBitmap(context, bitmap, personName)
                                 isCapturing = false
                             }
-                        },
-                        shape = MaterialTheme.shapes.medium,
-                        contentPadding = PaddingValues(0.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.Share,
-                            contentDescription = "Export Vouch-List"
-                        )
-                    }
+                        }
+                    )
                 }
-            }
-            }
 
-            // Vouches List (like in HomeScreen)
-            if (vouches.isEmpty()) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("No vouches for this person")
+                if (vouches.isEmpty()) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("No vouches for this person")
+                    }
+                } else {
+                    val listState = androidx.compose.foundation.lazy.rememberLazyListState()
+                    VouchList(
+                        displayedSorted = vouches,
+                        listState = listState,
+                        innerPadding = PaddingValues(0.dp),
+                        onSettle = { viewModel.settleVouch(it) },
+                        onUnSettle = { viewModel.unSettleVouch(it) },
+                        onDelete = { viewModel.deleteVouch(it) },
+                        onEdit = { onNavigateToEditVouch(it) }
+                    )
                 }
-            } else {
-                val listState = androidx.compose.foundation.lazy.rememberLazyListState()
-                VouchList(
-                    displayedSorted = vouches,
-                    listState = listState,
-                    innerPadding = PaddingValues(0.dp),
-                    onSettle = { viewModel.settleVouch(it) },
-                    onUnSettle = { viewModel.unSettleVouch(it) },
-                    onDelete = { viewModel.deleteVouch(it) },
-                    onEdit = { onNavigateToEditVouch(it) }
-                )
             }
         }
 
         if (showSettleDialog) {
-            AlertDialog(
-                onDismissRequest = { showSettleDialog = false },
-                title = { Text("Settle Person?") },
-                text = {
-                    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                        Text(
-                            text = "All vouches with this person (given and received) will be settled.\n${
-                                when (personData?.totalAmount?.signum()) {
-                                    -1 -> "you currently owe $personName ${personData?.totalAmount?.abs()}€"
-                                    1 -> "$personName currently owes you ${personData?.totalAmount?.abs()}€"
-                                    0 -> ""
-                                    else -> "something went wrong"
-                                }
-                            }.",
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { fullySettle = !fullySettle }
-                        ) {
-                            Checkbox(
-                                checked = fullySettle,
-                                onCheckedChange = { fullySettle = it }
-                            )
-                            Spacer(Modifier.width(8.dp))
-                            Text("Difference has been paid")
-                        }
-                    }
-                },
-                confirmButton = {
-                    Button(
-                        onClick = {
-                            showSettleDialog = false
-                            if (fullySettle) {
-                                viewModel.settlePerson()
-                            } else {
-                                viewModel.netVouches()
-                            }
-                        }
-                    ) {
-                        Text("Settle")
-                    }
-                },
-                dismissButton = {
-                    OutlinedButton(onClick = { showSettleDialog = false }) {
-                        Text("Cancel")
-                    }
+            SettlePersonDialog(
+                personName = personName,
+                personData = personData,
+                fullySettle = fullySettle,
+                onFullySettleChange = { fullySettle = it },
+                onDismiss = { showSettleDialog = false },
+                onConfirm = {
+                    showSettleDialog = false
+                    if (fullySettle) viewModel.settlePerson() else viewModel.netVouches()
                 }
             )
         }
     }
+}
+
+@Composable
+fun PersonInfoCard(
+    personData: PersonWithTotal?,
+    amountGiven: BigDecimal,
+    amountOwed: BigDecimal,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainer
+        ),
+        shape = MaterialTheme.shapes.large,
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            val total = personData?.totalAmount?.toPlainString() ?: "0"
+            val count = personData?.vouchCount ?: 0
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Total Balance",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Surface(
+                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    shape = androidx.compose.foundation.shape.CircleShape,
+                ) {
+                    Text(
+                        text = "$count ${if (count == 1) "Vouch" else "Vouches"}",
+                        style = MaterialTheme.typography.labelLarge,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            Text(
+                text = "$total€",
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.Medium,
+                color = if ((personData?.totalAmount?.signum()
+                        ?: 0) >= 0
+                ) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.error
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column {
+                    Text("Given", style = MaterialTheme.typography.labelMedium)
+                    Text(
+                        "${amountGiven.toPlainString()}€",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+                Column(horizontalAlignment = Alignment.End) {
+                    Text("Received", style = MaterialTheme.typography.labelMedium)
+                    Text(
+                        "${amountOwed.toPlainString()}€",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun QuickActionsCard(
+    onSettleClick: () -> Unit,
+    onShareClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainer
+        ),
+        shape = MaterialTheme.shapes.large,
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .padding(bottom = 16.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceAround
+        ) {
+            FilledTonalButton(
+                onClick = { /* TODO */ },
+                shape = MaterialTheme.shapes.medium,
+                contentPadding = PaddingValues(0.dp)
+            ) {
+                Icon(imageVector = Icons.Filled.Add, contentDescription = "Add Vouch")
+            }
+            FilledTonalButton(
+                onClick = { /* TODO */ },
+                shape = MaterialTheme.shapes.medium,
+                contentPadding = PaddingValues(0.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.CompareArrows,
+                    contentDescription = "Auto-Settle Vouches"
+                )
+            }
+            FilledTonalButton(
+                onClick = onSettleClick,
+                shape = MaterialTheme.shapes.medium,
+                contentPadding = PaddingValues(0.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.DoneAll,
+                    contentDescription = "Settle Person"
+                )
+            }
+            FilledTonalButton(
+                onClick = onShareClick,
+                shape = MaterialTheme.shapes.medium,
+                contentPadding = PaddingValues(0.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Share,
+                    contentDescription = "Export Vouch-List"
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun SettlePersonDialog(
+    personName: String,
+    personData: PersonWithTotal?,
+    fullySettle: Boolean,
+    onFullySettleChange: (Boolean) -> Unit,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Settle Person?") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Text(
+                    text = "All vouches with this person (given and received) will be settled.\n${
+                        when (personData?.totalAmount?.signum()) {
+                            -1 -> "you currently owe $personName ${personData.totalAmount.abs()}€"
+                            1 -> "$personName currently owes you ${personData.totalAmount.abs()}€"
+                            0 -> ""
+                            else -> "something went wrong"
+                        }
+                    }.",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onFullySettleChange(!fullySettle) }
+                ) {
+                    Checkbox(
+                        checked = fullySettle,
+                        onCheckedChange = onFullySettleChange
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text("Difference has been paid")
+                }
+            }
+        },
+        confirmButton = {
+            Button(onClick = onConfirm) {
+                Text("Settle")
+            }
+        },
+        dismissButton = {
+            OutlinedButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
 }
 
 private fun shareBitmap(context: Context, bitmap: Bitmap, personName: String) {
