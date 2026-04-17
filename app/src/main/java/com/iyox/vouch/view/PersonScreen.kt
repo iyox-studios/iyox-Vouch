@@ -15,8 +15,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.CompareArrows
@@ -48,7 +46,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.layer.drawLayer
@@ -60,6 +57,7 @@ import androidx.core.content.FileProvider
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.iyox.vouch.ui.components.vouches.VouchList
 import com.iyox.vouch.viewmodel.PersonViewModel
 import kotlinx.coroutines.launch
 import java.io.File
@@ -282,38 +280,16 @@ fun PersonScreen(
                     Text("No vouches for this person")
                 }
             } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(2.dp, Alignment.Top)
-                ) {
-                    itemsIndexed(vouches, key = { _, item -> item.id }) { _, vouch ->
-                        if (vouch.settled) {
-                            Box(
-                                modifier = Modifier
-                                    .animateItem()
-                                    .alpha(0.6f)
-                            ) {
-                                VouchItem(
-                                    vouch = vouch,
-                                    canSettle = false,
-                                    onSettle = { viewModel.unSettleVouch(vouch) },
-                                    onDelete = { viewModel.deleteVouch(vouch) },
-                                    onEdit = { onNavigateToEditVouch(vouch.id) }
-                                )
-                            }
-                        } else {
-                            Box(modifier = Modifier.animateItem()) {
-                                VouchItem(
-                                    vouch = vouch,
-                                    onSettle = { viewModel.settleVouch(vouch) },
-                                    onDelete = { viewModel.deleteVouch(vouch) },
-                                    onEdit = { onNavigateToEditVouch(vouch.id) }
-                                )
-                            }
-                        }
-                    }
-                }
+                val listState = androidx.compose.foundation.lazy.rememberLazyListState()
+                VouchList(
+                    displayedSorted = vouches,
+                    listState = listState,
+                    innerPadding = PaddingValues(0.dp),
+                    onSettle = { viewModel.settleVouch(it) },
+                    onUnSettle = { viewModel.unSettleVouch(it) },
+                    onDelete = { viewModel.deleteVouch(it) },
+                    onEdit = { onNavigateToEditVouch(it) }
+                )
             }
         }
 

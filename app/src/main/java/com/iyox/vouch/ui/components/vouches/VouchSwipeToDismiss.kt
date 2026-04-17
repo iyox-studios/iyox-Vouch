@@ -1,4 +1,4 @@
-package com.iyox.vouch.ui.components
+package com.iyox.vouch.ui.components.vouches
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
