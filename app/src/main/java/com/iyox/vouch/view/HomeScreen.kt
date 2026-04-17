@@ -1,37 +1,20 @@
 package com.iyox.vouch.view
 
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.material.icons.outlined.ArrowOutward
-import androidx.compose.material.icons.outlined.SouthWest
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -39,21 +22,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.iyox.vouch.model.Vouch
 import com.iyox.vouch.ui.components.PageHeader
-import com.iyox.vouch.ui.components.VouchSwipeToDismiss
 import com.iyox.vouch.viewmodel.HomeViewModel
-import java.text.SimpleDateFormat
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -160,138 +136,23 @@ fun HomeScreen(
                 Text("Tap + to add a new vouch")
             }
         } else {
-            LazyColumn(
-                state = listState,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(top = innerPadding.calculateTopPadding()),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(2.dp, Alignment.Top)
-            ) {
-                val displayed =
-                    viewModel.getDisplayedVouches(showOnlyUnsettled, showOnlyGiven, vouches)
-                val displayedSorted = when (sortedBy) {
-                    0 -> displayed.sortedBy { it.timestamp }
-                    1 -> displayed.sortedBy { it.amount }
-                    2 -> displayed.sortedBy { it.personName ?: "" }
-                    else -> displayed.sortedBy { it.timestamp }
-                }.reversed()
-                itemsIndexed(
-                    displayedSorted, { _, item -> item.id }) { _, vouch ->
-                    if (vouch.settled) {
-                        Box(
-                            modifier = Modifier
-                                .animateItem()
-                                .alpha(0.6f)
-                        ) {
-                            VouchItem(
-                                vouch = vouch,
-                                canSettle = false,
-                                onSettle = { viewModel.unSettleVouch(vouch) },
-                                onDelete = { viewModel.deleteVouch(vouch) },
-                                onEdit = { onNavigateToEditVouch(vouch.id) }
-                            )
-                        }
-                    } else {
-                        Box(modifier = Modifier.animateItem()) {
-                            VouchItem(
-                                vouch = vouch,
-                                onSettle = { viewModel.settleVouch(vouch) },
-                                onDelete = { viewModel.deleteVouch(vouch) },
-                                onEdit = { onNavigateToEditVouch(vouch.id) }
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalFoundationApi::class)
-@Composable
-fun VouchItem(
-    vouch: Vouch, canSettle: Boolean = true, onSettle: () -> Unit, onDelete: () -> Unit = {}, onEdit: () -> Unit = {}
-) {
-    val dateFormat = SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
-
-    val content = @Composable {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(MaterialTheme.shapes.largeIncreased)
-                .combinedClickable(onClick = {}, onLongClick = onEdit),
-            shape = MaterialTheme.shapes.largeIncreased,
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainer
+            val displayed =
+                viewModel.getDisplayedVouches(showOnlyUnsettled, showOnlyGiven, vouches)
+            val displayedSorted = when (sortedBy) {
+                0 -> displayed.sortedBy { it.timestamp }
+                1 -> displayed.sortedBy { it.amount }
+                2 -> displayed.sortedBy { it.personName ?: "" }
+                else -> displayed.sortedBy { it.timestamp }
+            }.reversed()
+            com.iyox.vouch.ui.components.vouches.VouchList(
+                displayedSorted = displayedSorted,
+                listState = listState,
+                innerPadding = innerPadding,
+                onSettle = { viewModel.settleVouch(it) },
+                onUnSettle = { viewModel.unSettleVouch(it) },
+                onDelete = { viewModel.deleteVouch(it) },
+                onEdit = { onNavigateToEditVouch(it) }
             )
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(20.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Surface(
-                    shape = MaterialTheme.shapes.medium,
-                    color = if (vouch.given) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onError,
-                    modifier = Modifier.size(48.dp)
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            imageVector = if (vouch.given) Icons.Outlined.ArrowOutward else Icons.Outlined.SouthWest,
-                            contentDescription = "Home",
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.width(16.dp))
-                Column(
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(
-                        text = vouch.amount.toString() + " " + vouch.currency.symbol,
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Medium
-                    )
-                    Text(
-                        text = vouch.description.ifBlank { dateFormat.format(vouch.timestamp) },
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1
-                    )
-                }
-
-                Spacer(modifier = Modifier.width(16.dp))
-
-                if (vouch.personName != null) Text(
-                    text = vouch.personName,
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-    }
-
-    if (canSettle) {
-        VouchSwipeToDismiss(
-            enableDismissFromStartToEnd = true,
-            onStartToEnd = onSettle,
-            enableDismissFromEndToStart = true,
-            onEndToStart = onDelete
-        ) {
-            content()
-        }
-    } else {
-        VouchSwipeToDismiss(
-            enableDismissFromStartToEnd = true,
-            onStartToEnd = onSettle,
-            enableDismissFromEndToStart = true,
-            onEndToStart = onDelete,
-            settleText = "Unsettle"
-        ) {
-            content()
         }
     }
 }
