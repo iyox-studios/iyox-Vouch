@@ -12,103 +12,111 @@ import com.iyox.vouch.model.VouchRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 
-class VouchViewModel(application: Application) : AndroidViewModel(application) {
+data class VouchUiState(
+    val amount: String = "",
+    val currency: Currency = Currency.getInstance("EUR"),
+    val given: Boolean = true,
+    val personName: String = "",
+    val description: String = "",
+    val isLoading: Boolean = true,
+    val saveSuccess: Boolean = false,
+    val personSearchResults: List<PersonWithTotal> = emptyList(),
+    val error: String? = null
+)
 
+class VouchViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = VouchRepository.getInstance(application)
     private val personRepository = PersonRepository.getInstance(application)
 
-    private val _amount = MutableStateFlow("")
-    val amount: StateFlow<String> = _amount
-
-    private val _given = MutableStateFlow(true)
-    val given: StateFlow<Boolean> = _given
-
-    private val _personName = MutableStateFlow("")
-    val personName: StateFlow<String> = _personName
-
-    private val _personSearchResults = MutableStateFlow<List<PersonWithTotal>>(emptyList())
-    val personSearchResults: StateFlow<List<PersonWithTotal>> = _personSearchResults
-
-    private val _currency = MutableStateFlow(Currency.getInstance("EUR"))
-    val currency: StateFlow<Currency> = _currency
-
-    private val _description = MutableStateFlow("")
-    val description: StateFlow<String> = _description
-
-    private val _saveSuccess = MutableStateFlow(false)
-    val saveSuccess: StateFlow<Boolean> = _saveSuccess
-
-    private val _isLoading = MutableStateFlow(true)
-    val isLoading: StateFlow<Boolean> = _isLoading
-
     private var searchJob: Job? = null
-
     private var editingVouchId: Int? = null
     private var originalVouch: Vouch? = null
 
+    private val _uiState = MutableStateFlow(VouchUiState())
+    val uiState: StateFlow<VouchUiState> = _uiState.asStateFlow()
+
     fun loadVouch(id: Long?) {
+        _uiState.update { VouchUiState(isLoading = true) }
+        searchJob?.cancel()
+
         if (id == null) {
-            _isLoading.value = false
+            editingVouchId = null
+            originalVouch = null
+            _uiState.update { it.copy(isLoading = false) }
             return
         }
         val intId = id.toInt()
         viewModelScope.launch {
             val vouch = repository.getById(intId)
-            if (vouch != null) {
-                editingVouchId = vouch.id
-                originalVouch = vouch
-                _amount.value = vouch.amount.toPlainString()
-                _given.value = vouch.given
-                _personName.value = vouch.personName ?: ""
-                _description.value = vouch.description
-                _currency.value = vouch.currency
+            _uiState.update { state ->
+                if (vouch != null) {
+                    editingVouchId = vouch.id
+                    originalVouch = vouch
+                    state.copy(
+                        amount = vouch.amount.toPlainString(),
+                        currency = vouch.currency,
+                        given = vouch.given,
+                        personName = vouch.personName ?: "",
+                        description = vouch.description,
+                        isLoading = false
+                    )
+                } else {
+                    state.copy(isLoading = false)
+                }
             }
-            _isLoading.value = false
         }
     }
 
     fun onAmountChange(value: String) {
-        _amount.value = value
+        _uiState.update { it.copy(amount = value) }
     }
 
     fun onGivenChange(value: Boolean) {
-        _given.value = value
+        _uiState.update { it.copy(given = value) }
     }
 
     fun onPersonChange(value: String) {
-        _personName.value = value
+        _uiState.update { it.copy(personName = value) }
         searchJob?.cancel()
         searchJob = viewModelScope.launch {
             if (value.isNotBlank()) {
-                _personSearchResults.value = personRepository.getPersonsWithTotal(value)
+                val results = personRepository.getPersonsWithTotal(value)
+                _uiState.update { it.copy(personSearchResults = results) }
             } else {
-                _personSearchResults.value = emptyList()
+                _uiState.update { it.copy(personSearchResults = emptyList()) }
             }
         }
     }
 
     fun onPersonSelected(person: Person) {
-        _personName.value = person.name
-        _personSearchResults.value = emptyList()
+        _uiState.update {
+            it.copy(
+                personName = person.name,
+                personSearchResults = emptyList()
+            )
+        }
         searchJob?.cancel()
     }
 
 
     fun onCurrencyChange(value: Currency) {
-        _currency.value = value
+        _uiState.update { it.copy(currency = value) }
     }
 
     fun onDescriptionChange(value: String) {
-        _description.value = value
+        _uiState.update { it.copy(description = value) }
     }
 
     fun saveVouch() {
         viewModelScope.launch {
-            val amountStr = _amount.value.trim()
-            val fractionDigits = _currency.value.defaultFractionDigits
+            val currentState = _uiState.value
+            val amountStr = currentState.amount.trim()
+            val fractionDigits = currentState.currency.defaultFractionDigits
 
             val amountPattern = if (fractionDigits > 0) {
                 Regex("^\\d+([.,]\\d{1,$fractionDigits})?$")
@@ -117,7 +125,7 @@ class VouchViewModel(application: Application) : AndroidViewModel(application) {
             }
 
             if (!amountPattern.matches(amountStr)) {
-                _saveSuccess.value = false
+                _uiState.update { it.copy(saveSuccess = false, error = "Invalid amount format") }
                 return@launch
             }
 
@@ -125,36 +133,36 @@ class VouchViewModel(application: Application) : AndroidViewModel(application) {
             val amountBigDecimal = try {
                 BigDecimal(normalized)
             } catch (e: NumberFormatException) {
-                _saveSuccess.value = false
+                _uiState.update { it.copy(saveSuccess = false, error = "Invalid amount format") }
                 return@launch
             }
 
             if (editingVouchId != null) {
                 val newVouch = originalVouch!!.copy(
                     amount = amountBigDecimal,
-                    description = _description.value.trim(),
-                    personName = if (_personName.value.isBlank()) null else _personName.value.trim(),
-                    given = _given.value,
-                    currency = _currency.value
+                    description = currentState.description.trim(),
+                    personName = if (currentState.personName.isBlank()) null else currentState.personName.trim(),
+                    given = currentState.given,
+                    currency = currentState.currency
                 )
-                repository.update(originalVouch, newVouch)
+                repository.update(originalVouch!!, newVouch)
             } else {
                 val vouch = Vouch(
                     id = 0,
                     amount = amountBigDecimal,
-                    description = _description.value.trim(),
-                    personName = if (_personName.value.isBlank()) null else _personName.value.trim(),
-                    given = _given.value,
-                    currency = _currency.value,
+                    description = currentState.description.trim(),
+                    personName = if (currentState.personName.isBlank()) null else currentState.personName.trim(),
+                    given = currentState.given,
+                    currency = currentState.currency,
                 )
                 repository.insert(vouch)
             }
 
-            _saveSuccess.value = true
+            _uiState.update { it.copy(saveSuccess = true) }
         }
     }
 
     fun resetSaveSuccess() {
-        _saveSuccess.value = false
+        _uiState.update { it.copy(saveSuccess = false) }
     }
 }
