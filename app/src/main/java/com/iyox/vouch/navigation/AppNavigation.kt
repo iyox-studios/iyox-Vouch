@@ -133,7 +133,11 @@ fun AppNavigation() {
                     personName = personName,
                     onNavigateBack = {
                         navController.popBackStack()
-                    })
+                    },
+                    onNavigateToEditVouch = { vouchId ->
+                        navController.navigate(Screen.EditVouch.createRoute(vouchId))
+                    }
+                )
             }
             composable(
                 route = Screen.EditVouch.route,
