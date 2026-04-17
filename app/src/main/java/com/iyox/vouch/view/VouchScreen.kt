@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -18,7 +17,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -35,7 +33,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
@@ -58,10 +55,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.iyox.vouch.model.PersonWithTotal
 import com.iyox.vouch.viewmodel.VouchViewModel
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -69,14 +66,7 @@ import com.iyox.vouch.viewmodel.VouchViewModel
 fun VouchScreen(
     viewModel: VouchViewModel = viewModel(), vouchId: Long? = null, onNavigateBack: () -> Unit, edit : Boolean = false
 ) {
-    val amount by viewModel.amount.collectAsState()
-    val currency by viewModel.currency.collectAsState()
-    val given by viewModel.given.collectAsState()
-    val person by viewModel.personName.collectAsState()
-    val personSearchResults by viewModel.personSearchResults.collectAsState()
-    val description by viewModel.description.collectAsState()
-    val saveSuccess by viewModel.saveSuccess.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
+    val state by viewModel.uiState.collectAsState()
 
     var showCurrencyDialog by remember { mutableStateOf(false) }
 
@@ -88,8 +78,8 @@ fun VouchScreen(
         }
     }
 
-    LaunchedEffect(saveSuccess) {
-        if (saveSuccess) {
+    LaunchedEffect(state.saveSuccess) {
+        if (state.saveSuccess) {
             viewModel.resetSaveSuccess()
             onNavigateBack()
         }
@@ -97,7 +87,7 @@ fun VouchScreen(
 
     if (showCurrencyDialog) {
         CurrencySelectionDialog(
-            currentCurrency = currency,
+            currentCurrency = state.currency,
             onDismiss = { showCurrencyDialog = false },
             onCurrencySelected = { selectedCurrency ->
                 viewModel.onCurrencyChange(selectedCurrency)
@@ -116,8 +106,13 @@ fun VouchScreen(
                 }
             })
         }) { innerPadding ->
-        if (isLoading && vouchId != null) {
-            Box(modifier = Modifier.fillMaxSize().padding(innerPadding), contentAlignment = Alignment.Center) {
+        if (state.isLoading) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+            ) {
                 CircularProgressIndicator()
             }
         } else {
@@ -128,210 +123,35 @@ fun VouchScreen(
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Button(
-                        onClick = { showCurrencyDialog = true },
-                        modifier = Modifier.defaultMinSize(minWidth = 0.dp, minHeight = 0.dp),
-                        shape = MaterialTheme.shapes.small,
-                        elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.Transparent,
-                            contentColor = MaterialTheme.colorScheme.onSurface
-                        ),
-                        contentPadding = PaddingValues(0.dp)
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                currency.symbol,
-                                style = MaterialTheme.typography.displayLarge,
-                                modifier = Modifier.padding(start = 10.dp) //strangely more padding than for icon, but only this looks right
-                            )
-                            Icon(
-                                imageVector = Icons.Filled.ArrowDropDown,
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .size(24.dp)
-                                    .padding(end = 4.dp)
-                            )
-                        }
-                    }
-                    OutlinedTextField(
-                        value = amount,
-                        onValueChange = {
-                            viewModel.onAmountChange(it)
-                        },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        modifier = Modifier.weight(1f),
-                        textStyle = MaterialTheme.typography.displayLarge,
-                        singleLine = true,
-                        placeholder = {
-                            Text(
-                                "00" + (if (currency.defaultFractionDigits > 0) "." else "") + "0".repeat(
-                                    currency.defaultFractionDigits
-                                ), style = MaterialTheme.typography.displayLarge
-                            )
-                        },
-                        colors = TextFieldDefaults.colors(
-                            focusedContainerColor = Color.Transparent,
-                            unfocusedContainerColor = Color.Transparent,
-                            focusedIndicatorColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.Transparent,
-                        ),
-                    )
-                }
+                VouchAmountHeader(
+                    amount = state.amount,
+                    currency = state.currency,
+                    onAmountChange = viewModel::onAmountChange,
+                    onCurrencyClick = { showCurrencyDialog = true }
+                )
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Button(
-                        onClick = {
-                            viewModel.onGivenChange(true)
-                        },
-                        modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = if (given) MaterialTheme.colorScheme.primary else Color.Transparent,
-                            contentColor = if (given) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
-                        ),
-                        elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp),
-                        shape = MaterialTheme.shapes.small,
-                        contentPadding = PaddingValues(8.dp)
-                    ) {
-                        Text("Given")
-                    }
+                VouchDirectionToggle(
+                    isGiven = state.given,
+                    onToggle = viewModel::onGivenChange
+                )
 
-                    Button(
-                        onClick = {
-                            viewModel.onGivenChange(false)
-                        },
-                        modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = if (!given) MaterialTheme.colorScheme.primary else Color.Transparent,
-                            contentColor = if (!given) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
-                        ),
-                        elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp),
-                        shape = MaterialTheme.shapes.small,
-                        contentPadding = PaddingValues(8.dp)
-                    ) {
-                        Text("Received")
-                    }
-                }
+                PersonAutocompleteField(
+                    value = state.personName,
+                    results = state.personSearchResults,
+                    onValueChange = viewModel::onPersonChange,
+                    onPersonSelected = viewModel::onPersonSelected
+                )
 
-                var expanded by remember { mutableStateOf(false) }
-
-                LaunchedEffect(personSearchResults) {
-                    expanded = personSearchResults.isNotEmpty()
-                }
-
-                ExposedDropdownMenuBox(
-                    expanded = expanded,
-                    onExpandedChange = { newExpanded ->
-                        if (!newExpanded) {
-                            expanded = false
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    OutlinedTextField(
-                        value = person,
-                        onValueChange = {
-                            viewModel.onPersonChange(it)
-                            expanded = true
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable),
-                        textStyle = MaterialTheme.typography.titleLarge,
-                        label = { Text("Person") },
-                        shape = MaterialTheme.shapes.medium,
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Filled.Person,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        },
-                        colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outline
-                        ),
-                        singleLine = true
-                    )
-
-                    ExposedDropdownMenu(
-                        expanded = expanded && personSearchResults.isNotEmpty(),
-                        onDismissRequest = { expanded = false },
-                        shape = MaterialTheme.shapes.medium,
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                        modifier = Modifier
-                            .exposedDropdownSize()
-                            .padding(horizontal = 8.dp)
-                    ) {
-                        personSearchResults.forEach { searchResult ->
-                            DropdownMenuItem(
-                                text = {
-                                    ListItem(
-                                        headlineContent = {
-                                            Text(
-                                                searchResult.person.name,
-                                                style = MaterialTheme.typography.bodyLarge
-                                            )
-                                        },
-                                        leadingContent = {
-                                            Surface(
-                                                shape = androidx.compose.foundation.shape.CircleShape,
-                                                color = MaterialTheme.colorScheme.primaryContainer,
-                                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                                                modifier = Modifier.size(32.dp)
-                                            ) {
-                                                Box(contentAlignment = Alignment.Center) {
-                                                    Text(
-                                                        text = searchResult.person.name.take(1)
-                                                            .uppercase(),
-                                                        style = MaterialTheme.typography.titleMedium
-                                                    )
-                                                }
-                                            }
-                                        },
-                                        trailingContent = { Text(
-                                            text = searchResult.totalAmount.toString() + "€",
-                                            style = MaterialTheme.typography.titleMedium
-                                        ) },
-                                        colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-                                    )
-                                }, onClick = {
-                                    viewModel.onPersonSelected(searchResult.person)
-                                    expanded = false
-                                }, contentPadding = PaddingValues(0.dp)
-                            )
-
-                        }
-                    }
-                }
-
-                OutlinedTextField(
-                    value = description,
-                    onValueChange = {
-                        viewModel.onDescriptionChange(it)
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    textStyle = MaterialTheme.typography.titleLarge,
-                    label = { Text("Description") },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Filled.Description, contentDescription = null
-                        )
-                    },
-                    maxLines = 3,
-                    shape = MaterialTheme.shapes.medium,
+                VouchDescriptionField(
+                    value = state.description,
+                    onValueChange = viewModel::onDescriptionChange
                 )
 
                 Spacer(modifier = Modifier.weight(1f))
 
                 Button(
-                    onClick = { viewModel.saveVouch() }, modifier = Modifier.fillMaxWidth()
+                    onClick = { viewModel.saveVouch() },
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     Text("Save Vouch")
                 }
@@ -404,4 +224,181 @@ fun CurrencySelectionDialog(
             Text("Cancel")
         }
     })
+}
+
+@Composable
+private fun VouchAmountHeader(
+    amount: String,
+    currency: Currency,
+    onAmountChange: (String) -> Unit,
+    onCurrencyClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
+        Button(
+            onClick = onCurrencyClick,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.Transparent,
+                contentColor = MaterialTheme.colorScheme.onSurface
+            ),
+            contentPadding = PaddingValues(0.dp)
+        ) {
+            Text(currency.symbol, style = MaterialTheme.typography.displayLarge)
+            Icon(Icons.Filled.ArrowDropDown, null)
+        }
+        OutlinedTextField(
+            value = amount,
+            onValueChange = onAmountChange,
+            modifier = Modifier.weight(1f),
+            textStyle = MaterialTheme.typography.displayLarge,
+            placeholder = { Text("0.00", style = MaterialTheme.typography.displayLarge) },
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = Color.Transparent,
+                unfocusedContainerColor = Color.Transparent,
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent
+            )
+        )
+    }
+}
+
+@Composable
+private fun VouchDirectionToggle(
+    isGiven: Boolean,
+    onToggle: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        listOf(true to "Given", false to "Received").forEach { (type, label) ->
+            val isSelected = isGiven == type
+            Button(
+                onClick = { onToggle(type) },
+                modifier = Modifier.weight(1f),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
+                    contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
+                ),
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp),
+                shape = MaterialTheme.shapes.small,
+                contentPadding = PaddingValues(8.dp)
+            ) {
+                Text(label)
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun PersonAutocompleteField(
+    value: String,
+    results: List<PersonWithTotal>, // Replace with your actual import
+    onValueChange: (String) -> Unit,
+    onPersonSelected: (com.iyox.vouch.model.Person) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    // Close menu if results are empty
+    LaunchedEffect(results) {
+        expanded = results.isNotEmpty()
+    }
+
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = it },
+        modifier = modifier.fillMaxWidth()
+    ) {
+        OutlinedTextField(
+            value = value,
+            onValueChange = {
+                onValueChange(it)
+                expanded = true
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable),
+            label = { Text("Person") },
+            leadingIcon = {
+                Icon(Icons.Filled.Person, null, tint = MaterialTheme.colorScheme.primary)
+            },
+            singleLine = true,
+            shape = MaterialTheme.shapes.medium
+        )
+
+        ExposedDropdownMenu(
+            expanded = expanded && results.isNotEmpty(),
+            onDismissRequest = { expanded = false },
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+        ) {
+            results.forEach { searchResult ->
+                DropdownMenuItem(
+                    text = {
+                        PersonListItem(
+                            name = searchResult.person.name,
+                            totalAmount = searchResult.totalAmount?.toDouble() ?: 0.0
+                        )
+                    },
+                    onClick = {
+                        onPersonSelected(searchResult.person)
+                        expanded = false
+                    },
+                    contentPadding = PaddingValues(0.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun PersonListItem(
+    name: String,
+    totalAmount: Double,
+    modifier: Modifier = Modifier
+) {
+    ListItem(
+        modifier = modifier,
+        headlineContent = { Text(name, style = MaterialTheme.typography.bodyLarge) },
+        leadingContent = {
+            Surface(
+                shape = androidx.compose.foundation.shape.CircleShape,
+                color = MaterialTheme.colorScheme.primaryContainer,
+                modifier = Modifier.size(32.dp)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Text(
+                        text = name.take(1).uppercase(),
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                }
+            }
+        },
+        trailingContent = {
+            Text(
+                text = "$totalAmount€",
+                style = MaterialTheme.typography.titleMedium
+            )
+        },
+        colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+    )
+}
+
+@Composable
+private fun VouchDescriptionField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        modifier = modifier.fillMaxWidth(),
+        label = { Text("Description") },
+        leadingIcon = { Icon(Icons.Filled.Description, null) },
+        maxLines = 3,
+        shape = MaterialTheme.shapes.medium
+    )
 }
