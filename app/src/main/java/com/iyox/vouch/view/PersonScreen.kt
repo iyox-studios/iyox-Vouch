@@ -1,8 +1,10 @@
 package com.iyox.vouch.view
 
+import android.content.ClipData
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,11 +12,16 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.absoluteOffset
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.CompareArrows
@@ -26,6 +33,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
@@ -48,18 +56,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.asAndroidBitmap
-import androidx.compose.ui.graphics.layer.drawLayer
 import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.iyox.vouch.model.PersonWithTotal
+import com.iyox.vouch.model.Vouch
+import com.iyox.vouch.ui.components.vouches.VouchItem
 import com.iyox.vouch.ui.components.vouches.VouchList
 import com.iyox.vouch.viewmodel.PersonViewModel
+import kotlinx.coroutines.android.awaitFrame
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
@@ -76,21 +87,17 @@ fun PersonScreen(
     val lifecycleOwner = LocalLifecycleOwner.current
 
     val state by viewModel.uiState.collectAsState()
-    val personData = state.personData
-    val vouches = state.vouches
-    val amountGiven = state.amountGiven
-    val amountOwed = state.amountOwed
+    val exportLayer = rememberGraphicsLayer()
 
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
-    val graphicsLayer = rememberGraphicsLayer()
-    var isCapturing by remember { mutableStateOf(false) }
 
     var showSettleDialog by remember { mutableStateOf(false) }
+    var capturing by remember { mutableStateOf(false) }
     var fullySettle by remember { mutableStateOf(false) }
 
     DisposableEffect(lifecycleOwner, personName) {
-        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+        val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 viewModel.loadPerson(personName)
             }
@@ -104,19 +111,15 @@ fun PersonScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(personName) },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
-                        )
-                    }
+            TopAppBar(title = { Text(personName) }, navigationIcon = {
+                IconButton(onClick = onNavigateBack) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back"
+                    )
                 }
-            )
-        }
-    ) { innerPadding ->
+            })
+        }) { innerPadding ->
         if (state.isLoading) {
             Box(
                 contentAlignment = Alignment.Center,
@@ -124,63 +127,66 @@ fun PersonScreen(
                     .fillMaxSize()
                     .padding(innerPadding)
             ) {
-                androidx.compose.material3.CircularProgressIndicator()
+                CircularProgressIndicator()
             }
         } else {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding)
-                    .drawWithContent {
-                        graphicsLayer.record(size = this.size.let {
-                            androidx.compose.ui.unit.IntSize(
-                                it.width.toInt(),
-                                it.height.toInt()
-                            )
-                        }) {
-                            this@drawWithContent.drawContent()
-                        }
-                        drawLayer(graphicsLayer)
-                    }
             ) {
                 PersonInfoCard(
-                    personData = personData,
-                    amountGiven = amountGiven,
-                    amountOwed = amountOwed
+                    personData = state.personData,
+                    amountGiven = state.amountGiven,
+                    amountOwed = state.amountOwed
                 )
 
-                if (!isCapturing) {
-                    QuickActionsCard(
-                        onSettleClick = { showSettleDialog = true },
-                        onShareClick = {
-                            coroutineScope.launch {
-                                isCapturing = true
-                                kotlinx.coroutines.delay(100)
-                                val bitmap = graphicsLayer.toImageBitmap().asAndroidBitmap()
-                                shareBitmap(context, bitmap, personName)
-                                isCapturing = false
-                            }
-                        }
-                    )
-                }
+                QuickActionsCard(onSettleClick = { showSettleDialog = true }, onShareClick = {
+                    coroutineScope.launch {
+                        capturing = true
+                        awaitFrame()
+                        val bitmap = exportLayer.toImageBitmap().asAndroidBitmap()
+                        shareBitmap(context, bitmap, personName)
+                        capturing = false
+                    }
+                })
 
-                if (vouches.isEmpty()) {
+                if (state.vouches.isEmpty()) {
                     Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
+                        modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center
                     ) {
                         Text("No vouches for this person")
                     }
                 } else {
-                    val listState = androidx.compose.foundation.lazy.rememberLazyListState()
                     VouchList(
-                        displayedSorted = vouches,
-                        listState = listState,
+                        displayedSorted = state.vouches,
+                        listState = rememberLazyListState(),
                         innerPadding = PaddingValues(0.dp),
                         onSettle = { viewModel.settleVouch(it) },
                         onUnSettle = { viewModel.unSettleVouch(it) },
                         onDelete = { viewModel.deleteVouch(it) },
-                        onEdit = { onNavigateToEditVouch(it) }
+                        onEdit = { onNavigateToEditVouch(it) })
+                }
+            }
+        }
+
+        if (capturing) {
+            Box(modifier = Modifier.absoluteOffset(x = (-10000).dp)) {
+                Column(
+                    modifier = Modifier
+                        .wrapContentHeight(unbounded = true)
+                        .background(MaterialTheme.colorScheme.surface)
+                        .drawWithContent {
+                            exportLayer.record {
+                                this@drawWithContent.drawContent()
+                            }
+                        }) {
+                    VouchExportTemplate(
+                        personName,
+                        state.personData,
+                        state.amountGiven,
+                        state.amountOwed,
+                        state.vouches
                     )
                 }
             }
@@ -189,15 +195,14 @@ fun PersonScreen(
         if (showSettleDialog) {
             SettlePersonDialog(
                 personName = personName,
-                personData = personData,
+                personData = state.personData,
                 fullySettle = fullySettle,
                 onFullySettleChange = { fullySettle = it },
                 onDismiss = { showSettleDialog = false },
                 onConfirm = {
                     showSettleDialog = false
                     if (fullySettle) viewModel.settlePerson() else viewModel.netVouches()
-                }
-            )
+                })
         }
     }
 }
@@ -212,15 +217,12 @@ fun PersonInfoCard(
     Card(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainer
-        ),
-        shape = MaterialTheme.shapes.large,
-        modifier = modifier
+        ), shape = MaterialTheme.shapes.large, modifier = modifier
             .fillMaxWidth()
             .padding(16.dp)
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             val total = personData?.totalAmount?.toPlainString() ?: "0"
             val count = personData?.vouchCount ?: 0
@@ -237,7 +239,7 @@ fun PersonInfoCard(
                 )
                 Surface(
                     color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    shape = androidx.compose.foundation.shape.CircleShape,
+                    shape = CircleShape,
                 ) {
                     Text(
                         text = "$count ${if (count == 1) "Vouch" else "Vouches"}",
@@ -259,8 +261,7 @@ fun PersonInfoCard(
             Spacer(modifier = Modifier.height(4.dp))
 
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column {
                     Text("Given", style = MaterialTheme.typography.labelMedium)
@@ -285,9 +286,7 @@ fun PersonInfoCard(
 
 @Composable
 fun QuickActionsCard(
-    onSettleClick: () -> Unit,
-    onShareClick: () -> Unit,
-    modifier: Modifier = Modifier
+    onSettleClick: () -> Unit, onShareClick: () -> Unit, modifier: Modifier = Modifier
 ) {
     Card(
         colors = CardDefaults.cardColors(
@@ -308,6 +307,7 @@ fun QuickActionsCard(
             FilledTonalButton(
                 onClick = { /* TODO */ },
                 shape = MaterialTheme.shapes.medium,
+                modifier = Modifier.size(48.dp),
                 contentPadding = PaddingValues(0.dp)
             ) {
                 Icon(imageVector = Icons.Filled.Add, contentDescription = "Add Vouch")
@@ -315,6 +315,7 @@ fun QuickActionsCard(
             FilledTonalButton(
                 onClick = { /* TODO */ },
                 shape = MaterialTheme.shapes.medium,
+                modifier = Modifier.size(48.dp),
                 contentPadding = PaddingValues(0.dp)
             ) {
                 Icon(
@@ -325,21 +326,21 @@ fun QuickActionsCard(
             FilledTonalButton(
                 onClick = onSettleClick,
                 shape = MaterialTheme.shapes.medium,
+                modifier = Modifier.size(48.dp),
                 contentPadding = PaddingValues(0.dp)
             ) {
                 Icon(
-                    imageVector = Icons.Filled.DoneAll,
-                    contentDescription = "Settle Person"
+                    imageVector = Icons.Filled.DoneAll, contentDescription = "Settle Person"
                 )
             }
             FilledTonalButton(
                 onClick = onShareClick,
                 shape = MaterialTheme.shapes.medium,
+                modifier = Modifier.size(48.dp),
                 contentPadding = PaddingValues(0.dp)
             ) {
                 Icon(
-                    imageVector = Icons.Filled.Share,
-                    contentDescription = "Export Vouch-List"
+                    imageVector = Icons.Filled.Share, contentDescription = "Export Vouch-List"
                 )
             }
         }
@@ -355,72 +356,92 @@ fun SettlePersonDialog(
     onDismiss: () -> Unit,
     onConfirm: () -> Unit
 ) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Settle Person?") },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                Text(
-                    text = "All vouches with this person (given and received) will be settled.\n${
-                        when (personData?.totalAmount?.signum()) {
-                            -1 -> "you currently owe $personName ${personData.totalAmount.abs()}€"
-                            1 -> "$personName currently owes you ${personData.totalAmount.abs()}€"
-                            0 -> ""
-                            else -> "something went wrong"
-                        }
-                    }.",
-                    style = MaterialTheme.typography.bodyLarge
-                )
+    AlertDialog(onDismissRequest = onDismiss, title = { Text("Settle Person?") }, text = {
+        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Text(
+                text = "All vouches with this person (given and received) will be settled.\n${
+                    when (personData?.totalAmount?.signum()) {
+                        -1 -> "you currently owe $personName ${personData.totalAmount.abs()}€"
+                        1 -> "$personName currently owes you ${personData.totalAmount.abs()}€"
+                        0 -> ""
+                        else -> "something went wrong"
+                    }
+                }.", style = MaterialTheme.typography.bodyLarge
+            )
 
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onFullySettleChange(!fullySettle) }
-                ) {
-                    Checkbox(
-                        checked = fullySettle,
-                        onCheckedChange = onFullySettleChange
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text("Difference has been paid")
-                }
-            }
-        },
-        confirmButton = {
-            Button(onClick = onConfirm) {
-                Text("Settle")
-            }
-        },
-        dismissButton = {
-            OutlinedButton(onClick = onDismiss) {
-                Text("Cancel")
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onFullySettleChange(!fullySettle) }) {
+                Checkbox(
+                    checked = fullySettle, onCheckedChange = onFullySettleChange
+                )
+                Spacer(Modifier.width(8.dp))
+                Text("Difference has been paid")
             }
         }
-    )
+    }, confirmButton = {
+        Button(onClick = onConfirm) {
+            Text("Settle")
+        }
+    }, dismissButton = {
+        OutlinedButton(onClick = onDismiss) {
+            Text("Cancel")
+        }
+    })
+}
+
+@Composable
+fun VouchExportTemplate(
+    personName: String,
+    personData: PersonWithTotal?,
+    amountGiven: BigDecimal,
+    amountOwed: BigDecimal,
+    vouches: List<Vouch>,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surface)
+            .padding(16.dp)
+    ) {
+        Text(personName, style = MaterialTheme.typography.headlineMedium)
+        PersonInfoCard(personData, amountGiven, amountOwed)
+        Spacer(Modifier.height(16.dp))
+        Column(modifier = Modifier.padding(16.dp)) {
+            vouches.filter { vouch -> !vouch.settled }.forEach { vouch ->
+                VouchItem(vouch, canSettle = false, onSettle = {}, onDelete = {}, onEdit = {})
+                Spacer(Modifier.height(8.dp))
+            }
+        }
+    }
 }
 
 private fun shareBitmap(context: Context, bitmap: Bitmap, personName: String) {
     val cachePath = File(context.cacheDir, "images")
     cachePath.mkdirs()
-    val file = File(cachePath, "vouch_summary.png")
-    val fileOutputStream = FileOutputStream(file)
-    bitmap.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream)
-    fileOutputStream.flush()
-    fileOutputStream.close()
+
+    val fileName = "vouch_${personName.replace(" ", "_")}.png"
+    val file = File(cachePath, fileName)
+
+    FileOutputStream(file).use { out ->
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+    }
 
     val uri = FileProvider.getUriForFile(
-        context,
-        "${context.packageName}.fileprovider",
-        file
+        context, "${context.packageName}.fileprovider", file
     )
 
     val shareIntent = Intent(Intent.ACTION_SEND).apply {
         type = "image/png"
         putExtra(Intent.EXTRA_STREAM, uri)
-        clipData = android.content.ClipData.newUri(context.contentResolver, "Vouch Summary", uri)
+        clipData = ClipData.newUri(context.contentResolver, "Vouch Summary", uri)
         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     }
 
     context.startActivity(Intent.createChooser(shareIntent, "Share Vouch Summary"))
+
+    bitmap.recycle()
 }
