@@ -46,8 +46,7 @@ import com.iyox.vouch.ui.components.PageHeader
 
 @Composable
 fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
-    val theme by viewModel.theme.collectAsState()
-    val dynamicColors by viewModel.dynamicColors.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
     var showThemeDropdown by remember { mutableStateOf(false) }
 
     val exportLauncher = rememberLauncherForActivityResult(
@@ -85,7 +84,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
                 SettingItem(
                     icon = Icons.Outlined.Brightness4,
                     title = "Theme",
-                    subtitle = when (theme) {
+                    subtitle = when (uiState.theme) {
                         UiModeManager.MODE_NIGHT_NO -> "Light"
                         UiModeManager.MODE_NIGHT_YES -> "Dark"
                         UiModeManager.MODE_NIGHT_AUTO -> "System"
@@ -124,11 +123,11 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
                 subtitle = "Use system colors (Android 12+)",
                 trailing = {
                     Switch(
-                        checked = dynamicColors,
+                        checked = uiState.dynamicColors,
                         onCheckedChange = { viewModel.setDynamicColors(it) }
                     )
                 },
-                onClick = { viewModel.setDynamicColors(!dynamicColors) }
+                onClick = { viewModel.setDynamicColors(!uiState.dynamicColors) }
             )
 
             SectionHeader("Data")

@@ -12,6 +12,13 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
+data class VouchesUiState(
+    val vouches: List<Vouch> = emptyList(),
+    val showOnlyUnsettled: Boolean = true,
+    val showOnlyGiven: Int = 0,
+    val sortedBy: Int = 0
+)
+
 class VouchesViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = VouchRepository.getInstance(application)
 
@@ -20,22 +27,24 @@ class VouchesViewModel(application: Application) : AndroidViewModel(application)
     private val _showOnlyGiven = MutableStateFlow(0)
     private val _sortedBy = MutableStateFlow(0)
 
-    val vouches: StateFlow<List<Vouch>> = _vouches
-    val showOnlyUnsettled: StateFlow<Boolean> = _showOnlyUnsettled
-    val showOnlyGiven: StateFlow<Int> = _showOnlyGiven
-    val sortedBy: StateFlow<Int> = _sortedBy
-
-    val uiState: StateFlow<List<Vouch>> = combine(
+    val uiState: StateFlow<VouchesUiState> = combine(
         _vouches, _showOnlyUnsettled, _showOnlyGiven, _sortedBy
     ) { vouches, showOnlyUnsettled, showOnlyGiven, sortedBy ->
         val displayed = getDisplayedVouches(showOnlyUnsettled, showOnlyGiven, vouches)
-        when (sortedBy) {
+        val sorted = when (sortedBy) {
             0 -> displayed.sortedBy { it.timestamp }
             1 -> displayed.sortedBy { it.amount }
             2 -> displayed.sortedBy { it.personName ?: "" }
             else -> displayed.sortedBy { it.timestamp }
         }.reversed()
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+        VouchesUiState(
+            vouches = sorted,
+            showOnlyUnsettled = showOnlyUnsettled,
+            showOnlyGiven = showOnlyGiven,
+            sortedBy = sortedBy
+        )
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), VouchesUiState())
 
 
     init {
