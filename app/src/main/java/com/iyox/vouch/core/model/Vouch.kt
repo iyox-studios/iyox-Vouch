@@ -4,15 +4,15 @@ import android.icu.util.Currency
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.Insert
-import androidx.room.OnConflictStrategy
 import androidx.room.PrimaryKey
 import androidx.room.Query
 import androidx.room.Update
 import java.math.BigDecimal
 import java.sql.Timestamp
 
-@Entity
+@Entity(indices = [Index(value = ["personName"])])
 data class Vouch(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val amount: BigDecimal,
@@ -25,15 +25,12 @@ data class Vouch(
 )
 
 @Dao
-interface VouchDataDao {
+interface VouchDao {
     @Query("SELECT * FROM Vouch")
     suspend fun getAll(): List<Vouch>
 
     @Query("SELECT * FROM Vouch WHERE id = :id")
     suspend fun getById(id: Int): Vouch?
-
-    @Query("SELECT SUM(amount) FROM Vouch WHERE personName = :personName")
-    suspend fun getSumAllVouches(personName: String): BigDecimal
 
     @Insert
     suspend fun insert(vouch: Vouch)
@@ -43,9 +40,6 @@ interface VouchDataDao {
 
     @Update
     suspend fun update(vouch: Vouch)
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertAll(vouches: List<Vouch>)
 
     @Query("DELETE FROM Vouch")
     suspend fun deleteAll()

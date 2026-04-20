@@ -9,12 +9,6 @@ class PersonRepository private constructor(context: Context) {
 
     private val personDao = AppDatabase.getDatabase(context).personDao()
 
-    suspend fun searchPersons(query: String): List<Person> {
-        val localResults = personDao.findPersonsByName(query)
-
-        return (localResults).sortedBy { it.name }
-    }
-
     suspend fun getPersonsWithTotal(query: String? = null): List<PersonWithTotal> {
         return if (query.isNullOrEmpty()) {
             personDao.getPersonsWithTotalAll()
@@ -24,17 +18,8 @@ class PersonRepository private constructor(context: Context) {
     }
 
     suspend fun onVouchInserted(vouch: Vouch) {
-        if (vouch.personName == null) return
-        val existingPerson = personDao.findPersonsByName(vouch.personName)
-        if (existingPerson.isEmpty()) {
-            val newPerson = Person(name = vouch.personName)
-            personDao.insert(newPerson)
-        }
-    }
-
-
-    suspend fun insertPerson(person: Person) {
-        personDao.insert(person)
+        if (vouch.personName.isNullOrBlank()) return
+        personDao.insert(Person(name = vouch.personName.trim()))
     }
 
 

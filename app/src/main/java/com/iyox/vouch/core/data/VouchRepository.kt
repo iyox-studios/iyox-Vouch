@@ -25,7 +25,7 @@ class VouchRepository private constructor(context: Context) {
 
     suspend fun delete(vouch: Vouch) {
         vouchDataDao.delete(vouch)
-        if (vouch.personName == null) return
+        if (vouch.personName.isNullOrBlank()) return
         if (personDataDao.getVouchCount(vouch.personName) == 0) {
             personDataDao.deleteByName(vouch.personName)
         }
@@ -34,7 +34,7 @@ class VouchRepository private constructor(context: Context) {
     suspend fun update(oldVouch: Vouch?, newVouch: Vouch) {
         vouchDataDao.update(newVouch)
         personRepository.onVouchInserted(newVouch)
-        if (oldVouch != null && oldVouch.personName != null && oldVouch.personName != newVouch.personName) {
+        if (oldVouch != null && !oldVouch.personName.isNullOrBlank() && oldVouch.personName != newVouch.personName) {
             if (personDataDao.getVouchCount(oldVouch.personName) == 0) {
                 personDataDao.deleteByName(oldVouch.personName)
             }
