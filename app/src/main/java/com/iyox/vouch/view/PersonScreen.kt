@@ -94,7 +94,6 @@ fun PersonScreen(
 
     var showSettleDialog by remember { mutableStateOf(false) }
     var capturing by remember { mutableStateOf(false) }
-    var fullySettle by remember { mutableStateOf(false) }
 
     DisposableEffect(lifecycleOwner, personName) {
         val observer = LifecycleEventObserver { _, event ->
@@ -196,10 +195,8 @@ fun PersonScreen(
             SettlePersonDialog(
                 personName = personName,
                 personData = state.personData,
-                fullySettle = fullySettle,
-                onFullySettleChange = { fullySettle = it },
                 onDismiss = { showSettleDialog = false },
-                onConfirm = {
+                onConfirm = { fullySettle ->
                     showSettleDialog = false
                     if (fullySettle) viewModel.settlePerson() else viewModel.netVouches()
                 })
@@ -351,11 +348,10 @@ fun QuickActionsCard(
 fun SettlePersonDialog(
     personName: String,
     personData: PersonWithTotal?,
-    fullySettle: Boolean,
-    onFullySettleChange: (Boolean) -> Unit,
     onDismiss: () -> Unit,
-    onConfirm: () -> Unit
+    onConfirm: (Boolean) -> Unit
 ) {
+    var fullySettle by remember { mutableStateOf(false) }
     AlertDialog(onDismissRequest = onDismiss, title = { Text("Settle Person?") }, text = {
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Text(
@@ -373,16 +369,16 @@ fun SettlePersonDialog(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { onFullySettleChange(!fullySettle) }) {
+                    .clickable { fullySettle = !fullySettle }) {
                 Checkbox(
-                    checked = fullySettle, onCheckedChange = onFullySettleChange
+                    checked = fullySettle, onCheckedChange = { fullySettle = !fullySettle }
                 )
                 Spacer(Modifier.width(8.dp))
                 Text("Difference has been paid")
             }
         }
     }, confirmButton = {
-        Button(onClick = onConfirm) {
+        Button(onClick = { onConfirm(fullySettle) }) {
             Text("Settle")
         }
     }, dismissButton = {
