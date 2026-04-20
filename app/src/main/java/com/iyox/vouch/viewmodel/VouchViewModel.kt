@@ -41,7 +41,7 @@ class VouchViewModel(application: Application) : AndroidViewModel(application) {
     val uiState: StateFlow<VouchUiState> = _uiState.asStateFlow()
 
     fun loadVouch(id: Long?) {
-        _uiState.update { VouchUiState(isLoading = true) }
+        _uiState.update { VouchUiState(isLoading = id != null) }
         searchJob?.cancel()
 
         if (id == null) {

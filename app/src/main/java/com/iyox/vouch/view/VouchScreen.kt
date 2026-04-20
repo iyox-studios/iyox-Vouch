@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -55,6 +56,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -106,7 +108,7 @@ fun VouchScreen(
                 }
             })
         }) { innerPadding ->
-        if (state.isLoading) {
+        if (state.isLoading && edit) {
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
@@ -251,6 +253,8 @@ private fun VouchAmountHeader(
             onValueChange = onAmountChange,
             modifier = Modifier.weight(1f),
             textStyle = MaterialTheme.typography.displayLarge,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+            singleLine = true,
             placeholder = { Text("0.00", style = MaterialTheme.typography.displayLarge) },
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = Color.Transparent,
@@ -295,7 +299,7 @@ private fun VouchDirectionToggle(
 @Composable
 private fun PersonAutocompleteField(
     value: String,
-    results: List<PersonWithTotal>, // Replace with your actual import
+    results: List<PersonWithTotal>,
     onValueChange: (String) -> Unit,
     onPersonSelected: (com.iyox.vouch.model.Person) -> Unit,
     modifier: Modifier = Modifier
@@ -398,7 +402,7 @@ private fun VouchDescriptionField(
         modifier = modifier.fillMaxWidth(),
         label = { Text("Description") },
         leadingIcon = { Icon(Icons.Filled.Description, null) },
-        maxLines = 3,
+        singleLine = true,
         shape = MaterialTheme.shapes.medium
     )
 }

@@ -25,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.iyox.vouch.model.Vouch
 import java.text.SimpleDateFormat
@@ -46,7 +47,7 @@ fun VouchItem(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(MaterialTheme.shapes.largeIncreased)
-                .combinedClickable(onClick = {}, onLongClick = onEdit),
+                .combinedClickable(onClick = onEdit, onLongClick = {}),
             shape = MaterialTheme.shapes.largeIncreased,
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceContainer
@@ -84,7 +85,8 @@ fun VouchItem(
                         text = vouch.description.ifBlank { dateFormat.format(vouch.timestamp) },
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
 
