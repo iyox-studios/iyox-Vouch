@@ -166,10 +166,10 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
                         val newPersons = mutableSetOf<String>()
                         vouches.forEach { vouch ->
-                            val newVouch = vouch.copy()
+                            val newVouch = vouch.copy(id = 0)
                             database.vouchDataDao().insert(newVouch)
-                            if (newVouch.personName != null) {
-                                newPersons.add(newVouch.personName)
+                            if (!newVouch.personName.isNullOrBlank()) {
+                                newPersons.add(newVouch.personName.trim())
                             }
                         }
 

@@ -10,7 +10,7 @@ import androidx.room.TypeConverters
 import com.iyox.vouch.core.model.Person
 import com.iyox.vouch.core.model.PersonDao
 import com.iyox.vouch.core.model.Vouch
-import com.iyox.vouch.core.model.VouchDataDao
+import com.iyox.vouch.core.model.VouchDao
 import java.math.BigDecimal
 import java.sql.Timestamp
 
@@ -29,7 +29,7 @@ class CurrencyConverter {
     @TypeConverter
     fun toCurrency(currencyCode: String): Currency = try {
         Currency.getInstance(currencyCode)
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         Currency.getInstance("USD")
     }
 }
@@ -45,7 +45,7 @@ class BigDecimalConverter {
 @Database(entities = [Vouch::class, Person::class], version = 2, exportSchema = false)
 @TypeConverters(TimestampConverter::class, CurrencyConverter::class, BigDecimalConverter::class)
 abstract class AppDatabase : RoomDatabase() {
-    abstract fun vouchDataDao(): VouchDataDao
+    abstract fun vouchDataDao(): VouchDao
     abstract fun personDao(): PersonDao
 
     companion object {
