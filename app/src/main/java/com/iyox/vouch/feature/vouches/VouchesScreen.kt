@@ -45,11 +45,8 @@ fun VouchesScreen(
     val lifecycleOwner = LocalLifecycleOwner.current
 
     val uiState by viewModel.uiState.collectAsState()
-    val showOnlyUnsettled by viewModel.showOnlyUnsettled.collectAsState()
-    val showOnlyGiven by viewModel.showOnlyGiven.collectAsState()
-    val sortedBy by viewModel.sortedBy.collectAsState()
 
-    val listState = remember(showOnlyUnsettled, showOnlyGiven, sortedBy) {
+    val listState = remember(uiState.showOnlyUnsettled, uiState.showOnlyGiven, uiState.sortedBy) {
         LazyListState()
     }
 
@@ -68,9 +65,9 @@ fun VouchesScreen(
     Scaffold(topBar = {
         PageHeader("Vouches") {
             VouchFilterRow(
-                sortedBy = sortedBy,
-                showOnlyGiven = showOnlyGiven,
-                showOnlyUnsettled = showOnlyUnsettled,
+                sortedBy = uiState.sortedBy,
+                showOnlyGiven = uiState.showOnlyGiven,
+                showOnlyUnsettled = uiState.showOnlyUnsettled,
                 onToggleSort = viewModel::toggleSortedBy,
                 onToggleGiven = viewModel::toggleShowOnlyGiven,
                 onToggleUnsettled = viewModel::toggleShowOnlyUnsettled
@@ -85,7 +82,7 @@ fun VouchesScreen(
             )
         }
     }) { innerPadding ->
-        if (uiState.isEmpty()) {
+        if (uiState.vouches.isEmpty()) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -96,7 +93,7 @@ fun VouchesScreen(
             }
         } else {
             VouchList(
-                displayedSorted = uiState,
+                displayedSorted = uiState.vouches,
                 listState = listState,
                 innerPadding = innerPadding,
                 onSettle = { viewModel.settleVouch(it) },

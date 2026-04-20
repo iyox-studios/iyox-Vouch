@@ -56,10 +56,8 @@ fun PersonsScreen(
     onNavigateToViewPerson: (String) -> Unit = {}
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
-    val persons by viewModel.persons.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
     val haptics = LocalHapticFeedback.current
-
-    val showOnlyNonZero by viewModel.showOnlyNonZero.collectAsState()
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -77,13 +75,13 @@ fun PersonsScreen(
         topBar = {
             PageHeader("People") {
                 FilterChip(
-                    selected = showOnlyNonZero, onClick = {
+                    selected = uiState.showOnlyNonZero, onClick = {
                         haptics.performHapticFeedback(HapticFeedbackType.ToggleOn)
                         viewModel.toggleShowOnlyNonZero()
                     }, label = {
                         Text("Unsettled")
                     }, leadingIcon = {
-                        if (showOnlyNonZero) Icon(
+                        if (uiState.showOnlyNonZero) Icon(
                             imageVector = Icons.Default.Check,
                             contentDescription = "Selected",
                             modifier = Modifier.size(18.dp)
@@ -102,7 +100,7 @@ fun PersonsScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            items(if (showOnlyNonZero) persons.filter { it.totalAmount != BigDecimal.ZERO } else persons) { personWithTotal ->
+            items(uiState.persons) { personWithTotal ->
                 PersonCard(
                     name = personWithTotal.person.name,
                     amount = personWithTotal.totalAmount ?: BigDecimal.ZERO,

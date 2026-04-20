@@ -24,8 +24,10 @@ import com.iyox.vouch.core.model.Person
 import com.iyox.vouch.core.model.Vouch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.io.InputStreamReader
 import java.io.OutputStreamWriter
@@ -33,16 +35,32 @@ import java.lang.reflect.Type
 import java.math.BigDecimal
 import java.sql.Timestamp
 
+data class SettingsUiState(
+    val theme: Int,
+    val dynamicColors: Boolean
+)
+
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
 
     val uiModeManager = application.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
     private val prefs = application.getSharedPreferences("settings", Context.MODE_PRIVATE)
 
     private val _theme = MutableStateFlow(uiModeManager.nightMode)
-    val theme: StateFlow<Int> = _theme.asStateFlow()
-
     private val _dynamicColors = MutableStateFlow(prefs.getBoolean("dynamic_colors", true))
-    val dynamicColors: StateFlow<Boolean> = _dynamicColors.asStateFlow()
+
+    val uiState: StateFlow<SettingsUiState> = combine(
+        _theme, _dynamicColors
+    ) { theme, dynamicColors ->
+        SettingsUiState(
+            theme = theme,
+            dynamicColors = dynamicColors
+        )
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5000),
+        SettingsUiState(uiModeManager.nightMode, prefs.getBoolean("dynamic_colors", true))
+    )
+
 
     fun setTheme(theme: Int) {
         _theme.value = theme
