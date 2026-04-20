@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -55,11 +56,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.iyox.vouch.model.Person
 import com.iyox.vouch.model.PersonWithTotal
 import com.iyox.vouch.viewmodel.VouchViewModel
 
@@ -69,6 +75,7 @@ fun VouchScreen(
     viewModel: VouchViewModel = viewModel(), vouchId: Long? = null, onNavigateBack: () -> Unit, edit : Boolean = false
 ) {
     val state by viewModel.uiState.collectAsState()
+    val focusManager = LocalFocusManager.current
 
     var showCurrencyDialog by remember { mutableStateOf(false) }
 
@@ -129,7 +136,8 @@ fun VouchScreen(
                     amount = state.amount,
                     currency = state.currency,
                     onAmountChange = viewModel::onAmountChange,
-                    onCurrencyClick = { showCurrencyDialog = true }
+                    onCurrencyClick = { showCurrencyDialog = true },
+                    focusManager = focusManager
                 )
 
                 VouchDirectionToggle(
@@ -141,12 +149,14 @@ fun VouchScreen(
                     value = state.personName,
                     results = state.personSearchResults,
                     onValueChange = viewModel::onPersonChange,
-                    onPersonSelected = viewModel::onPersonSelected
+                    onPersonSelected = viewModel::onPersonSelected,
+                    focusManager = focusManager
                 )
 
                 VouchDescriptionField(
                     value = state.description,
-                    onValueChange = viewModel::onDescriptionChange
+                    onValueChange = viewModel::onDescriptionChange,
+                    focusManager = focusManager,
                 )
 
                 Spacer(modifier = Modifier.weight(1f))
@@ -234,6 +244,7 @@ private fun VouchAmountHeader(
     currency: Currency,
     onAmountChange: (String) -> Unit,
     onCurrencyClick: () -> Unit,
+    focusManager: FocusManager,
     modifier: Modifier = Modifier
 ) {
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
@@ -253,7 +264,13 @@ private fun VouchAmountHeader(
             onValueChange = onAmountChange,
             modifier = Modifier.weight(1f),
             textStyle = MaterialTheme.typography.displayLarge,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Decimal,
+                imeAction = ImeAction.Next
+            ),
+            keyboardActions = KeyboardActions(
+                onNext = { focusManager.moveFocus(FocusDirection.Next) }
+            ),
             singleLine = true,
             placeholder = { Text("0.00", style = MaterialTheme.typography.displayLarge) },
             colors = TextFieldDefaults.colors(
@@ -301,7 +318,8 @@ private fun PersonAutocompleteField(
     value: String,
     results: List<PersonWithTotal>,
     onValueChange: (String) -> Unit,
-    onPersonSelected: (com.iyox.vouch.model.Person) -> Unit,
+    onPersonSelected: (Person) -> Unit,
+    focusManager: FocusManager,
     modifier: Modifier = Modifier
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -326,6 +344,10 @@ private fun PersonAutocompleteField(
                 .fillMaxWidth()
                 .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable),
             label = { Text("Person") },
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+            keyboardActions = KeyboardActions(
+                onNext = { focusManager.moveFocus(FocusDirection.Next) }
+            ),
             leadingIcon = {
                 Icon(Icons.Filled.Person, null, tint = MaterialTheme.colorScheme.primary)
             },
@@ -348,6 +370,7 @@ private fun PersonAutocompleteField(
                     },
                     onClick = {
                         onPersonSelected(searchResult.person)
+                        focusManager.moveFocus(FocusDirection.Next)
                         expanded = false
                     },
                     contentPadding = PaddingValues(0.dp)
@@ -392,9 +415,10 @@ private fun PersonListItem(
 
 @Composable
 private fun VouchDescriptionField(
+    modifier: Modifier = Modifier,
     value: String,
     onValueChange: (String) -> Unit,
-    modifier: Modifier = Modifier
+    focusManager: FocusManager,
 ) {
     OutlinedTextField(
         value = value,
@@ -402,6 +426,12 @@ private fun VouchDescriptionField(
         modifier = modifier.fillMaxWidth(),
         label = { Text("Description") },
         leadingIcon = { Icon(Icons.Filled.Description, null) },
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+        keyboardActions = KeyboardActions(
+            onDone = {
+                focusManager.clearFocus()
+            }
+        ),
         singleLine = true,
         shape = MaterialTheme.shapes.medium
     )
