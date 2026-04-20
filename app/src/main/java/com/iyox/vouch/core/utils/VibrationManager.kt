@@ -1,4 +1,4 @@
-package com.iyox.vouch.utils
+package com.iyox.vouch.core.utils
 
 import android.content.Context
 import android.os.Build

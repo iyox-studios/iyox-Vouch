@@ -1,4 +1,4 @@
-package com.iyox.vouch.view
+package com.iyox.vouch.feature.settings
 
 import android.app.UiModeManager
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -43,7 +43,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.iyox.vouch.ui.components.PageHeader
-import com.iyox.vouch.viewmodel.SettingsViewModel
 
 @Composable
 fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {

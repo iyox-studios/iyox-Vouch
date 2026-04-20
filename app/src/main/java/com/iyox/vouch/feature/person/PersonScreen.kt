@@ -1,4 +1,4 @@
-package com.iyox.vouch.view
+package com.iyox.vouch.feature.person
 
 import android.content.ClipData
 import android.content.Context
@@ -65,11 +65,10 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.iyox.vouch.model.PersonWithTotal
-import com.iyox.vouch.model.Vouch
+import com.iyox.vouch.core.model.PersonWithTotal
+import com.iyox.vouch.core.model.Vouch
 import com.iyox.vouch.ui.components.vouches.VouchItem
 import com.iyox.vouch.ui.components.vouches.VouchList
-import com.iyox.vouch.viewmodel.PersonViewModel
 import kotlinx.coroutines.android.awaitFrame
 import kotlinx.coroutines.launch
 import java.io.File

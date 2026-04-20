@@ -12,19 +12,18 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.fragment.app.FragmentActivity
-import com.iyox.vouch.utils.LocalVibrationManager
-import com.iyox.vouch.utils.VibrationManager
-import com.iyox.vouch.view.MainView
+import com.iyox.vouch.core.utils.LocalVibrationManager
+import com.iyox.vouch.core.utils.VibrationManager
 
 class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-        val splashScreen = installSplashScreen()
+        installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         val vibrationManager = VibrationManager(this)
         setContent {
             CompositionLocalProvider(LocalVibrationManager provides vibrationManager) {
-                MainView()
+                VouchApp()
             }
         }
     }
@@ -36,18 +35,10 @@ class MainActivity : FragmentActivity() {
                 override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
                     super.onAuthenticationSucceeded(result)
                     setContent {
-                        MainView()
+                        VouchApp()
                     }
                 }
 
-                override fun onAuthenticationFailed() {
-                    super.onAuthenticationFailed()
-                }
-
-                override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                    super.onAuthenticationError(errorCode, errString)
-                    finish()
-                }
             })
 
         val promptInfo = BiometricPrompt.PromptInfo.Builder().setTitle("Biometric Authentication")
@@ -58,7 +49,7 @@ class MainActivity : FragmentActivity() {
             biometricPrompt.authenticate(promptInfo)
         } else {
             setContent {
-                MainView()
+                VouchApp()
             }
         }
 

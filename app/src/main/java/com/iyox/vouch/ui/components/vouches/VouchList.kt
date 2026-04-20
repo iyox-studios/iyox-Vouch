@@ -13,7 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
-import com.iyox.vouch.model.Vouch
+import com.iyox.vouch.core.model.Vouch
 
 /**
  * Displays a list of vouches with swipe-to-dismiss and edit capabilities.

@@ -1,10 +1,10 @@
-package com.iyox.vouch.viewmodel
+package com.iyox.vouch.feature.vouches
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.iyox.vouch.model.Vouch
-import com.iyox.vouch.model.VouchRepository
+import com.iyox.vouch.core.data.VouchRepository
+import com.iyox.vouch.core.model.Vouch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-class HomeViewModel(application: Application) : AndroidViewModel(application) {
+class VouchesViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = VouchRepository.getInstance(application)
 
     private val _vouches = MutableStateFlow<List<Vouch>>(emptyList())
@@ -82,7 +82,11 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     }
 
 
-    fun getDisplayedVouches(showOnlyUnsettled: Boolean, showOnlyGiven: Int, vouches: List<Vouch>): List<Vouch> {
+    fun getDisplayedVouches(
+        showOnlyUnsettled: Boolean,
+        showOnlyGiven: Int,
+        vouches: List<Vouch>
+    ): List<Vouch> {
         return vouches.filter {
             when (showOnlyUnsettled) {
                 true -> !it.settled

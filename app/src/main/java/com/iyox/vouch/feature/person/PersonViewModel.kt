@@ -1,14 +1,14 @@
-package com.iyox.vouch.viewmodel
+package com.iyox.vouch.feature.person
 
 import android.app.Application
 import android.icu.util.Currency
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.iyox.vouch.model.Person
-import com.iyox.vouch.model.PersonRepository
-import com.iyox.vouch.model.PersonWithTotal
-import com.iyox.vouch.model.Vouch
-import com.iyox.vouch.model.VouchRepository
+import com.iyox.vouch.core.data.PersonRepository
+import com.iyox.vouch.core.data.VouchRepository
+import com.iyox.vouch.core.model.Person
+import com.iyox.vouch.core.model.PersonWithTotal
+import com.iyox.vouch.core.model.Vouch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

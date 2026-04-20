@@ -1,4 +1,4 @@
-package com.iyox.vouch.view
+package com.iyox.vouch.feature.persons
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -43,10 +43,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.iyox.vouch.ui.components.PageHeader
-import com.iyox.vouch.viewmodel.PersonsViewModel
 import java.math.BigDecimal
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -62,7 +62,7 @@ fun PersonsScreen(
     val showOnlyNonZero by viewModel.showOnlyNonZero.collectAsState()
 
     DisposableEffect(lifecycleOwner) {
-        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+        val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 viewModel.loadPersons()
             }

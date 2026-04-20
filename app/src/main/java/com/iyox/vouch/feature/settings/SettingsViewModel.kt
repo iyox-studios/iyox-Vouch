@@ -1,4 +1,4 @@
-package com.iyox.vouch.viewmodel
+package com.iyox.vouch.feature.settings
 
 import android.app.Application
 import android.app.UiModeManager
@@ -19,9 +19,9 @@ import com.google.gson.JsonPrimitive
 import com.google.gson.JsonSerializationContext
 import com.google.gson.JsonSerializer
 import com.google.gson.reflect.TypeToken
-import com.iyox.vouch.model.AppDatabase
-import com.iyox.vouch.model.Person
-import com.iyox.vouch.model.Vouch
+import com.iyox.vouch.core.data.AppDatabase
+import com.iyox.vouch.core.model.Person
+import com.iyox.vouch.core.model.Vouch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -48,8 +48,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         _theme.value = theme
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             uiModeManager.setApplicationNightMode(theme)
-        }
-        else {
+        } else {
             AppCompatDelegate.setDefaultNightMode(theme)
         }
     }
@@ -59,27 +58,61 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     }
 
     private val gson: Gson = GsonBuilder()
-        .registerTypeAdapter(Currency::class.java, object : JsonSerializer<Currency>, JsonDeserializer<Currency> {
-            override fun serialize(src: Currency, typeOfSrc: Type, context: JsonSerializationContext): JsonElement {
+        .registerTypeAdapter(Currency::class.java, object : JsonSerializer<Currency>,
+            JsonDeserializer<Currency> {
+            override fun serialize(
+                src: Currency,
+                typeOfSrc: Type,
+                context: JsonSerializationContext
+            ): JsonElement {
                 return JsonPrimitive(src.currencyCode)
             }
-            override fun deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): Currency {
-                return try { Currency.getInstance(json.asString) } catch (e: Exception) { Currency.getInstance("USD") }
+
+            override fun deserialize(
+                json: JsonElement,
+                typeOfT: Type,
+                context: JsonDeserializationContext
+            ): Currency {
+                return try {
+                    Currency.getInstance(json.asString)
+                } catch (e: Exception) {
+                    Currency.getInstance("USD")
+                }
             }
         })
-        .registerTypeAdapter(BigDecimal::class.java, object : JsonSerializer<BigDecimal>, JsonDeserializer<BigDecimal> {
-            override fun serialize(src: BigDecimal, typeOfSrc: Type, context: JsonSerializationContext): JsonElement {
+        .registerTypeAdapter(BigDecimal::class.java, object : JsonSerializer<BigDecimal>,
+            JsonDeserializer<BigDecimal> {
+            override fun serialize(
+                src: BigDecimal,
+                typeOfSrc: Type,
+                context: JsonSerializationContext
+            ): JsonElement {
                 return JsonPrimitive(src.toString())
             }
-            override fun deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): BigDecimal {
+
+            override fun deserialize(
+                json: JsonElement,
+                typeOfT: Type,
+                context: JsonDeserializationContext
+            ): BigDecimal {
                 return BigDecimal(json.asString)
             }
         })
-        .registerTypeAdapter(Timestamp::class.java, object : JsonSerializer<Timestamp>, JsonDeserializer<Timestamp> {
-            override fun serialize(src: Timestamp, typeOfSrc: Type, context: JsonSerializationContext): JsonElement {
+        .registerTypeAdapter(Timestamp::class.java, object : JsonSerializer<Timestamp>,
+            JsonDeserializer<Timestamp> {
+            override fun serialize(
+                src: Timestamp,
+                typeOfSrc: Type,
+                context: JsonSerializationContext
+            ): JsonElement {
                 return JsonPrimitive(src.time)
             }
-            override fun deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): Timestamp {
+
+            override fun deserialize(
+                json: JsonElement,
+                typeOfT: Type,
+                context: JsonDeserializationContext
+            ): Timestamp {
                 return Timestamp(json.asLong)
             }
         })
@@ -99,10 +132,22 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                         writer.write(json)
                     }
                 }
-                launch(Dispatchers.Main) { Toast.makeText(app, "Export successful", Toast.LENGTH_SHORT).show() }
+                launch(Dispatchers.Main) {
+                    Toast.makeText(
+                        app,
+                        "Export successful",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
-                launch(Dispatchers.Main) { Toast.makeText(getApplication(), "Export failed", Toast.LENGTH_SHORT).show() }
+                launch(Dispatchers.Main) {
+                    Toast.makeText(
+                        getApplication(),
+                        "Export failed",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
             }
         }
     }
@@ -133,10 +178,22 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                         }
                     }
                 }
-                launch(Dispatchers.Main) { Toast.makeText(app, "Import successful", Toast.LENGTH_SHORT).show() }
+                launch(Dispatchers.Main) {
+                    Toast.makeText(
+                        app,
+                        "Import successful",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
-                launch(Dispatchers.Main) { Toast.makeText(getApplication(), "Import failed", Toast.LENGTH_SHORT).show() }
+                launch(Dispatchers.Main) {
+                    Toast.makeText(
+                        getApplication(),
+                        "Import failed",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
             }
         }
     }

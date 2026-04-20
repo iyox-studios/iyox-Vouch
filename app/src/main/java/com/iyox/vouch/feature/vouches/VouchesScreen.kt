@@ -1,10 +1,11 @@
-package com.iyox.vouch.view
+package com.iyox.vouch.feature.vouches
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Add
@@ -21,22 +22,25 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.iyox.vouch.ui.components.PageHeader
 import com.iyox.vouch.ui.components.vouches.VouchList
-import com.iyox.vouch.viewmodel.HomeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun HomeScreen(
-    viewModel: HomeViewModel = viewModel(), onNavigateToAddVouch: () -> Unit = {}, onNavigateToEditVouch: (Int) -> Unit = {}
+fun VouchesScreen(
+    viewModel: VouchesViewModel = viewModel(),
+    onNavigateToAddVouch: () -> Unit = {},
+    onNavigateToEditVouch: (Int) -> Unit = {}
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
 
@@ -45,12 +49,12 @@ fun HomeScreen(
     val showOnlyGiven by viewModel.showOnlyGiven.collectAsState()
     val sortedBy by viewModel.sortedBy.collectAsState()
 
-    val listState = androidx.compose.runtime.remember(showOnlyUnsettled, showOnlyGiven, sortedBy) {
-        androidx.compose.foundation.lazy.LazyListState()
+    val listState = remember(showOnlyUnsettled, showOnlyGiven, sortedBy) {
+        LazyListState()
     }
 
     DisposableEffect(lifecycleOwner) {
-        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+        val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 viewModel.loadVouches()
             }

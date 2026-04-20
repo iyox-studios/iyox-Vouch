@@ -1,4 +1,4 @@
-package com.iyox.vouch.model
+package com.iyox.vouch.core.data
 
 import android.content.Context
 import android.icu.util.Currency
@@ -7,6 +7,10 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverter
 import androidx.room.TypeConverters
+import com.iyox.vouch.core.model.Person
+import com.iyox.vouch.core.model.PersonDao
+import com.iyox.vouch.core.model.Vouch
+import com.iyox.vouch.core.model.VouchDataDao
 import java.math.BigDecimal
 import java.sql.Timestamp
 
