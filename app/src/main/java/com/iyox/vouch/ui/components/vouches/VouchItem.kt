@@ -27,7 +27,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.iyox.vouch.model.Vouch
+import com.iyox.vouch.core.model.Vouch
 import java.text.SimpleDateFormat
 import java.util.Locale
 

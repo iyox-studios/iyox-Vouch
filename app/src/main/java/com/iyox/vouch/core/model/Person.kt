@@ -1,4 +1,4 @@
-package com.iyox.vouch.model
+package com.iyox.vouch.core.model
 
 import androidx.room.Dao
 import androidx.room.Delete

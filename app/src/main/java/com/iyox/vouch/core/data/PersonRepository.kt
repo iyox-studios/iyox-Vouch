@@ -1,6 +1,9 @@
-package com.iyox.vouch.model
+package com.iyox.vouch.core.data
 
 import android.content.Context
+import com.iyox.vouch.core.model.Person
+import com.iyox.vouch.core.model.PersonWithTotal
+import com.iyox.vouch.core.model.Vouch
 
 class PersonRepository private constructor(context: Context) {
 
@@ -21,7 +24,7 @@ class PersonRepository private constructor(context: Context) {
     }
 
     suspend fun onVouchInserted(vouch: Vouch) {
-        if(vouch.personName == null) return
+        if (vouch.personName == null) return
         val existingPerson = personDao.findPersonsByName(vouch.personName)
         if (existingPerson.isEmpty()) {
             val newPerson = Person(name = vouch.personName)

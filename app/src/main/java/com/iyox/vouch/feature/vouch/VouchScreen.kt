@@ -1,4 +1,4 @@
-package com.iyox.vouch.view
+package com.iyox.vouch.feature.vouch
 
 import android.icu.util.Currency
 import androidx.compose.foundation.clickable
@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -65,9 +66,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.iyox.vouch.model.Person
-import com.iyox.vouch.model.PersonWithTotal
-import com.iyox.vouch.viewmodel.VouchViewModel
+import com.iyox.vouch.core.model.Person
+import com.iyox.vouch.core.model.PersonWithTotal
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -391,7 +391,7 @@ private fun PersonListItem(
         headlineContent = { Text(name, style = MaterialTheme.typography.bodyLarge) },
         leadingContent = {
             Surface(
-                shape = androidx.compose.foundation.shape.CircleShape,
+                shape = CircleShape,
                 color = MaterialTheme.colorScheme.primaryContainer,
                 modifier = Modifier.size(32.dp)
             ) {

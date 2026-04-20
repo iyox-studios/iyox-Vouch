@@ -1,6 +1,7 @@
-package com.iyox.vouch.model
+package com.iyox.vouch.core.data
 
 import android.content.Context
+import com.iyox.vouch.core.model.Vouch
 
 class VouchRepository private constructor(context: Context) {
 

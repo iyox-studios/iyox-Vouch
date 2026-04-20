@@ -31,14 +31,14 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.iyox.vouch.view.HomeScreen
-import com.iyox.vouch.view.PersonScreen
-import com.iyox.vouch.view.PersonsScreen
-import com.iyox.vouch.view.SettingsScreen
-import com.iyox.vouch.view.VouchScreen
-import com.iyox.vouch.viewmodel.HomeViewModel
-import com.iyox.vouch.viewmodel.PersonsViewModel
-import com.iyox.vouch.viewmodel.SettingsViewModel
+import com.iyox.vouch.feature.person.PersonScreen
+import com.iyox.vouch.feature.persons.PersonsScreen
+import com.iyox.vouch.feature.persons.PersonsViewModel
+import com.iyox.vouch.feature.settings.SettingsScreen
+import com.iyox.vouch.feature.settings.SettingsViewModel
+import com.iyox.vouch.feature.vouch.VouchScreen
+import com.iyox.vouch.feature.vouches.VouchesScreen
+import com.iyox.vouch.feature.vouches.VouchesViewModel
 
 data class NavigationItem(
     val screen: Screen, val icon: ImageVector, val iconSelected: ImageVector
@@ -94,9 +94,10 @@ fun AppNavigation() {
             popEnterTransition = { EnterTransition.None },
             popExitTransition = { ExitTransition.None }) {
             composable(Screen.Vouches.route) { backStackEntry ->
-                val homeViewModel: HomeViewModel = viewModel(viewModelStoreOwner = backStackEntry)
-                HomeScreen(
-                    viewModel = homeViewModel,
+                val vouchesViewModel: VouchesViewModel =
+                    viewModel(viewModelStoreOwner = backStackEntry)
+                VouchesScreen(
+                    viewModel = vouchesViewModel,
                     onNavigateToAddVouch = {
                         navController.navigate(Screen.AddVouch.route)
                     },
