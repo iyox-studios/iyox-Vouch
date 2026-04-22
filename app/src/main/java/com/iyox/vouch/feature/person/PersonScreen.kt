@@ -93,7 +93,7 @@ fun PersonScreen(
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val snackbarHost = LocalSnackbarHostState.current
-    val undoCoordinator = rememberUndoCoordinator()
+    rememberUndoCoordinator()
 
     var showSettleDialog by remember { mutableStateOf(false) }
     var capturing by remember { mutableStateOf(false) }
@@ -164,27 +164,7 @@ fun PersonScreen(
                         displayedSorted = state.vouches,
                         listState = rememberLazyListState(),
                         innerPadding = PaddingValues(0.dp),
-                        onSettle = { vouch ->
-                            undoCoordinator.executeWithUndo(
-                                message = "Vouch settled",
-                                performAction = { viewModel.sharedActions.settleVouch(vouch) },
-                                undoAction = { viewModel.sharedActions.unSettleVouch(vouch) }
-                            )
-                        },
-                        onUnSettle = { vouch ->
-                            undoCoordinator.executeWithUndo(
-                                message = "Vouch unsettled",
-                                performAction = { viewModel.sharedActions.unSettleVouch(vouch) },
-                                undoAction = { viewModel.sharedActions.settleVouch(vouch) }
-                            )
-                        },
-                        onDelete = { vouch ->
-                            undoCoordinator.executeWithUndo(
-                                message = "Vouch deleted",
-                                performAction = { viewModel.sharedActions.deleteVouch(vouch) },
-                                undoAction = { viewModel.sharedActions.addVouch(vouch) }
-                            )
-                        },
+                        sharedVouchActions = viewModel.sharedActions,
                         onEdit = { onNavigateToEditVouch(it) })
                 }
             }
