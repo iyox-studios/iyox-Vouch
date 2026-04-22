@@ -45,7 +45,7 @@ data class NavigationItem(
 )
 
 @Composable
-fun AppNavigation() {
+fun AppNavigation(snackbarHost: @Composable (() -> Unit) = {}) {
     val navController = rememberNavController()
     val haptic = LocalHapticFeedback.current
 
@@ -56,6 +56,7 @@ fun AppNavigation() {
     )
 
     Scaffold(
+        snackbarHost = snackbarHost,
         bottomBar = {
             ShortNavigationBar {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
