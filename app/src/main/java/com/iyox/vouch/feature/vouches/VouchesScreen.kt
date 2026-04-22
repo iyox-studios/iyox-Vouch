@@ -32,6 +32,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.iyox.vouch.core.utils.rememberUndoCoordinator
 import com.iyox.vouch.ui.components.PageHeader
 import com.iyox.vouch.ui.components.vouches.VouchList
 
@@ -43,6 +44,7 @@ fun VouchesScreen(
     onNavigateToEditVouch: (Int) -> Unit = {}
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
+    val undoCoordinator = rememberUndoCoordinator()
 
     val uiState by viewModel.uiState.collectAsState()
 
@@ -96,9 +98,27 @@ fun VouchesScreen(
                 displayedSorted = uiState.vouches,
                 listState = listState,
                 innerPadding = innerPadding,
-                onSettle = { viewModel.settleVouch(it) },
-                onUnSettle = { viewModel.unSettleVouch(it) },
-                onDelete = { viewModel.deleteVouch(it) },
+                onSettle = { vouch ->
+                    undoCoordinator.executeWithUndo(
+                        message = "Vouch settled",
+                        performAction = { viewModel.sharedActions.settleVouch(vouch) },
+                        undoAction = { viewModel.sharedActions.unSettleVouch(vouch) }
+                    )
+                },
+                onUnSettle = { vouch ->
+                    undoCoordinator.executeWithUndo(
+                        message = "Vouch unsettled",
+                        performAction = { viewModel.sharedActions.unSettleVouch(vouch) },
+                        undoAction = { viewModel.sharedActions.settleVouch(vouch) }
+                    )
+                },
+                onDelete = { vouch ->
+                    undoCoordinator.executeWithUndo(
+                        message = "Vouch deleted",
+                        performAction = { viewModel.sharedActions.deleteVouch(vouch) },
+                        undoAction = { viewModel.sharedActions.addVouch(vouch) }
+                    )
+                },
                 onEdit = { onNavigateToEditVouch(it) }
             )
         }

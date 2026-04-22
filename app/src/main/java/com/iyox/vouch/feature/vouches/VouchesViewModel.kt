@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.iyox.vouch.core.data.VouchRepository
+import com.iyox.vouch.core.domain.SharedVouchActions
 import com.iyox.vouch.core.model.Vouch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -21,6 +22,8 @@ data class VouchesUiState(
 
 class VouchesViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = VouchRepository.getInstance(application)
+
+    val sharedActions = SharedVouchActions(repository) { loadVouches() }
 
     private val _vouches = MutableStateFlow<List<Vouch>>(emptyList())
     private val _showOnlyUnsettled = MutableStateFlow(true)
@@ -57,26 +60,6 @@ class VouchesViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    fun deleteVouch(vouch: Vouch) {
-        viewModelScope.launch {
-            repository.delete(vouch)
-            loadVouches()
-        }
-    }
-
-    fun settleVouch(vouch: Vouch) {
-        viewModelScope.launch {
-            repository.update(vouch.copy(settled = true))
-            loadVouches()
-        }
-    }
-
-    fun unSettleVouch(vouch: Vouch) {
-        viewModelScope.launch {
-            repository.update(vouch.copy(settled = false))
-            loadVouches()
-        }
-    }
 
     fun toggleShowOnlyUnsettled() {
         _showOnlyUnsettled.value = !_showOnlyUnsettled.value
