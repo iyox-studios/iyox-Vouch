@@ -8,6 +8,7 @@ import android.net.Uri
 import android.os.Build
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.content.edit
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
@@ -45,7 +46,9 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     val uiModeManager = application.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
     private val prefs = application.getSharedPreferences("settings", Context.MODE_PRIVATE)
 
-    private val _theme = MutableStateFlow(uiModeManager.nightMode)
+    private val _theme = MutableStateFlow(
+        prefs.getInt("theme", UiModeManager.MODE_NIGHT_AUTO)
+    )
     private val _dynamicColors = MutableStateFlow(prefs.getBoolean("dynamic_colors", true))
 
     val uiState: StateFlow<SettingsUiState> = combine(
@@ -58,12 +61,15 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     }.stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(5000),
-        SettingsUiState(uiModeManager.nightMode, prefs.getBoolean("dynamic_colors", true))
+        SettingsUiState(
+            prefs.getInt("theme", UiModeManager.MODE_NIGHT_AUTO),
+            prefs.getBoolean("dynamic_colors", true)
+        )
     )
-
 
     fun setTheme(theme: Int) {
         _theme.value = theme
+        prefs.edit { putInt("theme", theme) }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             uiModeManager.setApplicationNightMode(theme)
         } else {
@@ -93,7 +99,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             ): Currency {
                 return try {
                     Currency.getInstance(json.asString)
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                     Currency.getInstance("USD")
                 }
             }
