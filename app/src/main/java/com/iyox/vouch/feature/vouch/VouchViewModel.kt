@@ -6,6 +6,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.iyox.vouch.core.data.PersonRepository
 import com.iyox.vouch.core.data.VouchRepository
+import com.iyox.vouch.core.domain.SharedVouchActions
 import com.iyox.vouch.core.model.Person
 import com.iyox.vouch.core.model.PersonWithTotal
 import com.iyox.vouch.core.model.Vouch
@@ -33,11 +34,13 @@ class VouchViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = VouchRepository.getInstance(application)
     private val personRepository = PersonRepository.getInstance(application)
 
+    val sharedActions = SharedVouchActions(repository) {}
+
     private var searchJob: Job? = null
     private var editingVouchId: Int? = null
     private var originalVouch: Vouch? = null
 
-    private val _uiState = MutableStateFlow(VouchUiState())
+    private val _uiState = MutableStateFlow(VouchUiState(currency = Currency.getInstance("EUR")))
     val uiState: StateFlow<VouchUiState> = _uiState.asStateFlow()
 
     fun loadVouch(id: Long?) {
@@ -112,55 +115,57 @@ class VouchViewModel(application: Application) : AndroidViewModel(application) {
         _uiState.update { it.copy(description = value) }
     }
 
-    fun saveVouch() {
-        viewModelScope.launch {
-            val currentState = _uiState.value
-            val amountStr = currentState.amount.trim()
-            val fractionDigits = currentState.currency.defaultFractionDigits
+    suspend fun saveVouch(): Vouch? {
+        val currentState = _uiState.value
+        val amountStr = currentState.amount.trim()
+        val fractionDigits = currentState.currency.defaultFractionDigits
 
-            val amountPattern = if (fractionDigits > 0) {
-                Regex("^\\d+([.,]\\d{1,$fractionDigits})?$")
-            } else {
-                Regex("^\\d+$")
-            }
-
-            if (!amountPattern.matches(amountStr)) {
-                _uiState.update { it.copy(saveSuccess = false, error = "Invalid amount format") }
-                return@launch
-            }
-
-            val normalized = amountStr.replace(',', '.')
-            val amountBigDecimal = try {
-                BigDecimal(normalized)
-            } catch (e: NumberFormatException) {
-                _uiState.update { it.copy(saveSuccess = false, error = "Invalid amount format") }
-                return@launch
-            }
-
-            if (editingVouchId != null) {
-                val newVouch = originalVouch!!.copy(
-                    amount = amountBigDecimal,
-                    description = currentState.description.trim(),
-                    personName = if (currentState.personName.isBlank()) null else currentState.personName.trim(),
-                    given = currentState.given,
-                    currency = currentState.currency
-                )
-                repository.update(originalVouch!!, newVouch)
-            } else {
-                val vouch = Vouch(
-                    id = 0,
-                    amount = amountBigDecimal,
-                    description = currentState.description.trim(),
-                    personName = if (currentState.personName.isBlank()) null else currentState.personName.trim(),
-                    given = currentState.given,
-                    currency = currentState.currency,
-                )
-                repository.insert(vouch)
-            }
-
-            _uiState.update { it.copy(saveSuccess = true) }
+        val amountPattern = if (fractionDigits > 0) {
+            Regex("^\\d+([.,]\\d{1,$fractionDigits})?$")
+        } else {
+            Regex("^\\d+$")
         }
+
+        if (!amountPattern.matches(amountStr)) {
+            _uiState.update { it.copy(saveSuccess = false, error = "Invalid amount format") }
+            return null
+        }
+
+        val normalized = amountStr.replace(',', '.')
+        val amountBigDecimal = try {
+            BigDecimal(normalized)
+        } catch (_: NumberFormatException) {
+            _uiState.update { it.copy(saveSuccess = false, error = "Invalid amount format") }
+            return null
+        }
+
+        var savedVouch: Vouch?
+        if (editingVouchId != null) {
+            val newVouch = originalVouch!!.copy(
+                amount = amountBigDecimal,
+                description = currentState.description.trim(),
+                personName = if (currentState.personName.isBlank()) null else currentState.personName.trim(),
+                given = currentState.given,
+                currency = currentState.currency
+            )
+            repository.update(originalVouch!!, newVouch)
+            savedVouch = newVouch
+        } else {
+            val vouch = Vouch(
+                id = 0,
+                amount = amountBigDecimal,
+                description = currentState.description.trim(),
+                personName = if (currentState.personName.isBlank()) null else currentState.personName.trim(),
+                given = currentState.given,
+                currency = currentState.currency,
+            )
+            savedVouch = repository.insert(vouch)
+        }
+
+        _uiState.update { it.copy(saveSuccess = true) }
+        return savedVouch
     }
+
 
     fun resetSaveSuccess() {
         _uiState.update { it.copy(saveSuccess = false) }

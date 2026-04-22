@@ -41,6 +41,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -67,6 +68,8 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.iyox.vouch.core.model.PersonWithTotal
 import com.iyox.vouch.core.model.Vouch
+import com.iyox.vouch.core.utils.LocalSnackbarHostState
+import com.iyox.vouch.core.utils.rememberUndoCoordinator
 import com.iyox.vouch.ui.components.vouches.VouchItem
 import com.iyox.vouch.ui.components.vouches.VouchList
 import kotlinx.coroutines.android.awaitFrame
@@ -78,18 +81,19 @@ import java.math.BigDecimal
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PersonScreen(
-    viewModel: PersonViewModel = viewModel(),
     personName: String,
     onNavigateBack: () -> Unit,
     onNavigateToEditVouch: (Int) -> Unit = {}
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
-
+    val viewModel: PersonViewModel = viewModel()
     val state by viewModel.uiState.collectAsState()
     val exportLayer = rememberGraphicsLayer()
 
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
+    val snackbarHost = LocalSnackbarHostState.current
+    val undoCoordinator = rememberUndoCoordinator()
 
     var showSettleDialog by remember { mutableStateOf(false) }
     var capturing by remember { mutableStateOf(false) }
@@ -160,9 +164,27 @@ fun PersonScreen(
                         displayedSorted = state.vouches,
                         listState = rememberLazyListState(),
                         innerPadding = PaddingValues(0.dp),
-                        onSettle = { viewModel.settleVouch(it) },
-                        onUnSettle = { viewModel.unSettleVouch(it) },
-                        onDelete = { viewModel.deleteVouch(it) },
+                        onSettle = { vouch ->
+                            undoCoordinator.executeWithUndo(
+                                message = "Vouch settled",
+                                performAction = { viewModel.sharedActions.settleVouch(vouch) },
+                                undoAction = { viewModel.sharedActions.unSettleVouch(vouch) }
+                            )
+                        },
+                        onUnSettle = { vouch ->
+                            undoCoordinator.executeWithUndo(
+                                message = "Vouch unsettled",
+                                performAction = { viewModel.sharedActions.unSettleVouch(vouch) },
+                                undoAction = { viewModel.sharedActions.settleVouch(vouch) }
+                            )
+                        },
+                        onDelete = { vouch ->
+                            undoCoordinator.executeWithUndo(
+                                message = "Vouch deleted",
+                                performAction = { viewModel.sharedActions.deleteVouch(vouch) },
+                                undoAction = { viewModel.sharedActions.addVouch(vouch) }
+                            )
+                        },
                         onEdit = { onNavigateToEditVouch(it) })
                 }
             }
@@ -197,7 +219,21 @@ fun PersonScreen(
                 onDismiss = { showSettleDialog = false },
                 onConfirm = { fullySettle ->
                     showSettleDialog = false
-                    if (fullySettle) viewModel.settlePerson() else viewModel.netVouches()
+                    coroutineScope.launch {
+                        if (fullySettle) {
+                            val settled = viewModel.settlePerson()
+                            val result = snackbarHost.showSnackbar("Person settled", "Undo")
+                            if (result == SnackbarResult.ActionPerformed) {
+                                viewModel.undoSettlePerson(settled)
+                            }
+                        } else {
+                            val (settled, nettingVouch) = viewModel.netVouches()
+                            val result = snackbarHost.showSnackbar("Vouches netted", "Undo")
+                            if (result == SnackbarResult.ActionPerformed) {
+                                viewModel.undoNetVouches(settled, nettingVouch)
+                            }
+                        }
+                    }
                 })
         }
     }
