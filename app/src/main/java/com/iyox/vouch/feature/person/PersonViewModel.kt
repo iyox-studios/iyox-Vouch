@@ -35,12 +35,12 @@ class PersonViewModel(application: Application) : AndroidViewModel(application) 
     val sharedActions = SharedVouchActions(vouchRepository) {
         val personName = _uiState.value.personData?.person?.name
         if (personName != null) {
-            loadPerson(personName)
+            loadPerson(personName, false)
         }
     }
 
-    fun loadPerson(name: String) {
-        _uiState.update { it.copy(isLoading = true) }
+    fun loadPerson(name: String, shouldShowLoading: Boolean = true) {
+        _uiState.update { it.copy(isLoading = shouldShowLoading) }
         viewModelScope.launch {
             val allVouches = vouchRepository.getAll()
             val personVouches =
