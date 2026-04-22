@@ -92,7 +92,7 @@ class PersonViewModel(application: Application) : AndroidViewModel(application) 
         }
         val personName = _uiState.value.personData?.person?.name
         if (personName != null) {
-            loadPerson(personName)
+            loadPerson(personName, false)
         }
         return unsettledVouches
     }
@@ -118,7 +118,7 @@ class PersonViewModel(application: Application) : AndroidViewModel(application) 
                 )
             )
             newNettingVouch = netVouch
-            loadPerson(personName)
+            loadPerson(personName, false)
         }
         return Pair(settledVouches, newNettingVouch)
     }
@@ -128,7 +128,7 @@ class PersonViewModel(application: Application) : AndroidViewModel(application) 
             for (vouch in previouslySettled) {
                 vouchRepository.update(vouch.copy(settled = false))
             }
-            _uiState.value.personData?.person?.name?.let { loadPerson(it) }
+            _uiState.value.personData?.person?.name?.let { loadPerson(it, false) }
         }
     }
 
@@ -140,7 +140,7 @@ class PersonViewModel(application: Application) : AndroidViewModel(application) 
             for (vouch in previouslySettled) {
                 vouchRepository.update(vouch.copy(settled = false))
             }
-            _uiState.value.personData?.person?.name?.let { loadPerson(it) }
+            _uiState.value.personData?.person?.name?.let { loadPerson(it, false) }
         }
     }
 

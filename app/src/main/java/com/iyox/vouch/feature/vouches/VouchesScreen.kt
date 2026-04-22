@@ -44,7 +44,7 @@ fun VouchesScreen(
     onNavigateToEditVouch: (Int) -> Unit = {}
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
-    val undoCoordinator = rememberUndoCoordinator()
+    rememberUndoCoordinator()
 
     val uiState by viewModel.uiState.collectAsState()
 
@@ -98,27 +98,7 @@ fun VouchesScreen(
                 displayedSorted = uiState.vouches,
                 listState = listState,
                 innerPadding = innerPadding,
-                onSettle = { vouch ->
-                    undoCoordinator.executeWithUndo(
-                        message = "Vouch settled",
-                        performAction = { viewModel.sharedActions.settleVouch(vouch) },
-                        undoAction = { viewModel.sharedActions.unSettleVouch(vouch) }
-                    )
-                },
-                onUnSettle = { vouch ->
-                    undoCoordinator.executeWithUndo(
-                        message = "Vouch unsettled",
-                        performAction = { viewModel.sharedActions.unSettleVouch(vouch) },
-                        undoAction = { viewModel.sharedActions.settleVouch(vouch) }
-                    )
-                },
-                onDelete = { vouch ->
-                    undoCoordinator.executeWithUndo(
-                        message = "Vouch deleted",
-                        performAction = { viewModel.sharedActions.deleteVouch(vouch) },
-                        undoAction = { viewModel.sharedActions.addVouch(vouch) }
-                    )
-                },
+                sharedVouchActions = viewModel.sharedActions,
                 onEdit = { onNavigateToEditVouch(it) }
             )
         }
