@@ -15,6 +15,8 @@
 
     <string name="settings_section_appearance">Appearance</string>
     <string name="settings_language">Language</string>
+    <string name="settings_language_system">System Default</string>
+    <string name="settings_language_android_13_only">Available on Android 13+</string>
     <string name="settings_theme">Theme</string>
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
@@ -91,4 +93,6 @@
 
     <string name="format_vouch_date">MMM dd, yyyy HH:mm</string>
     <string name="amount_euro">%1$s€</string>
+    <string name="settings_lang_en">English</string>
+    <string name="settings_lang_de">Deutsch</string>
 </resources>
