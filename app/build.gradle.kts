@@ -43,7 +43,7 @@ android {
 }
 
 dependencies {
-    implementation("com.google.code.gson:gson:2.10.1")
+    implementation(libs.gson)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
@@ -62,8 +62,8 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.compose.foundation)
     ksp(libs.androidx.room.compiler)
-    implementation("androidx.compose.material:material-icons-extended")
-    implementation("androidx.core:core-splashscreen:1.0.1")
+    implementation(libs.androidx.compose.material.icons.extended)
+    implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.fragment)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
