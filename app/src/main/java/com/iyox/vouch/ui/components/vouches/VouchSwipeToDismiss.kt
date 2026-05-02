@@ -41,7 +41,8 @@ fun VouchSwipeToDismiss(
     onEndToStart: () -> Unit = {},
     enableDismissFromStartToEnd: Boolean = false,
     enableDismissFromEndToStart: Boolean = false,
-    settleText: String = "Settle",
+    settleText: String,
+    deleteText: String,
     content: @Composable () -> Unit
 ) {
     val haptics = LocalHapticFeedback.current
@@ -96,7 +97,7 @@ fun VouchSwipeToDismiss(
                 VouchSwipeToDismissBackground(
                     dismissState,
                     MaterialTheme.colorScheme.errorContainer,
-                    "Delete",
+                    deleteText,
                     Icons.Default.Delete
                 )
             }

@@ -39,6 +39,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -46,6 +48,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.iyox.vouch.R
 import com.iyox.vouch.ui.components.PageHeader
 import java.math.BigDecimal
 
@@ -73,17 +76,17 @@ fun PersonsScreen(
 
     Scaffold(
         topBar = {
-            PageHeader("People") {
+            PageHeader(stringResource(R.string.screen_people)) {
                 FilterChip(
                     selected = uiState.showOnlyNonZero, onClick = {
                         haptics.performHapticFeedback(HapticFeedbackType.ToggleOn)
                         viewModel.toggleShowOnlyNonZero()
                     }, label = {
-                        Text("Unsettled")
+                        Text(stringResource(R.string.filter_unsettled))
                     }, leadingIcon = {
                         if (uiState.showOnlyNonZero) Icon(
                             imageVector = Icons.Default.Check,
-                            contentDescription = "Selected",
+                            contentDescription = stringResource(R.string.cd_selected),
                             modifier = Modifier.size(18.dp)
                         )
                     }, modifier = Modifier.padding(end = 16.dp)
@@ -166,7 +169,11 @@ fun PersonCard(
                     shape = CircleShape,
                 ) {
                     Text(
-                        text = "$vouchCount " + if (vouchCount == 1) "Vouch" else "Vouches",
+                        text = pluralStringResource(
+                            R.plurals.vouch_count,
+                            vouchCount,
+                            vouchCount
+                        ),
                         style = MaterialTheme.typography.labelSmall,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -175,7 +182,7 @@ fun PersonCard(
             }
 
             Text(
-                text = amount.toPlainString() + "€",
+                text = stringResource(R.string.amount_euro, amount.toPlainString()),
                 style = MaterialTheme.typography.headlineLarge,
                 fontWeight = FontWeight.Medium,
                 color = if (amount >= BigDecimal.ZERO) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.error
