@@ -46,9 +46,22 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     val uiModeManager = application.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
     private val prefs = application.getSharedPreferences("settings", Context.MODE_PRIVATE)
 
-    private val _theme = MutableStateFlow(
-        prefs.getInt("theme", UiModeManager.MODE_NIGHT_AUTO)
-    )
+    private fun resolveInitialTheme(): Int {
+        val storedTheme = prefs.getInt("theme", Int.MIN_VALUE)
+        if (storedTheme != Int.MIN_VALUE) return storedTheme
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            UiModeManager.MODE_NIGHT_AUTO
+        } else {
+            val delegateMode = AppCompatDelegate.getDefaultNightMode()
+            if (delegateMode != AppCompatDelegate.MODE_NIGHT_UNSPECIFIED) {
+                delegateMode
+            } else {
+                UiModeManager.MODE_NIGHT_AUTO
+            }
+        }
+    }
+
+    private val _theme = MutableStateFlow(resolveInitialTheme())
     private val _dynamicColors = MutableStateFlow(prefs.getBoolean("dynamic_colors", true))
 
     val uiState: StateFlow<SettingsUiState> = combine(
@@ -62,7 +75,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         viewModelScope,
         SharingStarted.WhileSubscribed(5000),
         SettingsUiState(
-            prefs.getInt("theme", UiModeManager.MODE_NIGHT_AUTO),
+            resolveInitialTheme(),
             prefs.getBoolean("dynamic_colors", true)
         )
     )

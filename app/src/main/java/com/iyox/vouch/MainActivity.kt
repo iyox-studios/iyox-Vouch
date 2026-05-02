@@ -1,8 +1,12 @@
 package com.iyox.vouch
 
+import android.app.UiModeManager
+import android.content.Context
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
 import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_WEAK
@@ -18,6 +22,7 @@ import com.iyox.vouch.core.utils.VibrationManager
 class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
+        applyStoredTheme()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         val vibrationManager = VibrationManager(this)
@@ -25,6 +30,17 @@ class MainActivity : FragmentActivity() {
             CompositionLocalProvider(LocalVibrationManager provides vibrationManager) {
                 VouchApp()
             }
+        }
+    }
+
+    private fun applyStoredTheme() {
+        val prefs = getSharedPreferences("settings", MODE_PRIVATE)
+        val theme = prefs.getInt("theme", UiModeManager.MODE_NIGHT_AUTO)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val uiModeManager = getSystemService(UI_MODE_SERVICE) as UiModeManager
+            uiModeManager.setApplicationNightMode(theme)
+        } else {
+            AppCompatDelegate.setDefaultNightMode(theme)
         }
     }
 
