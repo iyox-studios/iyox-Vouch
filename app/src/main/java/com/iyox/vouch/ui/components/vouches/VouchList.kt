@@ -12,7 +12,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.iyox.vouch.R
 import com.iyox.vouch.core.domain.SharedVouchActions
 import com.iyox.vouch.core.model.Vouch
 import com.iyox.vouch.core.utils.rememberUndoCoordinator
@@ -35,6 +37,9 @@ fun VouchList(
     onEdit: (Int) -> Unit
 ) {
     val undoCoordinator = rememberUndoCoordinator()
+    val msgVouchUnsettled = stringResource(R.string.msg_vouch_unsettled)
+    val msgVouchDeleted = stringResource(R.string.msg_vouch_deleted)
+    val msgVouchSettled = stringResource(R.string.msg_vouch_settled)
     LazyColumn(
         state = listState,
         modifier = Modifier
@@ -56,14 +61,14 @@ fun VouchList(
                         canSettle = false,
                         onSettle = {
                             undoCoordinator.executeWithUndo(
-                                message = "Vouch unsettled",
+                                message = msgVouchUnsettled,
                                 performAction = { sharedVouchActions.unSettleVouch(vouch) },
                                 undoAction = { sharedVouchActions.settleVouch(vouch) }
                             )
                         },
                         onDelete = {
                             undoCoordinator.executeWithUndo(
-                                message = "Vouch deleted",
+                                message = msgVouchDeleted,
                                 performAction = { sharedVouchActions.deleteVouch(vouch) },
                                 undoAction = { sharedVouchActions.addVouch(vouch) }
                             )
@@ -77,14 +82,14 @@ fun VouchList(
                         vouch = vouch,
                         onSettle = {
                             undoCoordinator.executeWithUndo(
-                                message = "Vouch settled",
+                                message = msgVouchSettled,
                                 performAction = { sharedVouchActions.settleVouch(vouch) },
                                 undoAction = { sharedVouchActions.unSettleVouch(vouch) }
                             )
                         },
                         onDelete = {
                             undoCoordinator.executeWithUndo(
-                                message = "Vouch deleted",
+                                message = msgVouchDeleted,
                                 performAction = { sharedVouchActions.deleteVouch(vouch) },
                                 undoAction = { sharedVouchActions.addVouch(vouch) }
                             )

@@ -24,9 +24,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.iyox.vouch.R
 import com.iyox.vouch.core.model.Vouch
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -40,7 +42,14 @@ fun VouchItem(
     onDelete: () -> Unit = {},
     onEdit: () -> Unit = {}
 ) {
-    val dateFormat = SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
+    val dateFormat =
+        SimpleDateFormat(stringResource(R.string.format_vouch_date), Locale.getDefault())
+    val settleLabel = if (canSettle) {
+        stringResource(R.string.action_settle)
+    } else {
+        stringResource(R.string.action_unsettle)
+    }
+    val deleteLabel = stringResource(R.string.action_delete)
 
     val content = @Composable {
         Card(
@@ -67,7 +76,7 @@ fun VouchItem(
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
                             imageVector = if (vouch.given) Icons.Outlined.ArrowOutward else Icons.Outlined.SouthWest,
-                            contentDescription = "Home",
+                            contentDescription = stringResource(R.string.cd_home),
                             tint = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     }
@@ -107,7 +116,9 @@ fun VouchItem(
             enableDismissFromStartToEnd = true,
             onStartToEnd = onSettle,
             enableDismissFromEndToStart = true,
-            onEndToStart = onDelete
+            onEndToStart = onDelete,
+            settleText = settleLabel,
+            deleteText = deleteLabel
         ) {
             content()
         }
@@ -117,7 +128,8 @@ fun VouchItem(
             onStartToEnd = onSettle,
             enableDismissFromEndToStart = true,
             onEndToStart = onDelete,
-            settleText = "Unsettle"
+            settleText = settleLabel,
+            deleteText = deleteLabel
         ) {
             content()
         }
