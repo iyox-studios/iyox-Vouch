@@ -40,6 +40,10 @@ android {
     buildFeatures {
         compose = true
     }
+    androidResources {
+        generateLocaleConfig = true
+        localeFilters += listOf("en-rUS", "de-rDE")
+    }
 }
 
 dependencies {
