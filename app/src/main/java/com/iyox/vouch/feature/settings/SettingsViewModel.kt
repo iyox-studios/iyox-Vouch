@@ -9,6 +9,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.LocaleList
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.edit
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
