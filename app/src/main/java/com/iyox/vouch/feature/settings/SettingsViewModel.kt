@@ -20,6 +20,7 @@ import com.google.gson.JsonPrimitive
 import com.google.gson.JsonSerializationContext
 import com.google.gson.JsonSerializer
 import com.google.gson.reflect.TypeToken
+import com.iyox.vouch.R
 import com.iyox.vouch.core.data.AppDatabase
 import com.iyox.vouch.core.model.Person
 import com.iyox.vouch.core.model.Vouch
@@ -172,7 +173,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 launch(Dispatchers.Main) {
                     Toast.makeText(
                         app,
-                        "Export successful",
+                        app.getString(R.string.toast_export_success),
                         Toast.LENGTH_SHORT
                     ).show()
                 }
@@ -181,7 +182,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 launch(Dispatchers.Main) {
                     Toast.makeText(
                         getApplication(),
-                        "Export failed",
+                        getApplication<Application>().getString(R.string.toast_export_failed),
                         Toast.LENGTH_SHORT
                     ).show()
                 }
@@ -218,7 +219,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 launch(Dispatchers.Main) {
                     Toast.makeText(
                         app,
-                        "Import successful",
+                        app.getString(R.string.toast_import_success),
                         Toast.LENGTH_SHORT
                     ).show()
                 }
@@ -227,7 +228,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 launch(Dispatchers.Main) {
                     Toast.makeText(
                         getApplication(),
-                        "Import failed",
+                        getApplication<Application>().getString(R.string.toast_import_failed),
                         Toast.LENGTH_SHORT
                     ).show()
                 }
@@ -240,8 +241,8 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val pInfo = getApplication<Application>().packageManager.getPackageInfo(
                 getApplication<Application>().packageName, 0
             )
-            pInfo.versionName ?: "Unknown"
+            pInfo.versionName ?: getApplication<Application>().getString(R.string.label_unknown)
         } catch (_: Exception) {
-            "Unknown"
+            getApplication<Application>().getString(R.string.label_unknown)
         }
 }

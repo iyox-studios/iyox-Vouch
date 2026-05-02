@@ -27,11 +27,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.iyox.vouch.R
 import com.iyox.vouch.core.utils.rememberUndoCoordinator
 import com.iyox.vouch.ui.components.PageHeader
 import com.iyox.vouch.ui.components.vouches.VouchList
@@ -65,7 +67,7 @@ fun VouchesScreen(
     }
 
     Scaffold(topBar = {
-        PageHeader("Vouches") {
+        PageHeader(stringResource(R.string.screen_vouches)) {
             VouchFilterRow(
                 sortedBy = uiState.sortedBy,
                 showOnlyGiven = uiState.showOnlyGiven,
@@ -80,7 +82,8 @@ fun VouchesScreen(
             onClick = onNavigateToAddVouch
         ) {
             Icon(
-                imageVector = Icons.Default.Add, contentDescription = "Add Vouch"
+                imageVector = Icons.Default.Add,
+                contentDescription = stringResource(R.string.cd_add_vouch)
             )
         }
     }) { innerPadding ->
@@ -91,7 +94,7 @@ fun VouchesScreen(
                     .padding(innerPadding),
                 contentAlignment = Alignment.Center
             ) {
-                Text("Tap + to add a new vouch")
+                Text(stringResource(R.string.empty_vouches_prompt))
             }
         } else {
             VouchList(
@@ -133,10 +136,10 @@ private fun VouchFilterRow(
             label = {
                 Text(
                     when (sortedBy) {
-                        0 -> "Date"
-                        1 -> "Amount"
-                        2 -> "Person"
-                        else -> "Date"
+                        0 -> stringResource(R.string.filter_date)
+                        1 -> stringResource(R.string.filter_amount)
+                        2 -> stringResource(R.string.filter_person)
+                        else -> stringResource(R.string.filter_date)
                     }
                 )
             },
@@ -153,9 +156,9 @@ private fun VouchFilterRow(
             label = {
                 Text(
                     when (showOnlyGiven) {
-                        0 -> "Giv. & Rec."
-                        1 -> "Given"
-                        2 -> "Received"
+                        0 -> stringResource(R.string.filter_given_received_short)
+                        1 -> stringResource(R.string.label_given)
+                        2 -> stringResource(R.string.label_received)
                         else -> ""
                     }
                 )
@@ -172,7 +175,7 @@ private fun VouchFilterRow(
         FilterChip(
             selected = showOnlyUnsettled,
             onClick = { handleToggle(showOnlyUnsettled, onToggleUnsettled) },
-            label = { Text("Unsettled") },
+            label = { Text(stringResource(R.string.filter_unsettled)) },
             leadingIcon = {
                 if (showOnlyUnsettled) {
                     Icon(Icons.Default.Check, null, Modifier.size(18.dp))

@@ -40,8 +40,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.iyox.vouch.R
 import com.iyox.vouch.ui.components.PageHeader
 
 @Composable
@@ -65,30 +67,30 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
         }
     }
 
-    Scaffold(topBar = { PageHeader("Settings") { } }) { paddingValues ->
+    Scaffold(topBar = { PageHeader(stringResource(R.string.screen_settings)) { } }) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
         ) {
-            SectionHeader("Appearance")
+            SectionHeader(stringResource(R.string.settings_section_appearance))
 
             SettingItem(
                 icon = Icons.Outlined.Translate,
-                title = "Language",
+                title = stringResource(R.string.settings_language),
                 subtitle = "English"
             )
 
             Box {
                 SettingItem(
                     icon = Icons.Outlined.Brightness4,
-                    title = "Theme",
+                    title = stringResource(R.string.settings_theme),
                     subtitle = when (uiState.theme) {
-                        UiModeManager.MODE_NIGHT_NO -> "Light"
-                        UiModeManager.MODE_NIGHT_YES -> "Dark"
-                        UiModeManager.MODE_NIGHT_AUTO -> "System"
-                        else -> "Error"
+                        UiModeManager.MODE_NIGHT_NO -> stringResource(R.string.theme_light)
+                        UiModeManager.MODE_NIGHT_YES -> stringResource(R.string.theme_dark)
+                        UiModeManager.MODE_NIGHT_AUTO -> stringResource(R.string.theme_system)
+                        else -> stringResource(R.string.theme_error)
                     },
                     onClick = { showThemeDropdown = true }
                 )
@@ -97,19 +99,19 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
                     onDismissRequest = { showThemeDropdown = false }
                 ) {
                     DropdownMenuItem(
-                        text = { Text("System") },
+                        text = { Text(stringResource(R.string.theme_system)) },
                         onClick = {
                             viewModel.setTheme(UiModeManager.MODE_NIGHT_AUTO); showThemeDropdown =
                             false
                         })
                     DropdownMenuItem(
-                        text = { Text("Dark") },
+                        text = { Text(stringResource(R.string.theme_dark)) },
                         onClick = {
                             viewModel.setTheme(UiModeManager.MODE_NIGHT_YES); showThemeDropdown =
                             false
                         })
                     DropdownMenuItem(
-                        text = { Text("Light") },
+                        text = { Text(stringResource(R.string.theme_light)) },
                         onClick = {
                             viewModel.setTheme(UiModeManager.MODE_NIGHT_NO); showThemeDropdown =
                             false
@@ -119,8 +121,8 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
 
             SettingItem(
                 icon = Icons.Outlined.Palette,
-                title = "Dynamic Colors",
-                subtitle = "Use system colors (Android 12+)",
+                title = stringResource(R.string.settings_dynamic_colors),
+                subtitle = stringResource(R.string.settings_dynamic_colors_subtitle),
                 trailing = {
                     Switch(
                         checked = uiState.dynamicColors,
@@ -130,19 +132,19 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
                 onClick = { viewModel.setDynamicColors(!uiState.dynamicColors) }
             )
 
-            SectionHeader("Data")
+            SectionHeader(stringResource(R.string.settings_section_data))
 
             SettingItem(
                 icon = Icons.Outlined.Upload,
-                title = "Export Data",
-                subtitle = "Save your data to a file",
+                title = stringResource(R.string.settings_export_data),
+                subtitle = stringResource(R.string.settings_export_data_subtitle),
                 onClick = { exportLauncher.launch("vouch_backup.json") }
             )
 
             SettingItem(
                 icon = Icons.Outlined.Download,
-                title = "Import Data",
-                subtitle = "Restore data from a file",
+                title = stringResource(R.string.settings_import_data),
+                subtitle = stringResource(R.string.settings_import_data_subtitle),
                 onClick = { importLauncher.launch(arrayOf("application/json", "*/*")) }
             )
 
@@ -152,7 +154,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
 
             SettingItem(
                 icon = Icons.Outlined.Info,
-                title = "App Version",
+                title = stringResource(R.string.settings_app_version),
                 subtitle = viewModel.appVersion
             )
 

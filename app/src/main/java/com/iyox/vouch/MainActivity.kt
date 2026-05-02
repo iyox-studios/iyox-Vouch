@@ -57,8 +57,11 @@ class MainActivity : FragmentActivity() {
 
             })
 
-        val promptInfo = BiometricPrompt.PromptInfo.Builder().setTitle("Biometric Authentication")
-            .setSubtitle("Authenticate to access the app").setNegativeButtonText("Cancel").build()
+        val promptInfo = BiometricPrompt.PromptInfo.Builder()
+            .setTitle(getString(R.string.biometric_title))
+            .setSubtitle(getString(R.string.biometric_subtitle))
+            .setNegativeButtonText(getString(R.string.action_cancel))
+            .build()
         if (BiometricManager.from(this)
                 .canAuthenticate(BIOMETRIC_STRONG or BIOMETRIC_WEAK or DEVICE_CREDENTIAL) == BiometricManager.BIOMETRIC_SUCCESS
         ) {

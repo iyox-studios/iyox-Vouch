@@ -59,6 +59,8 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
@@ -66,6 +68,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.iyox.vouch.R
 import com.iyox.vouch.core.model.PersonWithTotal
 import com.iyox.vouch.core.model.Vouch
 import com.iyox.vouch.core.utils.LocalSnackbarHostState
@@ -94,6 +97,9 @@ fun PersonScreen(
     val coroutineScope = rememberCoroutineScope()
     val snackbarHost = LocalSnackbarHostState.current
     rememberUndoCoordinator()
+    val msgPersonSettled = stringResource(R.string.msg_person_settled)
+    val msgVouchesNetted = stringResource(R.string.msg_vouches_netted)
+    val actionUndo = stringResource(R.string.action_undo)
 
     var showSettleDialog by remember { mutableStateOf(false) }
     var capturing by remember { mutableStateOf(false) }
@@ -117,7 +123,7 @@ fun PersonScreen(
                 IconButton(onClick = onNavigateBack) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back"
+                        contentDescription = stringResource(R.string.cd_back)
                     )
                 }
             })
@@ -157,7 +163,7 @@ fun PersonScreen(
                     Box(
                         modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center
                     ) {
-                        Text("No vouches for this person")
+                        Text(stringResource(R.string.empty_person_vouches))
                     }
                 } else {
                     VouchList(
@@ -202,13 +208,13 @@ fun PersonScreen(
                     coroutineScope.launch {
                         if (fullySettle) {
                             val settled = viewModel.settlePerson()
-                            val result = snackbarHost.showSnackbar("Person settled", "Undo")
+                            val result = snackbarHost.showSnackbar(msgPersonSettled, actionUndo)
                             if (result == SnackbarResult.ActionPerformed) {
                                 viewModel.undoSettlePerson(settled)
                             }
                         } else {
                             val (settled, nettingVouch) = viewModel.netVouches()
-                            val result = snackbarHost.showSnackbar("Vouches netted", "Undo")
+                            val result = snackbarHost.showSnackbar(msgVouchesNetted, actionUndo)
                             if (result == SnackbarResult.ActionPerformed) {
                                 viewModel.undoNetVouches(settled, nettingVouch)
                             }
@@ -245,7 +251,7 @@ fun PersonInfoCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Total Balance",
+                    text = stringResource(R.string.label_total_balance),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -254,7 +260,11 @@ fun PersonInfoCard(
                     shape = CircleShape,
                 ) {
                     Text(
-                        text = "$count ${if (count == 1) "Vouch" else "Vouches"}",
+                        text = pluralStringResource(
+                            R.plurals.vouch_count,
+                            count,
+                            count
+                        ),
                         style = MaterialTheme.typography.labelLarge,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -262,7 +272,7 @@ fun PersonInfoCard(
                 }
             }
             Text(
-                text = "$total€",
+                text = stringResource(R.string.amount_euro, total),
                 style = MaterialTheme.typography.headlineLarge,
                 fontWeight = FontWeight.Medium,
                 color = if ((personData?.totalAmount?.signum()
@@ -276,17 +286,23 @@ fun PersonInfoCard(
                 modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column {
-                    Text("Given", style = MaterialTheme.typography.labelMedium)
                     Text(
-                        "${amountGiven.toPlainString()}€",
+                        stringResource(R.string.label_given),
+                        style = MaterialTheme.typography.labelMedium
+                    )
+                    Text(
+                        stringResource(R.string.amount_euro, amountGiven.toPlainString()),
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
                 Column(horizontalAlignment = Alignment.End) {
-                    Text("Received", style = MaterialTheme.typography.labelMedium)
                     Text(
-                        "${amountOwed.toPlainString()}€",
+                        stringResource(R.string.label_received),
+                        style = MaterialTheme.typography.labelMedium
+                    )
+                    Text(
+                        stringResource(R.string.amount_euro, amountOwed.toPlainString()),
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.error
                     )
@@ -322,7 +338,10 @@ fun QuickActionsCard(
                 modifier = Modifier.size(48.dp),
                 contentPadding = PaddingValues(0.dp)
             ) {
-                Icon(imageVector = Icons.Filled.Add, contentDescription = "Add Vouch")
+                Icon(
+                    imageVector = Icons.Filled.Add,
+                    contentDescription = stringResource(R.string.cd_add_vouch)
+                )
             }
             FilledTonalButton(
                 onClick = { /* TODO */ },
@@ -332,7 +351,7 @@ fun QuickActionsCard(
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.CompareArrows,
-                    contentDescription = "Auto-Settle Vouches"
+                    contentDescription = stringResource(R.string.cd_auto_settle_vouches)
                 )
             }
             FilledTonalButton(
@@ -342,7 +361,8 @@ fun QuickActionsCard(
                 contentPadding = PaddingValues(0.dp)
             ) {
                 Icon(
-                    imageVector = Icons.Filled.DoneAll, contentDescription = "Settle Person"
+                    imageVector = Icons.Filled.DoneAll,
+                    contentDescription = stringResource(R.string.cd_settle_person)
                 )
             }
             FilledTonalButton(
@@ -352,7 +372,8 @@ fun QuickActionsCard(
                 contentPadding = PaddingValues(0.dp)
             ) {
                 Icon(
-                    imageVector = Icons.Filled.Share, contentDescription = "Export Vouch-List"
+                    imageVector = Icons.Filled.Share,
+                    contentDescription = stringResource(R.string.cd_export_vouch_list)
                 )
             }
         }
@@ -367,18 +388,39 @@ fun SettlePersonDialog(
     onConfirm: (Boolean) -> Unit
 ) {
     var fullySettle by remember { mutableStateOf(false) }
-    AlertDialog(onDismissRequest = onDismiss, title = { Text("Settle Person?") }, text = {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.title_settle_person)) },
+        text = {
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            Text(
-                text = "All vouches with this person (given and received) will be settled.\n${
-                    when (personData?.totalAmount?.signum()) {
-                        -1 -> "you currently owe $personName ${personData.totalAmount.abs()}€"
-                        1 -> "$personName currently owes you ${personData.totalAmount.abs()}€"
-                        0 -> ""
-                        else -> "something went wrong"
-                    }
-                }.", style = MaterialTheme.typography.bodyLarge
-            )
+            val detail = when (personData?.totalAmount?.signum()) {
+                -1 -> stringResource(
+                    R.string.settle_person_you_owe,
+                    personName,
+                    stringResource(
+                        R.string.amount_euro,
+                        personData.totalAmount.abs().toPlainString()
+                    )
+                )
+
+                1 -> stringResource(
+                    R.string.settle_person_owes_you,
+                    personName,
+                    stringResource(
+                        R.string.amount_euro,
+                        personData.totalAmount.abs().toPlainString()
+                    )
+                )
+
+                0 -> ""
+                else -> stringResource(R.string.settle_person_error)
+            }
+            val message = if (detail.isNotEmpty()) {
+                stringResource(R.string.settle_person_message_with_detail, detail)
+            } else {
+                stringResource(R.string.settle_person_message_no_detail)
+            }
+            Text(text = message, style = MaterialTheme.typography.bodyLarge)
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -389,16 +431,16 @@ fun SettlePersonDialog(
                     checked = fullySettle, onCheckedChange = { fullySettle = !fullySettle }
                 )
                 Spacer(Modifier.width(8.dp))
-                Text("Difference has been paid")
+                Text(stringResource(R.string.label_difference_paid))
             }
         }
     }, confirmButton = {
         Button(onClick = { onConfirm(fullySettle) }) {
-            Text("Settle")
+            Text(stringResource(R.string.action_settle))
         }
     }, dismissButton = {
         OutlinedButton(onClick = onDismiss) {
-            Text("Cancel")
+            Text(stringResource(R.string.action_cancel))
         }
     })
 }
@@ -448,11 +490,20 @@ private fun shareBitmap(context: Context, bitmap: Bitmap, personName: String) {
     val shareIntent = Intent(Intent.ACTION_SEND).apply {
         type = "image/png"
         putExtra(Intent.EXTRA_STREAM, uri)
-        clipData = ClipData.newUri(context.contentResolver, "Vouch Summary", uri)
+        clipData = ClipData.newUri(
+            context.contentResolver,
+            context.getString(R.string.vouch_summary_label),
+            uri
+        )
         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     }
 
-    context.startActivity(Intent.createChooser(shareIntent, "Share Vouch Summary"))
+    context.startActivity(
+        Intent.createChooser(
+            shareIntent,
+            context.getString(R.string.share_vouch_summary_title)
+        )
+    )
 
     bitmap.recycle()
 }

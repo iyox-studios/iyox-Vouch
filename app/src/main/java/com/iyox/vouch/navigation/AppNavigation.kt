@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -68,9 +69,12 @@ fun AppNavigation(snackbarHost: @Composable (() -> Unit) = {}) {
                             val isSelected =
                                 currentDestination?.hierarchy?.any { it.route == item.screen.route } == true
                             val icon = if (isSelected) item.iconSelected else item.icon
-                            Icon(imageVector = icon, contentDescription = item.screen.title)
+                            Icon(
+                                imageVector = icon,
+                                contentDescription = stringResource(item.screen.titleRes)
+                            )
                         },
-                        label = { Text(item.screen.title) },
+                        label = { Text(stringResource(item.screen.titleRes)) },
                         selected = currentDestination?.hierarchy?.any { it.route == item.screen.route } == true,
                         onClick = {
                             haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
