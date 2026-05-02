@@ -1,16 +1,19 @@
 package com.iyox.vouch.navigation
 
 import android.net.Uri.encode
+import androidx.annotation.StringRes
+import com.iyox.vouch.R
 
-sealed class Screen(val route: String, val title: String) {
-    object Vouches : Screen("vouches", "Vouches")
-    object Persons : Screen("persons", "People")
-    object Settings : Screen("settings", "Settings")
-    object AddVouch : Screen("add_vouch", "Add Vouch")
-    object ViewPerson : Screen("view_person/{personName}", "View Person") {
+sealed class Screen(val route: String, @StringRes val titleRes: Int) {
+    object Vouches : Screen("vouches", R.string.screen_vouches)
+    object Persons : Screen("persons", R.string.screen_people)
+    object Settings : Screen("settings", R.string.screen_settings)
+    object AddVouch : Screen("add_vouch", R.string.title_add_vouch)
+    object ViewPerson : Screen("view_person/{personName}", R.string.title_view_person) {
         fun createRoute(personName: String) = "view_person/${encode(personName)}"
     }
-    object EditVouch : Screen("edit_vouch/{vouchId}", "Edit Vouch") {
+
+    object EditVouch : Screen("edit_vouch/{vouchId}", R.string.title_edit_vouch) {
         fun createRoute(vouchId: Int) = "edit_vouch/$vouchId"
     }
 }

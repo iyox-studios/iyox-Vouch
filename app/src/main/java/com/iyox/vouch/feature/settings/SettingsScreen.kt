@@ -1,8 +1,10 @@
 package com.iyox.vouch.feature.settings
 
 import android.app.UiModeManager
+import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -40,14 +42,29 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.iyox.vouch.R
 import com.iyox.vouch.ui.components.PageHeader
+
+data class SupportedLanguage(
+    val tag: String,
+    @field:StringRes val labelRes: Int
+)
+
+private val supportedLanguages = listOf(
+    SupportedLanguage("system", R.string.settings_language_system),
+    SupportedLanguage("en", R.string.settings_lang_en),
+    SupportedLanguage("de", R.string.settings_lang_de),
+)
 
 @Composable
 fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
     val uiState by viewModel.uiState.collectAsState()
     var showThemeDropdown by remember { mutableStateOf(false) }
+    var showLanguageDropdown by remember { mutableStateOf(false) }
+    val isPerAppLanguageSupported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
 
     val exportLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/json")
@@ -65,30 +82,24 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
         }
     }
 
-    Scaffold(topBar = { PageHeader("Settings") { } }) { paddingValues ->
+    Scaffold(topBar = { PageHeader(stringResource(R.string.screen_settings)) { } }) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
         ) {
-            SectionHeader("Appearance")
-
-            SettingItem(
-                icon = Icons.Outlined.Translate,
-                title = "Language",
-                subtitle = "English"
-            )
+            SectionHeader(stringResource(R.string.settings_section_appearance))
 
             Box {
                 SettingItem(
                     icon = Icons.Outlined.Brightness4,
-                    title = "Theme",
+                    title = stringResource(R.string.settings_theme),
                     subtitle = when (uiState.theme) {
-                        UiModeManager.MODE_NIGHT_NO -> "Light"
-                        UiModeManager.MODE_NIGHT_YES -> "Dark"
-                        UiModeManager.MODE_NIGHT_AUTO -> "System"
-                        else -> "Error"
+                        UiModeManager.MODE_NIGHT_NO -> stringResource(R.string.theme_light)
+                        UiModeManager.MODE_NIGHT_YES -> stringResource(R.string.theme_dark)
+                        UiModeManager.MODE_NIGHT_AUTO -> stringResource(R.string.theme_system)
+                        else -> stringResource(R.string.theme_error)
                     },
                     onClick = { showThemeDropdown = true }
                 )
@@ -97,19 +108,19 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
                     onDismissRequest = { showThemeDropdown = false }
                 ) {
                     DropdownMenuItem(
-                        text = { Text("System") },
+                        text = { Text(stringResource(R.string.theme_system)) },
                         onClick = {
                             viewModel.setTheme(UiModeManager.MODE_NIGHT_AUTO); showThemeDropdown =
                             false
                         })
                     DropdownMenuItem(
-                        text = { Text("Dark") },
+                        text = { Text(stringResource(R.string.theme_dark)) },
                         onClick = {
                             viewModel.setTheme(UiModeManager.MODE_NIGHT_YES); showThemeDropdown =
                             false
                         })
                     DropdownMenuItem(
-                        text = { Text("Light") },
+                        text = { Text(stringResource(R.string.theme_light)) },
                         onClick = {
                             viewModel.setTheme(UiModeManager.MODE_NIGHT_NO); showThemeDropdown =
                             false
@@ -117,10 +128,46 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
                 }
             }
 
+            Box {
+                SettingItem(
+                    icon = Icons.Outlined.Translate,
+                    title = stringResource(R.string.settings_language),
+                    subtitle = if (isPerAppLanguageSupported) {
+                        supportedLanguages
+                            .firstOrNull { it.tag == uiState.languageTag }
+                            ?.let { stringResource(it.labelRes) }
+                            ?: uiState.languageTag
+                    } else {
+                        stringResource(R.string.settings_language_android_13_only)
+                    },
+                    onClick = if (isPerAppLanguageSupported) {
+                        { showLanguageDropdown = true }
+                    } else {
+                        null
+                    }
+                )
+                if (isPerAppLanguageSupported) {
+                    DropdownMenu(
+                        expanded = showLanguageDropdown,
+                        onDismissRequest = { showLanguageDropdown = false }
+                    ) {
+                        supportedLanguages.forEach { language ->
+                            DropdownMenuItem(
+                                text = { Text(stringResource(language.labelRes)) },
+                                onClick = {
+                                    viewModel.setLanguage(language.tag)
+                                    showLanguageDropdown = false
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+
             SettingItem(
                 icon = Icons.Outlined.Palette,
-                title = "Dynamic Colors",
-                subtitle = "Use system colors (Android 12+)",
+                title = stringResource(R.string.settings_dynamic_colors),
+                subtitle = stringResource(R.string.settings_dynamic_colors_subtitle),
                 trailing = {
                     Switch(
                         checked = uiState.dynamicColors,
@@ -130,19 +177,19 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
                 onClick = { viewModel.setDynamicColors(!uiState.dynamicColors) }
             )
 
-            SectionHeader("Data")
+            SectionHeader(stringResource(R.string.settings_section_data))
 
             SettingItem(
                 icon = Icons.Outlined.Upload,
-                title = "Export Data",
-                subtitle = "Save your data to a file",
+                title = stringResource(R.string.settings_export_data),
+                subtitle = stringResource(R.string.settings_export_data_subtitle),
                 onClick = { exportLauncher.launch("vouch_backup.json") }
             )
 
             SettingItem(
                 icon = Icons.Outlined.Download,
-                title = "Import Data",
-                subtitle = "Restore data from a file",
+                title = stringResource(R.string.settings_import_data),
+                subtitle = stringResource(R.string.settings_import_data_subtitle),
                 onClick = { importLauncher.launch(arrayOf("application/json", "*/*")) }
             )
 
@@ -152,7 +199,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
 
             SettingItem(
                 icon = Icons.Outlined.Info,
-                title = "App Version",
+                title = stringResource(R.string.settings_app_version),
                 subtitle = viewModel.appVersion
             )
 

@@ -1,13 +1,14 @@
 package com.iyox.vouch.feature.settings
 
 import android.app.Application
+import android.app.LocaleManager
 import android.app.UiModeManager
 import android.content.Context
 import android.icu.util.Currency
 import android.net.Uri
 import android.os.Build
+import android.os.LocaleList
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.edit
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -20,6 +21,7 @@ import com.google.gson.JsonPrimitive
 import com.google.gson.JsonSerializationContext
 import com.google.gson.JsonSerializer
 import com.google.gson.reflect.TypeToken
+import com.iyox.vouch.R
 import com.iyox.vouch.core.data.AppDatabase
 import com.iyox.vouch.core.model.Person
 import com.iyox.vouch.core.model.Vouch
@@ -38,13 +40,25 @@ import java.sql.Timestamp
 
 data class SettingsUiState(
     val theme: Int,
-    val dynamicColors: Boolean
+    val dynamicColors: Boolean,
+    val languageTag: String
 )
 
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
 
     val uiModeManager = application.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
     private val prefs = application.getSharedPreferences("settings", Context.MODE_PRIVATE)
+
+    private fun currentLanguageTag(): String {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            return "system"
+        }
+
+        val localeManager =
+            getApplication<Application>().getSystemService(LocaleManager::class.java)
+        val current = localeManager.applicationLocales.toLanguageTags()
+        return current.ifBlank { "system" }
+    }
 
     private fun resolveInitialTheme(): Int {
         val storedTheme = prefs.getInt("theme", Int.MIN_VALUE)
@@ -63,20 +77,23 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
     private val _theme = MutableStateFlow(resolveInitialTheme())
     private val _dynamicColors = MutableStateFlow(prefs.getBoolean("dynamic_colors", true))
+    private val _languageTag = MutableStateFlow(currentLanguageTag())
 
     val uiState: StateFlow<SettingsUiState> = combine(
-        _theme, _dynamicColors
-    ) { theme, dynamicColors ->
+        _theme, _dynamicColors, _languageTag
+    ) { theme, dynamicColors, languageTag ->
         SettingsUiState(
             theme = theme,
-            dynamicColors = dynamicColors
+            dynamicColors = dynamicColors,
+            languageTag = languageTag
         )
     }.stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(5000),
         SettingsUiState(
             resolveInitialTheme(),
-            prefs.getBoolean("dynamic_colors", true)
+            prefs.getBoolean("dynamic_colors", true),
+            currentLanguageTag()
         )
     )
 
@@ -92,6 +109,24 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
     fun setDynamicColors(enabled: Boolean) {
         _dynamicColors.value = enabled
+    }
+
+    fun setLanguage(tag: String) {
+        _languageTag.value = tag
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            return
+        }
+
+        val appLocale = if (tag == "system") {
+            LocaleList.getEmptyLocaleList()
+        } else {
+            LocaleList.forLanguageTags(tag)
+        }
+
+        val localeManager =
+            getApplication<Application>().getSystemService(LocaleManager::class.java)
+        localeManager.applicationLocales = appLocale
     }
 
     private val gson: Gson = GsonBuilder()
@@ -172,7 +207,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 launch(Dispatchers.Main) {
                     Toast.makeText(
                         app,
-                        "Export successful",
+                        app.getString(R.string.toast_export_success),
                         Toast.LENGTH_SHORT
                     ).show()
                 }
@@ -181,7 +216,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 launch(Dispatchers.Main) {
                     Toast.makeText(
                         getApplication(),
-                        "Export failed",
+                        getApplication<Application>().getString(R.string.toast_export_failed),
                         Toast.LENGTH_SHORT
                     ).show()
                 }
@@ -218,7 +253,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 launch(Dispatchers.Main) {
                     Toast.makeText(
                         app,
-                        "Import successful",
+                        app.getString(R.string.toast_import_success),
                         Toast.LENGTH_SHORT
                     ).show()
                 }
@@ -227,7 +262,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 launch(Dispatchers.Main) {
                     Toast.makeText(
                         getApplication(),
-                        "Import failed",
+                        getApplication<Application>().getString(R.string.toast_import_failed),
                         Toast.LENGTH_SHORT
                     ).show()
                 }
@@ -240,8 +275,8 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val pInfo = getApplication<Application>().packageManager.getPackageInfo(
                 getApplication<Application>().packageName, 0
             )
-            pInfo.versionName ?: "Unknown"
+            pInfo.versionName ?: getApplication<Application>().getString(R.string.label_unknown)
         } catch (_: Exception) {
-            "Unknown"
+            getApplication<Application>().getString(R.string.label_unknown)
         }
 }

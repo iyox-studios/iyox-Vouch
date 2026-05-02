@@ -64,11 +64,13 @@ import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.iyox.vouch.R
 import com.iyox.vouch.core.model.Person
 import com.iyox.vouch.core.model.PersonWithTotal
 import com.iyox.vouch.core.utils.LocalSnackbarHostState
@@ -88,6 +90,7 @@ fun VouchScreen(
     LocalSnackbarHostState.current
     val undoCoordinator = rememberUndoCoordinator()
     val focusManager = LocalFocusManager.current
+    val msgVouchCreated = stringResource(R.string.msg_vouch_created)
 
     LaunchedEffect(vouchId) {
         viewModel.loadVouch(vouchId)
@@ -114,11 +117,19 @@ fun VouchScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { if (edit) Text("Edit Vouch") else Text("Add Vouch") }, navigationIcon = {
+            TopAppBar(
+                title = {
+                    Text(
+                        if (edit) stringResource(R.string.title_edit_vouch) else stringResource(
+                            R.string.title_add_vouch
+                        )
+                    )
+                },
+                navigationIcon = {
                 IconButton(onClick = onNavigateBack) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back"
+                        contentDescription = stringResource(R.string.cd_back)
                     )
                 }
             })
@@ -173,7 +184,7 @@ fun VouchScreen(
                     onClick = {
                         if (!edit) {
                             undoCoordinator.executeWithUndo(
-                                message = "Vouch created",
+                                message = msgVouchCreated,
                                 performAction = { viewModel.saveVouch() },
                                 undoAction = { savedVouch ->
                                     if (savedVouch != null) {
@@ -191,7 +202,11 @@ fun VouchScreen(
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(if (edit) "Update Vouch" else "Save Vouch")
+                    Text(
+                        if (edit) stringResource(R.string.action_update_vouch) else stringResource(
+                            R.string.action_save_vouch
+                        )
+                    )
                 }
             }
         }
@@ -216,7 +231,10 @@ fun CurrencySelectionDialog(
         )
     }
 
-    AlertDialog(onDismissRequest = onDismiss, title = { Text("Select Currency") }, text = {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.title_select_currency)) },
+        text = {
         LazyVerticalGrid(
             columns = GridCells.Fixed(3),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -257,11 +275,12 @@ fun CurrencySelectionDialog(
                 }
             }
         }
-    }, confirmButton = {
-        TextButton(onClick = onDismiss) {
-            Text("Cancel")
-        }
-    })
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.action_cancel))
+            }
+        })
 }
 
 @Composable
@@ -298,7 +317,12 @@ private fun VouchAmountHeader(
                 onNext = { focusManager.moveFocus(FocusDirection.Next) }
             ),
             singleLine = true,
-            placeholder = { Text("0.00", style = MaterialTheme.typography.displayLarge) },
+            placeholder = {
+                Text(
+                    stringResource(R.string.placeholder_amount),
+                    style = MaterialTheme.typography.displayLarge
+                )
+            },
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = Color.Transparent,
                 unfocusedContainerColor = Color.Transparent,
@@ -319,7 +343,9 @@ private fun VouchDirectionToggle(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        listOf(true to "Given", false to "Received").forEach { (type, label) ->
+        val givenLabel = stringResource(R.string.label_given)
+        val receivedLabel = stringResource(R.string.label_received)
+        listOf(true to givenLabel, false to receivedLabel).forEach { (type, label) ->
             val isSelected = isGiven == type
             Button(
                 onClick = { onToggle(type) },
@@ -369,7 +395,7 @@ private fun PersonAutocompleteField(
             modifier = Modifier
                 .fillMaxWidth()
                 .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable),
-            label = { Text("Person") },
+            label = { Text(stringResource(R.string.label_person)) },
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
             keyboardActions = KeyboardActions(
                 onNext = { focusManager.moveFocus(FocusDirection.Next) }
@@ -431,7 +457,7 @@ private fun PersonListItem(
         },
         trailingContent = {
             Text(
-                text = "$totalAmount€",
+                text = stringResource(R.string.amount_euro, totalAmount),
                 style = MaterialTheme.typography.titleMedium
             )
         },
@@ -450,7 +476,7 @@ private fun VouchDescriptionField(
         value = value,
         onValueChange = onValueChange,
         modifier = modifier.fillMaxWidth(),
-        label = { Text("Description") },
+        label = { Text(stringResource(R.string.label_description)) },
         leadingIcon = { Icon(Icons.Filled.Description, null) },
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
         keyboardActions = KeyboardActions(
