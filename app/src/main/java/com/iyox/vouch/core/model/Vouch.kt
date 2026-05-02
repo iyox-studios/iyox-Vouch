@@ -33,7 +33,7 @@ interface VouchDao {
     suspend fun getById(id: Int): Vouch?
 
     @Insert
-    suspend fun insert(vouch: Vouch)
+    suspend fun insert(vouch: Vouch): Long
 
     @Delete
     suspend fun delete(vouch: Vouch)

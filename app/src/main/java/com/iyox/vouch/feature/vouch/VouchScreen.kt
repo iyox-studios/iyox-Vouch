@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -54,12 +55,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -68,35 +71,40 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.iyox.vouch.core.model.Person
 import com.iyox.vouch.core.model.PersonWithTotal
+import com.iyox.vouch.core.utils.LocalSnackbarHostState
+import com.iyox.vouch.core.utils.rememberUndoCoordinator
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun VouchScreen(
     viewModel: VouchViewModel = viewModel(), vouchId: Long? = null, onNavigateBack: () -> Unit, edit : Boolean = false
 ) {
-    val state by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
+    rememberScrollState()
+
+    LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    LocalSnackbarHostState.current
+    val undoCoordinator = rememberUndoCoordinator()
     val focusManager = LocalFocusManager.current
 
-    var showCurrencyDialog by remember { mutableStateOf(false) }
-
     LaunchedEffect(vouchId) {
-        if (edit) {
-            viewModel.loadVouch(vouchId)
-        } else {
-            viewModel.loadVouch(null)
-        }
+        viewModel.loadVouch(vouchId)
     }
 
-    LaunchedEffect(state.saveSuccess) {
-        if (state.saveSuccess) {
+    LaunchedEffect(uiState.saveSuccess) {
+        if (uiState.saveSuccess) {
             viewModel.resetSaveSuccess()
             onNavigateBack()
         }
     }
 
+    var showCurrencyDialog by remember { mutableStateOf(false) }
+
     if (showCurrencyDialog) {
         CurrencySelectionDialog(
-            currentCurrency = state.currency,
+            currentCurrency = uiState.currency,
             onDismiss = { showCurrencyDialog = false },
             onCurrencySelected = { selectedCurrency ->
                 viewModel.onCurrencyChange(selectedCurrency)
@@ -115,7 +123,7 @@ fun VouchScreen(
                 }
             })
         }) { innerPadding ->
-        if (state.isLoading && edit) {
+        if (uiState.isLoading && edit) {
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
@@ -133,28 +141,28 @@ fun VouchScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 VouchAmountHeader(
-                    amount = state.amount,
-                    currency = state.currency,
+                    amount = uiState.amount,
+                    currency = uiState.currency,
                     onAmountChange = viewModel::onAmountChange,
                     onCurrencyClick = { showCurrencyDialog = true },
                     focusManager = focusManager
                 )
 
                 VouchDirectionToggle(
-                    isGiven = state.given,
+                    isGiven = uiState.given,
                     onToggle = viewModel::onGivenChange
                 )
 
                 PersonAutocompleteField(
-                    value = state.personName,
-                    results = state.personSearchResults,
+                    value = uiState.personName,
+                    results = uiState.personSearchResults,
                     onValueChange = viewModel::onPersonChange,
                     onPersonSelected = viewModel::onPersonSelected,
                     focusManager = focusManager
                 )
 
                 VouchDescriptionField(
-                    value = state.description,
+                    value = uiState.description,
                     onValueChange = viewModel::onDescriptionChange,
                     focusManager = focusManager,
                 )
@@ -162,10 +170,28 @@ fun VouchScreen(
                 Spacer(modifier = Modifier.weight(1f))
 
                 Button(
-                    onClick = { viewModel.saveVouch() },
+                    onClick = {
+                        if (!edit) {
+                            undoCoordinator.executeWithUndo(
+                                message = "Vouch created",
+                                performAction = { viewModel.saveVouch() },
+                                undoAction = { savedVouch ->
+                                    if (savedVouch != null) {
+                                        viewModel.sharedActions.deleteVouch(savedVouch)
+                                    }
+                                }
+                            )
+                            onNavigateBack()
+                        } else {
+                            coroutineScope.launch {
+                                viewModel.saveVouch()
+                                onNavigateBack()
+                            }
+                        }
+                    },
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Save Vouch")
+                    Text(if (edit) "Update Vouch" else "Save Vouch")
                 }
             }
         }

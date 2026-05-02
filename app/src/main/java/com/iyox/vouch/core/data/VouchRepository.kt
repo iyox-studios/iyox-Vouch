@@ -18,9 +18,11 @@ class VouchRepository private constructor(context: Context) {
         return vouchDataDao.getById(id)
     }
 
-    suspend fun insert(vouch: Vouch) {
-        vouchDataDao.insert(vouch)
-        personRepository.onVouchInserted(vouch)
+    suspend fun insert(vouch: Vouch): Vouch {
+        val id = vouchDataDao.insert(vouch)
+        val insertedVouch = vouch.copy(id = id.toInt())
+        personRepository.onVouchInserted(insertedVouch)
+        return insertedVouch
     }
 
     suspend fun delete(vouch: Vouch) {

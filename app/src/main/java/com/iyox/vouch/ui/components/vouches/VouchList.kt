@@ -13,7 +13,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
+import com.iyox.vouch.core.domain.SharedVouchActions
 import com.iyox.vouch.core.model.Vouch
+import com.iyox.vouch.core.utils.rememberUndoCoordinator
 
 /**
  * Displays a list of vouches with swipe-to-dismiss and edit capabilities.
@@ -21,9 +23,7 @@ import com.iyox.vouch.core.model.Vouch
  * @param displayedSorted The list of vouches to display, sorted appropriately.
  * @param listState The state of the LazyColumn.
  * @param innerPadding The padding to apply to the content.
- * @param onSettle Callback when a vouch is settled.
- * @param onUnSettle Callback when a vouch is unsettled.
- * @param onDelete Callback when a vouch is deleted.
+ * @param sharedVouchActions The sharedVouchActions to use for actions.
  * @param onEdit Callback when a vouch is edited, passing the vouch's ID.
  */
 @Composable
@@ -31,11 +31,10 @@ fun VouchList(
     displayedSorted: List<Vouch>,
     listState: LazyListState,
     innerPadding: PaddingValues,
-    onSettle: (Vouch) -> Unit,
-    onUnSettle: (Vouch) -> Unit,
-    onDelete: (Vouch) -> Unit,
+    sharedVouchActions: SharedVouchActions,
     onEdit: (Int) -> Unit
 ) {
+    val undoCoordinator = rememberUndoCoordinator()
     LazyColumn(
         state = listState,
         modifier = Modifier
@@ -55,8 +54,20 @@ fun VouchList(
                     VouchItem(
                         vouch = vouch,
                         canSettle = false,
-                        onSettle = { onUnSettle(vouch) },
-                        onDelete = { onDelete(vouch) },
+                        onSettle = {
+                            undoCoordinator.executeWithUndo(
+                                message = "Vouch unsettled",
+                                performAction = { sharedVouchActions.unSettleVouch(vouch) },
+                                undoAction = { sharedVouchActions.settleVouch(vouch) }
+                            )
+                        },
+                        onDelete = {
+                            undoCoordinator.executeWithUndo(
+                                message = "Vouch deleted",
+                                performAction = { sharedVouchActions.deleteVouch(vouch) },
+                                undoAction = { sharedVouchActions.addVouch(vouch) }
+                            )
+                        },
                         onEdit = { onEdit(vouch.id) }
                     )
                 }
@@ -64,8 +75,20 @@ fun VouchList(
                 Box(modifier = Modifier.animateItem()) {
                     VouchItem(
                         vouch = vouch,
-                        onSettle = { onSettle(vouch) },
-                        onDelete = { onDelete(vouch) },
+                        onSettle = {
+                            undoCoordinator.executeWithUndo(
+                                message = "Vouch settled",
+                                performAction = { sharedVouchActions.settleVouch(vouch) },
+                                undoAction = { sharedVouchActions.unSettleVouch(vouch) }
+                            )
+                        },
+                        onDelete = {
+                            undoCoordinator.executeWithUndo(
+                                message = "Vouch deleted",
+                                performAction = { sharedVouchActions.deleteVouch(vouch) },
+                                undoAction = { sharedVouchActions.addVouch(vouch) }
+                            )
+                        },
                         onEdit = { onEdit(vouch.id) }
                     )
                 }
