@@ -1,8 +1,10 @@
 package com.iyox.vouch.feature.settings
 
 import android.app.UiModeManager
+import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -46,10 +48,23 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.iyox.vouch.R
 import com.iyox.vouch.ui.components.PageHeader
 
+data class SupportedLanguage(
+    val tag: String,
+    @field:StringRes val labelRes: Int
+)
+
+private val supportedLanguages = listOf(
+    SupportedLanguage("system", R.string.settings_language_system),
+    SupportedLanguage("en", R.string.settings_lang_en),
+    SupportedLanguage("de", R.string.settings_lang_de),
+)
+
 @Composable
 fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
     val uiState by viewModel.uiState.collectAsState()
     var showThemeDropdown by remember { mutableStateOf(false) }
+    var showLanguageDropdown by remember { mutableStateOf(false) }
+    val isPerAppLanguageSupported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
 
     val exportLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/json")
@@ -75,12 +90,6 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
                 .verticalScroll(rememberScrollState())
         ) {
             SectionHeader(stringResource(R.string.settings_section_appearance))
-
-            SettingItem(
-                icon = Icons.Outlined.Translate,
-                title = stringResource(R.string.settings_language),
-                subtitle = "English"
-            )
 
             Box {
                 SettingItem(
@@ -116,6 +125,42 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
                             viewModel.setTheme(UiModeManager.MODE_NIGHT_NO); showThemeDropdown =
                             false
                         })
+                }
+            }
+
+            Box {
+                SettingItem(
+                    icon = Icons.Outlined.Translate,
+                    title = stringResource(R.string.settings_language),
+                    subtitle = if (isPerAppLanguageSupported) {
+                        supportedLanguages
+                            .firstOrNull { it.tag == uiState.languageTag }
+                            ?.let { stringResource(it.labelRes) }
+                            ?: uiState.languageTag
+                    } else {
+                        stringResource(R.string.settings_language_android_13_only)
+                    },
+                    onClick = if (isPerAppLanguageSupported) {
+                        { showLanguageDropdown = true }
+                    } else {
+                        null
+                    }
+                )
+                if (isPerAppLanguageSupported) {
+                    DropdownMenu(
+                        expanded = showLanguageDropdown,
+                        onDismissRequest = { showLanguageDropdown = false }
+                    ) {
+                        supportedLanguages.forEach { language ->
+                            DropdownMenuItem(
+                                text = { Text(stringResource(language.labelRes)) },
+                                onClick = {
+                                    viewModel.setLanguage(language.tag)
+                                    showLanguageDropdown = false
+                                }
+                            )
+                        }
+                    }
                 }
             }
 
