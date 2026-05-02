@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="screen_vouches">Vouches</string>
+    <string name="screen_people">Personen</string>
+    <string name="screen_settings">Einstellungen</string>
+    <string name="title_add_vouch">Vouch hinzufügen</string>
+    <string name="title_edit_vouch">Vouch bearbeiten</string>
+    <string name="title_view_person">Person ansehen</string>
+    <string name="title_select_currency">Währung auswählen</string>
+    <string name="title_settle_person">Person begleichen?</string>
+
+    <string name="biometric_title">Biometrische Authentifizierung</string>
+    <string name="biometric_subtitle">Authentifiziere dich, um auf die App zuzugreifen</string>
+
+    <string name="settings_section_appearance">Aussehen</string>
+    <string name="settings_language">Sprache</string>
+    <string name="settings_language_system">Systemstandart</string>
+    <string name="settings_language_android_13_only">Verfügbar unter Android 13+</string>
+    <string name="settings_theme">Design</string>
+    <string name="theme_light">Hell</string>
+    <string name="theme_dark">Dunkel</string>
+    <string name="theme_system">System</string>
+    <string name="theme_error">Fehler</string>
+    <string name="settings_dynamic_colors">Dynamische Farben</string>
+    <string name="settings_dynamic_colors_subtitle">Systemfarben verwenden (Android 12+)</string>
+    <string name="settings_section_data">Daten</string>
+    <string name="settings_export_data">Daten exportieren</string>
+    <string name="settings_export_data_subtitle">Deine Daten in eine Datei speichern</string>
+    <string name="settings_import_data">Daten importieren</string>
+    <string name="settings_import_data_subtitle">Daten aus einer Datei wiederherstellen</string>
+    <string name="settings_app_version">App-Version</string>
+
+    <string name="action_save_vouch">Vouch speichern</string>
+    <string name="action_update_vouch">Vouch aktualisieren</string>
+    <string name="action_settle">Begleichen</string>
+    <string name="action_unsettle">Begleichung aufheben</string>
+    <string name="action_delete">Löschen</string>
+    <string name="action_cancel">Abbrechen</string>
+    <string name="action_undo">Rückgängig</string>
+
+    <string name="placeholder_amount">0.00</string>
+    <string name="label_person">Person</string>
+    <string name="label_description">Beschreibung</string>
+    <string name="label_given">Gegeben</string>
+    <string name="label_received">Erhalten</string>
+    <string name="label_total_balance">Gesamtsaldo</string>
+    <string name="label_difference_paid">Differenz wurde bezahlt</string>
+    <string name="label_unknown">Unbekannt</string>
+
+    <string name="filter_unsettled">Offen</string>
+    <string name="filter_date">Datum</string>
+    <string name="filter_amount">Betrag</string>
+    <string name="filter_person">Person</string>
+    <string name="filter_given_received_short">Geg. &amp; Erh.</string>
+
+    <string name="empty_vouches_prompt">Tippe auf +, um einen neuen Vouch hinzuzufügen</string>
+    <string name="empty_person_vouches">Keine Vouch für diese Person</string>
+
+    <plurals name="vouch_count">
+        <item quantity="one">%1$d Vouch</item>
+        <item quantity="other">%1$d Vouch</item>
+    </plurals>
+
+    <string name="msg_vouch_created">Vouch erstellt</string>
+    <string name="msg_vouch_settled">Vouch beglichen</string>
+    <string name="msg_vouch_unsettled">Begleichung aufgehoben</string>
+    <string name="msg_vouch_deleted">Vouch gelöscht</string>
+    <string name="msg_person_settled">Person beglichen</string>
+    <string name="msg_vouches_netted">Vouch verrechnet</string>
+
+    <string name="settle_person_message_with_detail">Alle Vouch mit dieser Person (gegeben und erhalten) werden beglichen.\n%1$s.</string>
+    <string name="settle_person_message_no_detail">Alle Vouch mit dieser Person (gegeben und erhalten) werden beglichen.</string>
+    <string name="settle_person_you_owe">Du schuldest %1$s derzeit %2$s</string>
+    <string name="settle_person_owes_you">%1$s schuldet dir derzeit %2$s</string>
+    <string name="settle_person_error">Etwas ist schiefgelaufen</string>
+
+    <string name="toast_export_success">Export erfolgreich</string>
+    <string name="toast_export_failed">Export fehlgeschlagen</string>
+    <string name="toast_import_success">Import erfolgreich</string>
+    <string name="toast_import_failed">Import fehlgeschlagen</string>
+
+    <string name="cd_back">Zurück</string>
+    <string name="cd_add_vouch">Vouch hinzufügen</string>
+    <string name="cd_selected">Ausgewählt</string>
+    <string name="cd_home">Start</string>
+    <string name="cd_auto_settle_vouches">Vouch automatisch begleichen</string>
+    <string name="cd_settle_person">Person begleichen</string>
+    <string name="cd_export_vouch_list">Vouchliste exportieren</string>
+
+    <string name="share_vouch_summary_title">Vouchübersicht teilen</string>
+    <string name="vouch_summary_label">Vouchübersicht</string>
+
+    <string name="format_vouch_date">dd. MMM yyyy HH:mm</string>
+    <string name="amount_euro">%1$s€</string>
+    <string name="settings_lang_en">English</string>
+    <string name="settings_lang_de">Deutsch</string>
+</resources>
