@@ -93,6 +93,42 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
 
             Box {
                 SettingItem(
+                    icon = Icons.Outlined.Translate,
+                    title = stringResource(R.string.settings_language),
+                    subtitle = if (isPerAppLanguageSupported) {
+                        supportedLanguages
+                            .firstOrNull { it.tag == uiState.languageTag }
+                            ?.let { stringResource(it.labelRes) }
+                            ?: uiState.languageTag
+                    } else {
+                        stringResource(R.string.settings_language_android_13_only)
+                    },
+                    onClick = if (isPerAppLanguageSupported) {
+                        { showLanguageDropdown = true }
+                    } else {
+                        null
+                    }
+                )
+                if (isPerAppLanguageSupported) {
+                    DropdownMenu(
+                        expanded = showLanguageDropdown,
+                        onDismissRequest = { showLanguageDropdown = false }
+                    ) {
+                        supportedLanguages.forEach { language ->
+                            DropdownMenuItem(
+                                text = { Text(stringResource(language.labelRes)) },
+                                onClick = {
+                                    viewModel.setLanguage(language.tag)
+                                    showLanguageDropdown = false
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+
+            Box {
+                SettingItem(
                     icon = Icons.Outlined.Brightness4,
                     title = stringResource(R.string.settings_theme),
                     subtitle = when (uiState.theme) {
@@ -125,42 +161,6 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
                             viewModel.setTheme(UiModeManager.MODE_NIGHT_NO); showThemeDropdown =
                             false
                         })
-                }
-            }
-
-            Box {
-                SettingItem(
-                    icon = Icons.Outlined.Translate,
-                    title = stringResource(R.string.settings_language),
-                    subtitle = if (isPerAppLanguageSupported) {
-                        supportedLanguages
-                            .firstOrNull { it.tag == uiState.languageTag }
-                            ?.let { stringResource(it.labelRes) }
-                            ?: uiState.languageTag
-                    } else {
-                        stringResource(R.string.settings_language_android_13_only)
-                    },
-                    onClick = if (isPerAppLanguageSupported) {
-                        { showLanguageDropdown = true }
-                    } else {
-                        null
-                    }
-                )
-                if (isPerAppLanguageSupported) {
-                    DropdownMenu(
-                        expanded = showLanguageDropdown,
-                        onDismissRequest = { showLanguageDropdown = false }
-                    ) {
-                        supportedLanguages.forEach { language ->
-                            DropdownMenuItem(
-                                text = { Text(stringResource(language.labelRes)) },
-                                onClick = {
-                                    viewModel.setLanguage(language.tag)
-                                    showLanguageDropdown = false
-                                }
-                            )
-                        }
-                    }
                 }
             }
 
