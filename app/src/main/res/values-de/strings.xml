@@ -30,8 +30,8 @@
     <string name="settings_import_data_subtitle">Daten aus einer Datei wiederherstellen</string>
     <string name="settings_app_version">App-Version</string>
 
-    <string name="action_save_vouch">Vouch speichern</string>
-    <string name="action_update_vouch">Vouch aktualisieren</string>
+    <string name="action_save">Speichern</string>
+    <string name="action_update">Aktualisieren</string>
     <string name="action_settle">Begleichen</string>
     <string name="action_unsettle">Begleichung aufheben</string>
     <string name="action_delete">Löschen</string>
