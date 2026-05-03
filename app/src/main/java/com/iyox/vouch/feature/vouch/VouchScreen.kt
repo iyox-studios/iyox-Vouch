@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -48,6 +49,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.ToggleButton
+import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -94,6 +97,7 @@ fun VouchScreen(
 
     LaunchedEffect(vouchId) {
         viewModel.loadVouch(vouchId)
+        focusManager.moveFocus(FocusDirection.Down)
     }
 
     LaunchedEffect(uiState.saveSuccess) {
@@ -124,6 +128,34 @@ fun VouchScreen(
                             R.string.title_add_vouch
                         )
                     )
+                },
+                actions = {
+                    Button(
+                        modifier = Modifier.padding(end = 16.dp),
+                        onClick = {
+                            if (!edit) {
+                                undoCoordinator.executeWithUndo(
+                                    message = msgVouchCreated,
+                                    performAction = { viewModel.saveVouch() },
+                                    undoAction = { savedVouch ->
+                                        if (savedVouch != null) {
+                                            viewModel.sharedActions.deleteVouch(savedVouch)
+                                        }
+                                    }
+                                )
+                            } else {
+                                coroutineScope.launch {
+                                    viewModel.saveVouch()
+                                }
+                            }
+                        },
+                    ) {
+                        Text(
+                            if (edit) stringResource(R.string.action_update) else stringResource(
+                                R.string.action_save
+                            )
+                        )
+                    }
                 },
                 navigationIcon = {
                 IconButton(onClick = onNavigateBack) {
@@ -179,35 +211,6 @@ fun VouchScreen(
                 )
 
                 Spacer(modifier = Modifier.weight(1f))
-
-                Button(
-                    onClick = {
-                        if (!edit) {
-                            undoCoordinator.executeWithUndo(
-                                message = msgVouchCreated,
-                                performAction = { viewModel.saveVouch() },
-                                undoAction = { savedVouch ->
-                                    if (savedVouch != null) {
-                                        viewModel.sharedActions.deleteVouch(savedVouch)
-                                    }
-                                }
-                            )
-                            onNavigateBack()
-                        } else {
-                            coroutineScope.launch {
-                                viewModel.saveVouch()
-                                onNavigateBack()
-                            }
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        if (edit) stringResource(R.string.action_update_vouch) else stringResource(
-                            R.string.action_save_vouch
-                        )
-                    )
-                }
             }
         }
     }
@@ -295,11 +298,12 @@ private fun VouchAmountHeader(
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
         Button(
             onClick = onCurrencyClick,
+            shape = RoundedCornerShape(8.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color.Transparent,
                 contentColor = MaterialTheme.colorScheme.onSurface
             ),
-            contentPadding = PaddingValues(0.dp)
+            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp)
         ) {
             Text(currency.symbol, style = MaterialTheme.typography.displayLarge)
             Icon(Icons.Filled.ArrowDropDown, null)
@@ -333,6 +337,7 @@ private fun VouchAmountHeader(
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun VouchDirectionToggle(
     isGiven: Boolean,
@@ -347,15 +352,12 @@ private fun VouchDirectionToggle(
         val receivedLabel = stringResource(R.string.label_received)
         listOf(true to givenLabel, false to receivedLabel).forEach { (type, label) ->
             val isSelected = isGiven == type
-            Button(
-                onClick = { onToggle(type) },
+            ToggleButton(
+                checked = isSelected,
+                onCheckedChange = { onToggle(type) },
                 modifier = Modifier.weight(1f),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
-                    contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
-                ),
+                colors = ToggleButtonDefaults.toggleButtonColors(),
                 elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp),
-                shape = MaterialTheme.shapes.small,
                 contentPadding = PaddingValues(8.dp)
             ) {
                 Text(label)
@@ -398,7 +400,10 @@ private fun PersonAutocompleteField(
             label = { Text(stringResource(R.string.label_person)) },
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
             keyboardActions = KeyboardActions(
-                onNext = { focusManager.moveFocus(FocusDirection.Next) }
+                onNext = {
+                    focusManager.moveFocus(FocusDirection.Next)
+                    expanded = false
+                }
             ),
             leadingIcon = {
                 Icon(Icons.Filled.Person, null, tint = MaterialTheme.colorScheme.primary)
