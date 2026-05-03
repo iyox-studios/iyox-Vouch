@@ -5,5 +5,6 @@
 
 # iyox Vouch
 
-iyox Vouch is a personal debt and IOU tracking application presented in [Material You](https://m3.material.io/) style.
+iyox Vouch is a personal debt and IOU tracking application presented
+in [Material You Expressive](https://m3.material.io/) style.
 </div>
