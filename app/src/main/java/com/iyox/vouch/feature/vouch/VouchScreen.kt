@@ -86,7 +86,7 @@ fun VouchScreen(
     viewModel: VouchViewModel = viewModel(),
     vouchId: Long? = null,
     onNavigateBack: () -> Unit,
-    onSaveSuccess: () -> Unit = onNavigateBack,
+    onSaveSuccess: () -> Unit,
     edit: Boolean = false
 ) {
     val uiState by viewModel.uiState.collectAsState()
