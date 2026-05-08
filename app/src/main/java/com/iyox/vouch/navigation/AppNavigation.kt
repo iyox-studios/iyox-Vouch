@@ -49,6 +49,15 @@ data class NavigationItem(
 fun AppNavigation(snackbarHost: @Composable (() -> Unit) = {}) {
     val navController = rememberNavController()
     val haptic = LocalHapticFeedback.current
+    val navigateToVouchesAfterSave = {
+        navController.navigate(Screen.Vouches.route) {
+            popUpTo(navController.graph.findStartDestination().id) {
+                saveState = true
+            }
+            launchSingleTop = true
+            restoreState = true
+        }
+    }
 
     val navigationItems = listOf(
         NavigationItem(Screen.Vouches, Icons.Outlined.Payments, Icons.Filled.Payments),
@@ -127,7 +136,9 @@ fun AppNavigation(snackbarHost: @Composable (() -> Unit) = {}) {
                 VouchScreen(
                     onNavigateBack = {
                         navController.popBackStack()
-                    })
+                    },
+                    onSaveSuccess = navigateToVouchesAfterSave
+                )
             }
             composable(
                 route = Screen.ViewPerson.route,
@@ -155,7 +166,9 @@ fun AppNavigation(snackbarHost: @Composable (() -> Unit) = {}) {
                     edit = true,
                     onNavigateBack = {
                         navController.popBackStack()
-                    })
+                    },
+                    onSaveSuccess = navigateToVouchesAfterSave
+                )
             }
         }
     }

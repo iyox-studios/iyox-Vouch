@@ -83,7 +83,11 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun VouchScreen(
-    viewModel: VouchViewModel = viewModel(), vouchId: Long? = null, onNavigateBack: () -> Unit, edit : Boolean = false
+    viewModel: VouchViewModel = viewModel(),
+    vouchId: Long? = null,
+    onNavigateBack: () -> Unit,
+    onSaveSuccess: () -> Unit = onNavigateBack,
+    edit: Boolean = false
 ) {
     val uiState by viewModel.uiState.collectAsState()
     rememberScrollState()
@@ -103,7 +107,7 @@ fun VouchScreen(
     LaunchedEffect(uiState.saveSuccess) {
         if (uiState.saveSuccess) {
             viewModel.resetSaveSuccess()
-            onNavigateBack()
+            onSaveSuccess()
         }
     }
 
