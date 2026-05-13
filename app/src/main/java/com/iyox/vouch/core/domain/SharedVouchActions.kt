@@ -27,4 +27,9 @@ class SharedVouchActions(
         repository.setVouchSettled(vouch.vouch.id, false)
         onDataChanged()
     }
+
+    suspend fun setVouchPersonSettlement(vouchId: Int, personId: Int, settled: Boolean) {
+        repository.setPersonSettlement(vouchId, personId, settled)
+        onDataChanged()
+    }
 }

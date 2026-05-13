@@ -74,6 +74,7 @@ import com.iyox.vouch.core.model.VouchWithPerson
 import com.iyox.vouch.core.model.isSettledForPerson
 import com.iyox.vouch.core.utils.LocalSnackbarHostState
 import com.iyox.vouch.core.utils.rememberUndoCoordinator
+import com.iyox.vouch.ui.components.vouches.GroupVouchSingleItem
 import com.iyox.vouch.ui.components.vouches.SingleVouchItem
 import com.iyox.vouch.ui.components.vouches.VouchList
 import kotlinx.coroutines.android.awaitFrame
@@ -91,6 +92,7 @@ fun PersonScreen(
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
     val viewModel: PersonViewModel = viewModel()
+    val personUiState by viewModel.uiState.collectAsState()
     val state by viewModel.uiState.collectAsState()
     val exportLayer = rememberGraphicsLayer()
 
@@ -173,7 +175,8 @@ fun PersonScreen(
                         innerPadding = PaddingValues(0.dp),
                         sharedVouchActions = viewModel.sharedActions,
                         onEdit = { onNavigateToEditVouch(it) },
-                        isSettled = { vouch -> vouch.isSettledForPerson(personName) }
+                        isSettled = { vouch -> vouch.isSettledForPerson(personName) },
+                        groupSingleContextPersonId = personUiState.personData?.person?.id
                     )
                 }
             }
@@ -468,7 +471,19 @@ fun VouchExportTemplate(
         Spacer(Modifier.height(16.dp))
         Column(modifier = Modifier.padding(16.dp)) {
             vouches.filter { vouch -> !vouch.isSettledForPerson(personName) }.forEach { vouch ->
-                SingleVouchItem(vouch, canSettle = false, onSettle = {}, onDelete = {}, onEdit = {})
+                if (vouch.persons.size > 1) //TODO: add extension function + fix
+                    SingleVouchItem(
+                        vouch,
+                        canSettle = false,
+                        onSettle = {},
+                        onDelete = {},
+                        onEdit = {})
+                else GroupVouchSingleItem(
+                    vouch,
+                    canSettle = true,
+                    onSettle = {},
+                    onDelete = {},
+                    onEdit = {})
                 Spacer(Modifier.height(8.dp))
             }
         }
