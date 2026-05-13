@@ -20,6 +20,12 @@ data class PersonWithAmount(
     val amount: BigDecimal
 )
 
+data class PersonTotal(
+    @Embedded val person: Person,
+    val amount: BigDecimal,
+    val vouchCount: Int
+)
+
 @Dao
 interface PersonDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
@@ -38,4 +44,31 @@ interface PersonDao {
         """
     )
     suspend fun deletePersonsWithoutVouches()
+
+    @Query(
+        """
+        SELECT p.*,
+               COALESCE(SUM(CASE WHEN v.given = 0 THEN -vpc.amount ELSE vpc.amount END), 0) AS amount,
+               COUNT(DISTINCT v.id) AS vouchCount
+        FROM Person p
+        LEFT JOIN vouch_person_cross_ref vpc ON p.id = vpc.personId
+        LEFT JOIN Vouch v ON vpc.vouchId = v.id AND v.settled = 0
+        GROUP BY p.id
+        """
+    )
+    suspend fun getPersonsTotalAll(): List<PersonTotal>
+
+    @Query(
+        """
+        SELECT p.*,
+               COALESCE(SUM(CASE WHEN v.given = 0 THEN -vpc.amount ELSE vpc.amount END), 0) AS amount,
+               COUNT(DISTINCT v.id) AS vouchCount
+        FROM Person p
+        LEFT JOIN vouch_person_cross_ref vpc ON p.id = vpc.personId
+        LEFT JOIN Vouch v ON vpc.vouchId = v.id AND v.settled = 0
+        WHERE p.name LIKE '%' || :query || '%'
+        GROUP BY p.id
+        """
+    )
+    suspend fun getPersonsTotalFiltered(query: String): List<PersonTotal>
 }
