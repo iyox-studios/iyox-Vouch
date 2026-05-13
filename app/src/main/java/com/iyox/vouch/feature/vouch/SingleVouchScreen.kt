@@ -75,7 +75,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.iyox.vouch.R
 import com.iyox.vouch.core.model.Person
-import com.iyox.vouch.core.model.PersonWithAmount
+import com.iyox.vouch.core.model.PersonTotal
 import com.iyox.vouch.core.utils.LocalSnackbarHostState
 import com.iyox.vouch.core.utils.rememberUndoCoordinator
 import kotlinx.coroutines.launch
@@ -373,7 +373,7 @@ private fun VouchDirectionToggle(
 @Composable
 private fun PersonAutocompleteField(
     value: String,
-    results: List<PersonWithAmount>,
+    results: List<PersonTotal>,
     onValueChange: (String) -> Unit,
     onPersonSelected: (Person) -> Unit,
     focusManager: FocusManager,

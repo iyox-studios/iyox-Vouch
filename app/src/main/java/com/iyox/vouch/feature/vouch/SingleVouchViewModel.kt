@@ -8,6 +8,7 @@ import com.iyox.vouch.core.data.PersonRepository
 import com.iyox.vouch.core.data.VouchRepository
 import com.iyox.vouch.core.domain.SharedVouchActions
 import com.iyox.vouch.core.model.Person
+import com.iyox.vouch.core.model.PersonTotal
 import com.iyox.vouch.core.model.PersonWithAmount
 import com.iyox.vouch.core.model.Vouch
 import com.iyox.vouch.core.model.VouchWithPerson
@@ -27,7 +28,7 @@ data class VouchUiState(
     val description: String = "",
     val isLoading: Boolean = true,
     val saveSuccess: Boolean = false,
-    val personSearchResults: List<PersonWithAmount> = emptyList(),
+    val personSearchResults: List<PersonTotal> = emptyList(),
     val error: String? = null
 )
 
@@ -89,7 +90,7 @@ class SingleVouchViewModel(application: Application) : AndroidViewModel(applicat
         searchJob?.cancel()
         searchJob = viewModelScope.launch {
             if (value.isNotBlank()) {
-                val results = personRepository.getPersonsWithTotal(value)
+                val results = personRepository.getPersonTotal(value)
                 _uiState.update { it.copy(personSearchResults = results) }
             } else {
                 _uiState.update { it.copy(personSearchResults = emptyList()) }
