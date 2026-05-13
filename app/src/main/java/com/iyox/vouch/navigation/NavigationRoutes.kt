@@ -9,6 +9,7 @@ sealed class Screen(val route: String, @StringRes val titleRes: Int) {
     object Persons : Screen("persons", R.string.screen_people)
     object Settings : Screen("settings", R.string.screen_settings)
     object AddVouch : Screen("add_vouch", R.string.title_add_vouch)
+    object AddGroupVouch : Screen("add_group_vouch", R.string.title_add_group_vouch)
     object ViewPerson : Screen("view_person/{personName}", R.string.title_view_person) {
         fun createRoute(personName: String) = "view_person/${encode(personName)}"
     }

@@ -37,6 +37,7 @@ import com.iyox.vouch.feature.persons.PersonsScreen
 import com.iyox.vouch.feature.persons.PersonsViewModel
 import com.iyox.vouch.feature.settings.SettingsScreen
 import com.iyox.vouch.feature.settings.SettingsViewModel
+import com.iyox.vouch.feature.vouch.GroupVouchScreen
 import com.iyox.vouch.feature.vouch.SingleVouchScreen
 import com.iyox.vouch.feature.vouches.VouchesScreen
 import com.iyox.vouch.feature.vouches.VouchesViewModel
@@ -106,6 +107,9 @@ fun AppNavigation(snackbarHost: @Composable (() -> Unit) = {}) {
                     onNavigateToAddVouch = {
                         navController.navigate(Screen.AddVouch.route)
                     },
+                    onNavigateToAddGroupVouch = {
+                        navController.navigate(Screen.AddGroupVouch.route)
+                    },
                     onNavigateToEditVouch = { vouchId ->
                         navController.navigate(Screen.EditVouch.createRoute(vouchId))
                     }
@@ -128,6 +132,13 @@ fun AppNavigation(snackbarHost: @Composable (() -> Unit) = {}) {
                     onNavigateBack = {
                         navController.popBackStack()
                     })
+            }
+            composable(Screen.AddGroupVouch.route) {
+                GroupVouchScreen(
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    }
+                )
             }
             composable(
                 route = Screen.ViewPerson.route,

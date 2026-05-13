@@ -9,6 +9,7 @@
     <string name="title_view_person">View Person</string>
     <string name="title_select_currency">Select Currency</string>
     <string name="title_settle_person">Settle Person?</string>
+    <string name="title_add_group_vouch">Add Group Vouch</string>
 
     <string name="biometric_title">Biometric Authentication</string>
     <string name="biometric_subtitle">Authenticate to access the app</string>
@@ -38,6 +39,11 @@
     <string name="action_delete">Delete</string>
     <string name="action_cancel">Cancel</string>
     <string name="action_undo">Undo</string>
+    <string name="action_add_vouch">Add Vouch</string>
+    <string name="action_add_group_vouch">Add Group Vouch</string>
+    <string name="action_continue">Continue</string>
+    <string name="action_create">Create</string>
+    <string name="action_add_person">Add Person</string>
 
     <string name="placeholder_amount">0.00</string>
     <string name="label_person">Person</string>
@@ -47,6 +53,7 @@
     <string name="label_total_balance">Total Balance</string>
     <string name="label_difference_paid">Difference has been paid</string>
     <string name="label_unknown">Unknown</string>
+    <string name="label_amount">Amount</string>
 
     <string name="filter_unsettled">Unsettled</string>
     <string name="filter_date">Date</string>
@@ -56,10 +63,16 @@
 
     <string name="empty_vouches_prompt">Tap + to add a new vouch</string>
     <string name="empty_person_vouches">No vouches for this person</string>
+    <string name="empty_group_members">Add people to split the amount</string>
 
     <plurals name="vouch_count">
         <item quantity="one">%1$d Vouch</item>
         <item quantity="other">%1$d Vouches</item>
+    </plurals>
+
+    <plurals name="person_count">
+        <item quantity="one">%1$d person</item>
+        <item quantity="other">%1$d persons</item>
     </plurals>
 
     <string name="msg_vouch_created">Vouch created</string>
