@@ -69,8 +69,8 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.iyox.vouch.R
-import com.iyox.vouch.core.model.PersonWithTotal
-import com.iyox.vouch.core.model.Vouch
+import com.iyox.vouch.core.model.PersonTotal
+import com.iyox.vouch.core.model.VouchWithPerson
 import com.iyox.vouch.core.utils.LocalSnackbarHostState
 import com.iyox.vouch.core.utils.rememberUndoCoordinator
 import com.iyox.vouch.ui.components.vouches.VouchItem
@@ -227,7 +227,7 @@ fun PersonScreen(
 
 @Composable
 fun PersonInfoCard(
-    personData: PersonWithTotal?,
+    personData: PersonTotal?,
     amountGiven: BigDecimal,
     amountOwed: BigDecimal,
     modifier: Modifier = Modifier
@@ -242,7 +242,7 @@ fun PersonInfoCard(
         Column(
             modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            val total = personData?.totalAmount?.toPlainString() ?: "0"
+            val total = personData?.amount?.toPlainString() ?: "0"
             val count = personData?.vouchCount ?: 0
 
             Row(
@@ -275,7 +275,7 @@ fun PersonInfoCard(
                 text = stringResource(R.string.amount_euro, total),
                 style = MaterialTheme.typography.headlineLarge,
                 fontWeight = FontWeight.Medium,
-                color = if ((personData?.totalAmount?.signum()
+                color = if ((personData?.amount?.signum()
                         ?: 0) >= 0
                 ) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.error
             )
@@ -383,7 +383,7 @@ fun QuickActionsCard(
 @Composable
 fun SettlePersonDialog(
     personName: String,
-    personData: PersonWithTotal?,
+    personData: PersonTotal?,
     onDismiss: () -> Unit,
     onConfirm: (Boolean) -> Unit
 ) {
@@ -393,13 +393,13 @@ fun SettlePersonDialog(
         title = { Text(stringResource(R.string.title_settle_person)) },
         text = {
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            val detail = when (personData?.totalAmount?.signum()) {
+            val detail = when (personData?.amount?.signum()) {
                 -1 -> stringResource(
                     R.string.settle_person_you_owe,
                     personName,
                     stringResource(
                         R.string.amount_euro,
-                        personData.totalAmount.abs().toPlainString()
+                        personData.amount.abs().toPlainString()
                     )
                 )
 
@@ -408,7 +408,7 @@ fun SettlePersonDialog(
                     personName,
                     stringResource(
                         R.string.amount_euro,
-                        personData.totalAmount.abs().toPlainString()
+                        personData.amount.abs().toPlainString()
                     )
                 )
 
@@ -448,10 +448,10 @@ fun SettlePersonDialog(
 @Composable
 fun VouchExportTemplate(
     personName: String,
-    personData: PersonWithTotal?,
+    personData: PersonTotal?,
     amountGiven: BigDecimal,
     amountOwed: BigDecimal,
-    vouches: List<Vouch>,
+    vouches: List<VouchWithPerson>,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -464,7 +464,7 @@ fun VouchExportTemplate(
         PersonInfoCard(personData, amountGiven, amountOwed)
         Spacer(Modifier.height(16.dp))
         Column(modifier = Modifier.padding(16.dp)) {
-            vouches.filter { vouch -> !vouch.settled }.forEach { vouch ->
+            vouches.filter { vouch -> !vouch.vouch.settled }.forEach { vouch ->
                 VouchItem(vouch, canSettle = false, onSettle = {}, onDelete = {}, onEdit = {})
                 Spacer(Modifier.height(8.dp))
             }
