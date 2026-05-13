@@ -11,6 +11,7 @@ import com.iyox.vouch.core.model.Person
 import com.iyox.vouch.core.model.PersonDao
 import com.iyox.vouch.core.model.Vouch
 import com.iyox.vouch.core.model.VouchDao
+import com.iyox.vouch.core.model.VouchPersonCrossRef
 import java.math.BigDecimal
 import java.sql.Timestamp
 
@@ -42,7 +43,11 @@ class BigDecimalConverter {
     fun toBigDecimal(string: String): BigDecimal = BigDecimal(string)
 }
 
-@Database(entities = [Vouch::class, Person::class], version = 2, exportSchema = false)
+@Database(
+    entities = [Vouch::class, Person::class, VouchPersonCrossRef::class],
+    version = 1,
+    exportSchema = false
+)
 @TypeConverters(TimestampConverter::class, CurrencyConverter::class, BigDecimalConverter::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun vouchDataDao(): VouchDao
