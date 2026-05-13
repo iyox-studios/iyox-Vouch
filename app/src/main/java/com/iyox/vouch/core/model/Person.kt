@@ -48,7 +48,7 @@ interface PersonDao {
     @Query(
         """
         SELECT p.*,
-               COALESCE(SUM(CASE WHEN v.given = 0 THEN -vpc.amount ELSE vpc.amount END), 0) AS amount,
+               COALESCE(SUM(CASE WHEN v.id IS NULL THEN 0 WHEN v.given = 0 THEN -vpc.amount ELSE vpc.amount END), 0) AS amount,
                COUNT(DISTINCT v.id) AS vouchCount
         FROM Person p
         LEFT JOIN vouch_person_cross_ref vpc ON p.id = vpc.personId
@@ -61,7 +61,7 @@ interface PersonDao {
     @Query(
         """
         SELECT p.*,
-               COALESCE(SUM(CASE WHEN v.given = 0 THEN -vpc.amount ELSE vpc.amount END), 0) AS amount,
+               COALESCE(SUM(CASE WHEN v.id IS NULL THEN 0 WHEN v.given = 0 THEN -vpc.amount ELSE vpc.amount END), 0) AS amount,
                COUNT(DISTINCT v.id) AS vouchCount
         FROM Person p
         LEFT JOIN vouch_person_cross_ref vpc ON p.id = vpc.personId
