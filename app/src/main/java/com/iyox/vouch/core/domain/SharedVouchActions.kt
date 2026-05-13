@@ -19,12 +19,12 @@ class SharedVouchActions(
 
     // TODO: make this one method and use id instead of vouch and also use this everywhere instead of update
     suspend fun settleVouch(vouch: VouchWithPerson) {
-        repository.update(vouch.copy(vouch = vouch.vouch.copy(settled = true)))
+        repository.setVouchSettled(vouch.vouch.id, true)
         onDataChanged()
     }
 
     suspend fun unSettleVouch(vouch: VouchWithPerson) {
-        repository.update(vouch.copy(vouch = vouch.vouch.copy(settled = false)))
+        repository.setVouchSettled(vouch.vouch.id, false)
         onDataChanged()
     }
 }

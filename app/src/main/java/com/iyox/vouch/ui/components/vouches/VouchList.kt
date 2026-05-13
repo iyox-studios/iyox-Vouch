@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import com.iyox.vouch.R
 import com.iyox.vouch.core.domain.SharedVouchActions
 import com.iyox.vouch.core.model.VouchWithPerson
+import com.iyox.vouch.core.model.isSettled
 import com.iyox.vouch.core.utils.rememberUndoCoordinator
 
 /**
@@ -27,6 +28,7 @@ import com.iyox.vouch.core.utils.rememberUndoCoordinator
  * @param innerPadding The padding to apply to the content.
  * @param sharedVouchActions The sharedVouchActions to use for actions.
  * @param onEdit Callback when a vouch is edited, passing the vouch's ID.
+ * @param isSettled A predicate to determine if a vouch is settled.
  */
 @Composable
 fun VouchList(
@@ -34,7 +36,8 @@ fun VouchList(
     listState: LazyListState,
     innerPadding: PaddingValues,
     sharedVouchActions: SharedVouchActions,
-    onEdit: (Int) -> Unit
+    onEdit: (Int) -> Unit,
+    isSettled: (VouchWithPerson) -> Boolean = { it.isSettled() }
 ) {
     val undoCoordinator = rememberUndoCoordinator()
     val msgVouchUnsettled = stringResource(R.string.msg_vouch_unsettled)
@@ -50,13 +53,13 @@ fun VouchList(
     ) {
         itemsIndexed(
             displayedSorted, { _, item -> item.vouch.id }) { _, vouch ->
-            if (vouch.vouch.settled) {
+            if (isSettled(vouch)) {
                 Box(
                     modifier = Modifier
                         .animateItem()
                         .alpha(0.6f)
                 ) {
-                    VouchItem(
+                    SingleVouchItem(
                         vouch = vouch,
                         canSettle = false,
                         onSettle = {
@@ -78,7 +81,7 @@ fun VouchList(
                 }
             } else {
                 Box(modifier = Modifier.animateItem()) {
-                    VouchItem(
+                    SingleVouchItem(
                         vouch = vouch,
                         onSettle = {
                             undoCoordinator.executeWithUndo(

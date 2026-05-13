@@ -71,9 +71,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.iyox.vouch.R
 import com.iyox.vouch.core.model.PersonTotal
 import com.iyox.vouch.core.model.VouchWithPerson
+import com.iyox.vouch.core.model.isSettledForPerson
 import com.iyox.vouch.core.utils.LocalSnackbarHostState
 import com.iyox.vouch.core.utils.rememberUndoCoordinator
-import com.iyox.vouch.ui.components.vouches.VouchItem
+import com.iyox.vouch.ui.components.vouches.SingleVouchItem
 import com.iyox.vouch.ui.components.vouches.VouchList
 import kotlinx.coroutines.android.awaitFrame
 import kotlinx.coroutines.launch
@@ -171,7 +172,9 @@ fun PersonScreen(
                         listState = rememberLazyListState(),
                         innerPadding = PaddingValues(0.dp),
                         sharedVouchActions = viewModel.sharedActions,
-                        onEdit = { onNavigateToEditVouch(it) })
+                        onEdit = { onNavigateToEditVouch(it) },
+                        isSettled = { vouch -> vouch.isSettledForPerson(personName) }
+                    )
                 }
             }
         }
@@ -464,8 +467,8 @@ fun VouchExportTemplate(
         PersonInfoCard(personData, amountGiven, amountOwed)
         Spacer(Modifier.height(16.dp))
         Column(modifier = Modifier.padding(16.dp)) {
-            vouches.filter { vouch -> !vouch.vouch.settled }.forEach { vouch ->
-                VouchItem(vouch, canSettle = false, onSettle = {}, onDelete = {}, onEdit = {})
+            vouches.filter { vouch -> !vouch.isSettledForPerson(personName) }.forEach { vouch ->
+                SingleVouchItem(vouch, canSettle = false, onSettle = {}, onDelete = {}, onEdit = {})
                 Spacer(Modifier.height(8.dp))
             }
         }

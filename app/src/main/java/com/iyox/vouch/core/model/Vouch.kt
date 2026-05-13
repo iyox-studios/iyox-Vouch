@@ -21,7 +21,6 @@ data class Vouch(
     val currency: Currency,
     val description: String = "",
     val given: Boolean = true,
-    val settled: Boolean = false,
     val timestamp: Timestamp = Timestamp(System.currentTimeMillis())
 )
 
@@ -47,12 +46,24 @@ data class Vouch(
 data class VouchPersonCrossRef(
     val vouchId: Int,
     val personId: Int,
-    val amount: BigDecimal
+    val amount: BigDecimal,
+    val settled: Boolean = false
 )
 
 data class VouchWithPerson(
     @Embedded val vouch: Vouch,
     val persons: List<PersonWithAmount>
+)
+
+fun VouchWithPerson.isSettled(): Boolean =
+    persons.isNotEmpty() && persons.all { it.settled }
+
+fun VouchWithPerson.isSettledForPerson(personName: String): Boolean =
+    persons.firstOrNull { it.person.name == personName }?.settled ?: false
+
+data class VouchPersonSettlement(
+    val personId: Int,
+    val settled: Boolean
 )
 
 @Dao
@@ -86,11 +97,38 @@ interface VouchDao {
 
     @Query(
         """
-        SELECT p.*, vpc.amount AS amount
+        SELECT p.*, vpc.amount AS amount, vpc.settled AS settled
         FROM Person p
         INNER JOIN vouch_person_cross_ref vpc ON p.id = vpc.personId
         WHERE vpc.vouchId = :vouchId
         """
     )
     suspend fun getPersonsForVouch(vouchId: Int): List<PersonWithAmount>
+
+    @Query(
+        """
+        SELECT personId, settled
+        FROM vouch_person_cross_ref
+        WHERE vouchId = :vouchId
+        """
+    )
+    suspend fun getSettlementsForVouch(vouchId: Int): List<VouchPersonSettlement>
+
+    @Query(
+        """
+        UPDATE vouch_person_cross_ref
+        SET settled = :settled
+        WHERE vouchId = :vouchId AND personId = :personId
+        """
+    )
+    suspend fun updateCrossRefSettlement(vouchId: Int, personId: Int, settled: Boolean)
+
+    @Query(
+        """
+        UPDATE vouch_person_cross_ref
+        SET settled = :settled
+        WHERE vouchId = :vouchId
+        """
+    )
+    suspend fun updateCrossRefsSettledByVouchId(vouchId: Int, settled: Boolean)
 }

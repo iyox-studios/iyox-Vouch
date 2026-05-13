@@ -62,11 +62,32 @@ class VouchRepository private constructor(context: Context) {
         }
     }
 
+    suspend fun setVouchSettled(vouchId: Int, settled: Boolean) {
+        database.withTransaction {
+            vouchDataDao.updateCrossRefsSettledByVouchId(vouchId, settled)
+        }
+    }
+
+    suspend fun setPersonSettlement(vouchId: Int, personId: Int, settled: Boolean) {
+        database.withTransaction {
+            vouchDataDao.updateCrossRefSettlement(vouchId, personId, settled)
+        }
+    }
+
     private suspend fun upsertCrossRefs(
         vouchId: Int,
         persons: List<PersonWithAmount>,
         deleteExisting: Boolean
     ) {
+        val existingSettlements = if (deleteExisting) {
+            vouchDataDao.getSettlementsForVouch(vouchId).associateBy(
+                { it.personId },
+                { it.settled }
+            )
+        } else {
+            emptyMap()
+        }
+
         if (deleteExisting) {
             vouchDataDao.deleteCrossRefsByVouchId(vouchId)
         }
@@ -76,20 +97,27 @@ class VouchRepository private constructor(context: Context) {
             personDataDao.insert(Person(name = normalizedName))
             val storedPerson = personDataDao.getByName(normalizedName)
                 ?: error("Failed to resolve person: $normalizedName")
-            PersonWithAmount(person = storedPerson, amount = personWithAmount.amount)
+            PersonWithAmount(
+                person = storedPerson,
+                amount = personWithAmount.amount,
+                settled = personWithAmount.settled
+            )
         }
 
         val crossRefs = resolvedPersons.map { personWithAmount ->
+            val preservedSettlement = existingSettlements[personWithAmount.person.id]
             VouchPersonCrossRef(
                 vouchId = vouchId,
                 personId = personWithAmount.person.id,
-                amount = personWithAmount.amount
+                amount = personWithAmount.amount,
+                settled = preservedSettlement ?: personWithAmount.settled
             )
         }
         if (crossRefs.isNotEmpty()) {
             vouchDataDao.insertCrossRefs(crossRefs)
         }
     }
+
 
     companion object {
         @Volatile

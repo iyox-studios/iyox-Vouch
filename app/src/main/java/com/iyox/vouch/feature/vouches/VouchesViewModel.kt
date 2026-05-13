@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.iyox.vouch.core.data.VouchRepository
 import com.iyox.vouch.core.domain.SharedVouchActions
 import com.iyox.vouch.core.model.VouchWithPerson
+import com.iyox.vouch.core.model.isSettled
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -81,7 +82,7 @@ class VouchesViewModel(application: Application) : AndroidViewModel(application)
     ): List<VouchWithPerson> {
         return vouches.filter {
             when (showOnlyUnsettled) {
-                true -> !it.vouch.settled
+                true -> !it.isSettled()
                 else -> true
             } && when (showOnlyGiven) {
                 0 -> true
