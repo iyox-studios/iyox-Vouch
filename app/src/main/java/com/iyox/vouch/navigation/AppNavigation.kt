@@ -37,7 +37,7 @@ import com.iyox.vouch.feature.persons.PersonsScreen
 import com.iyox.vouch.feature.persons.PersonsViewModel
 import com.iyox.vouch.feature.settings.SettingsScreen
 import com.iyox.vouch.feature.settings.SettingsViewModel
-import com.iyox.vouch.feature.vouch.VouchScreen
+import com.iyox.vouch.feature.vouch.SingleVouchScreen
 import com.iyox.vouch.feature.vouches.VouchesScreen
 import com.iyox.vouch.feature.vouches.VouchesViewModel
 
@@ -124,7 +124,7 @@ fun AppNavigation(snackbarHost: @Composable (() -> Unit) = {}) {
                 SettingsScreen(viewModel = settingsViewModel)
             }
             composable(Screen.AddVouch.route) {
-                VouchScreen(
+                SingleVouchScreen(
                     onNavigateBack = {
                         navController.popBackStack()
                     })
@@ -150,7 +150,7 @@ fun AppNavigation(snackbarHost: @Composable (() -> Unit) = {}) {
                 arguments = listOf(navArgument("vouchId") { type = NavType.IntType })
             ) { backStackEntry ->
                 val vouchId = backStackEntry.arguments?.getInt("vouchId") ?: return@composable
-                VouchScreen(
+                SingleVouchScreen(
                     vouchId = vouchId.toLong(),
                     edit = true,
                     onNavigateBack = {

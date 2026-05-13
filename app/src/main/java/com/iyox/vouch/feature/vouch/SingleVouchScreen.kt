@@ -75,15 +75,18 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.iyox.vouch.R
 import com.iyox.vouch.core.model.Person
-import com.iyox.vouch.core.model.PersonWithTotal
+import com.iyox.vouch.core.model.PersonWithAmount
 import com.iyox.vouch.core.utils.LocalSnackbarHostState
 import com.iyox.vouch.core.utils.rememberUndoCoordinator
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun VouchScreen(
-    viewModel: VouchViewModel = viewModel(), vouchId: Long? = null, onNavigateBack: () -> Unit, edit : Boolean = false
+fun SingleVouchScreen(
+    viewModel: SingleVouchViewModel = viewModel(),
+    vouchId: Long? = null,
+    onNavigateBack: () -> Unit,
+    edit: Boolean = false
 ) {
     val uiState by viewModel.uiState.collectAsState()
     rememberScrollState()
@@ -139,7 +142,7 @@ fun VouchScreen(
                                     performAction = { viewModel.saveVouch() },
                                     undoAction = { savedVouch ->
                                         if (savedVouch != null) {
-                                            viewModel.sharedActions.deleteVouch(savedVouch)
+                                            viewModel.sharedActions.deleteVouch(savedVouch.vouch.id)
                                         }
                                     }
                                 )
@@ -370,7 +373,7 @@ private fun VouchDirectionToggle(
 @Composable
 private fun PersonAutocompleteField(
     value: String,
-    results: List<PersonWithTotal>,
+    results: List<PersonWithAmount>,
     onValueChange: (String) -> Unit,
     onPersonSelected: (Person) -> Unit,
     focusManager: FocusManager,
@@ -422,7 +425,7 @@ private fun PersonAutocompleteField(
                     text = {
                         PersonListItem(
                             name = searchResult.person.name,
-                            totalAmount = searchResult.totalAmount?.toDouble() ?: 0.0
+                            totalAmount = searchResult.amount.toDouble()
                         )
                     },
                     onClick = {
