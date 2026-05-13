@@ -35,7 +35,7 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalFoundationApi::class)
 @Composable
-fun VouchItem(
+fun SingleVouchItem(
     vouch: VouchWithPerson,
     canSettle: Boolean = true,
     onSettle: () -> Unit,
