@@ -16,7 +16,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.iyox.vouch.R
 import com.iyox.vouch.core.domain.SharedVouchActions
-import com.iyox.vouch.core.model.Vouch
+import com.iyox.vouch.core.model.VouchWithPerson
 import com.iyox.vouch.core.utils.rememberUndoCoordinator
 
 /**
@@ -30,7 +30,7 @@ import com.iyox.vouch.core.utils.rememberUndoCoordinator
  */
 @Composable
 fun VouchList(
-    displayedSorted: List<Vouch>,
+    displayedSorted: List<VouchWithPerson>,
     listState: LazyListState,
     innerPadding: PaddingValues,
     sharedVouchActions: SharedVouchActions,
@@ -49,8 +49,8 @@ fun VouchList(
         verticalArrangement = Arrangement.spacedBy(2.dp, Alignment.Top)
     ) {
         itemsIndexed(
-            displayedSorted, { _, item -> item.id }) { _, vouch ->
-            if (vouch.settled) {
+            displayedSorted, { _, item -> item.vouch.id }) { _, vouch ->
+            if (vouch.vouch.settled) {
                 Box(
                     modifier = Modifier
                         .animateItem()
@@ -69,11 +69,11 @@ fun VouchList(
                         onDelete = {
                             undoCoordinator.executeWithUndo(
                                 message = msgVouchDeleted,
-                                performAction = { sharedVouchActions.deleteVouch(vouch) },
+                                performAction = { sharedVouchActions.deleteVouch(vouch.vouch.id) },
                                 undoAction = { sharedVouchActions.addVouch(vouch) }
                             )
                         },
-                        onEdit = { onEdit(vouch.id) }
+                        onEdit = { onEdit(vouch.vouch.id) }
                     )
                 }
             } else {
@@ -90,11 +90,11 @@ fun VouchList(
                         onDelete = {
                             undoCoordinator.executeWithUndo(
                                 message = msgVouchDeleted,
-                                performAction = { sharedVouchActions.deleteVouch(vouch) },
+                                performAction = { sharedVouchActions.deleteVouch(vouch.vouch.id) },
                                 undoAction = { sharedVouchActions.addVouch(vouch) }
                             )
                         },
-                        onEdit = { onEdit(vouch.id) }
+                        onEdit = { onEdit(vouch.vouch.id) }
                     )
                 }
             }
