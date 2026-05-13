@@ -13,6 +13,17 @@ class VouchRepository private constructor(context: Context) {
     private val vouchDataDao = database.vouchDataDao()
     private val personDataDao = database.personDao()
 
+    suspend fun getAll(): List<VouchWithPerson> {
+        return database.withTransaction {
+            vouchDataDao.getAll().map { vouch ->
+                VouchWithPerson(
+                    vouch = vouch,
+                    persons = vouchDataDao.getPersonsForVouch(vouch.id)
+                )
+            }
+        }
+    }
+
     suspend fun getById(id: Int): VouchWithPerson? {
         return database.withTransaction {
             val vouch = vouchDataDao.getById(id) ?: return@withTransaction null
