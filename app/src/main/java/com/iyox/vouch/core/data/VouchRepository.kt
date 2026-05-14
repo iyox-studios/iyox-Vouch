@@ -92,8 +92,11 @@ class VouchRepository private constructor(context: Context) {
             vouchDataDao.deleteCrossRefsByVouchId(vouchId)
         }
 
-        val resolvedPersons = persons.map { personWithAmount ->
+        val resolvedPersons = persons.mapNotNull { personWithAmount ->
             val normalizedName = personWithAmount.person.name.trim()
+            if (normalizedName.isBlank()) {
+                return@mapNotNull null
+            }
             personDataDao.insert(Person(name = normalizedName))
             val storedPerson = personDataDao.getByName(normalizedName)
                 ?: error("Failed to resolve person: $normalizedName")
