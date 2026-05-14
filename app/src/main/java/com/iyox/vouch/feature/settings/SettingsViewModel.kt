@@ -48,7 +48,8 @@ data class SettingsUiState(
 
 data class ExportPersonAmount(
     val name: String,
-    val amount: BigDecimal
+    val amount: BigDecimal,
+    val settled: Boolean = false
 )
 
 data class ExportVouch(
@@ -213,7 +214,8 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                         .map { personWithAmount ->
                             ExportPersonAmount(
                                 name = personWithAmount.person.name,
-                                amount = personWithAmount.amount
+                                amount = personWithAmount.amount,
+                                settled = personWithAmount.settled
                             )
                         }
                     ExportVouch(vouch = vouch, persons = persons)
@@ -271,7 +273,8 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                                 VouchPersonCrossRef(
                                     vouchId = newVouchId,
                                     personId = storedPerson.id,
-                                    amount = personAmount.amount
+                                    amount = personAmount.amount,
+                                    settled = personAmount.settled
                                 )
                             }
 
