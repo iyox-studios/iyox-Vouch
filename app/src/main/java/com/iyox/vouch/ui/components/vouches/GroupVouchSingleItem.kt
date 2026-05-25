@@ -25,10 +25,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.iyox.vouch.R
+import com.iyox.vouch.core.model.Person
 import com.iyox.vouch.core.model.VouchWithPerson
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -37,6 +41,7 @@ import java.util.Locale
 @Composable
 fun GroupVouchSingleItem(
     vouch: VouchWithPerson,
+    person: Person?,
     canSettle: Boolean = true,
     onSettle: () -> Unit,
     onDelete: () -> Unit = {},
@@ -86,7 +91,20 @@ fun GroupVouchSingleItem(
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(
-                        text = vouch.vouch.amount.toString() + " " + vouch.vouch.currency.symbol,
+                        text = buildAnnotatedString {
+                            append(vouch.persons.find { it.person == person }!!.amount.toString())
+                            append(vouch.vouch.currency.symbol)
+                            withStyle(
+                                SpanStyle(
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    fontSize = MaterialTheme.typography.titleMedium.fontSize
+                                )
+                            ) {
+                                append(" / ")
+                                append(vouch.vouch.amount.toString())
+                                append(vouch.vouch.currency.symbol)
+                            }
+                        },
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Medium
                     )
@@ -102,7 +120,7 @@ fun GroupVouchSingleItem(
                 Spacer(modifier = Modifier.width(16.dp))
 
                 Text(
-                    text = "${vouch.persons.size} People / asd", //TODO: string resource
+                    text = "${vouch.persons.size} People", //TODO: string resource
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant

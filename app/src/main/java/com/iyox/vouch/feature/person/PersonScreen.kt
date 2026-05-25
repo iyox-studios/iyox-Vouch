@@ -471,7 +471,7 @@ fun VouchExportTemplate(
         Spacer(Modifier.height(16.dp))
         Column(modifier = Modifier.padding(16.dp)) {
             vouches.filter { vouch -> !vouch.isSettledForPerson(personName) }.forEach { vouch ->
-                if (vouch.persons.size > 1) //TODO: add extension function + fix
+                if (vouch.persons.size <= 1) //TODO: add extension function + fix
                     SingleVouchItem(
                         vouch,
                         canSettle = false,
@@ -480,6 +480,7 @@ fun VouchExportTemplate(
                         onEdit = {})
                 else GroupVouchSingleItem(
                     vouch,
+                    personData?.person,
                     canSettle = true,
                     onSettle = {},
                     onDelete = {},

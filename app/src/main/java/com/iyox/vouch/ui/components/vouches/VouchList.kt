@@ -95,6 +95,7 @@ fun VouchList(
                     if (groupSingleContextPersonId != null) {
                         GroupVouchSingleItem(
                             vouch = vouch,
+                            person = vouch.persons.find { it.person.id == groupSingleContextPersonId }?.person,
                             canSettle = !settled,
                             onSettle = {
                                 undoCoordinator.executeWithUndo(
