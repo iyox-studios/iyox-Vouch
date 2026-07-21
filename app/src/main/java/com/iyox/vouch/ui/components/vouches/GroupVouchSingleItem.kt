@@ -1,7 +1,6 @@
 package com.iyox.vouch.ui.components.vouches
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -60,8 +59,7 @@ fun GroupVouchSingleItem(
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(MaterialTheme.shapes.largeIncreased)
-                .combinedClickable(onClick = onEdit, onLongClick = {}),
+                .clip(MaterialTheme.shapes.largeIncreased),
             shape = MaterialTheme.shapes.largeIncreased,
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceContainer
@@ -133,7 +131,7 @@ fun GroupVouchSingleItem(
         VouchSwipeToDismiss(
             enableDismissFromStartToEnd = true,
             onStartToEnd = onSettle,
-            enableDismissFromEndToStart = true,
+            enableDismissFromEndToStart = false,
             onEndToStart = onDelete,
             settleText = settleLabel,
             deleteText = deleteLabel
@@ -144,7 +142,7 @@ fun GroupVouchSingleItem(
         VouchSwipeToDismiss(
             enableDismissFromStartToEnd = true,
             onStartToEnd = onSettle,
-            enableDismissFromEndToStart = true,
+            enableDismissFromEndToStart = false,
             onEndToStart = onDelete,
             settleText = settleLabel,
             deleteText = deleteLabel
