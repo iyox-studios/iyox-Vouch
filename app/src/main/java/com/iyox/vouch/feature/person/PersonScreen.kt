@@ -393,7 +393,7 @@ fun SettlePersonDialog(
     onDismiss: () -> Unit,
     onConfirm: (Boolean) -> Unit
 ) {
-    var fullySettle by remember { mutableStateOf(false) }
+    var fullySettle by remember { mutableStateOf(true) }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.title_settle_person)) },
