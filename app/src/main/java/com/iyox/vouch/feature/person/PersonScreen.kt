@@ -24,7 +24,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.CompareArrows
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DoneAll
 import androidx.compose.material.icons.filled.Share
@@ -88,6 +87,7 @@ import java.math.BigDecimal
 fun PersonScreen(
     personName: String,
     onNavigateBack: () -> Unit,
+    onNavigateToAddVouch: (String) -> Unit = {},
     onNavigateToEditVouch: (Int) -> Unit = {}
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -152,7 +152,9 @@ fun PersonScreen(
                     amountOwed = state.amountOwed
                 )
 
-                QuickActionsCard(onSettleClick = { showSettleDialog = true }, onShareClick = {
+                QuickActionsCard(onSettleClick = { showSettleDialog = true }, onAddVouch = {
+                    onNavigateToAddVouch(personName)
+                }, onShareClick = {
                     coroutineScope.launch {
                         capturing = true
                         awaitFrame()
@@ -320,7 +322,10 @@ fun PersonInfoCard(
 
 @Composable
 fun QuickActionsCard(
-    onSettleClick: () -> Unit, onShareClick: () -> Unit, modifier: Modifier = Modifier
+    onSettleClick: () -> Unit,
+    onShareClick: () -> Unit,
+    onAddVouch: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Card(
         colors = CardDefaults.cardColors(
@@ -339,7 +344,7 @@ fun QuickActionsCard(
             horizontalArrangement = Arrangement.SpaceAround
         ) {
             FilledTonalButton(
-                onClick = { /* TODO */ },
+                onClick = onAddVouch,
                 shape = MaterialTheme.shapes.medium,
                 modifier = Modifier.size(48.dp),
                 contentPadding = PaddingValues(0.dp)
@@ -347,17 +352,6 @@ fun QuickActionsCard(
                 Icon(
                     imageVector = Icons.Filled.Add,
                     contentDescription = stringResource(R.string.cd_add_vouch)
-                )
-            }
-            FilledTonalButton(
-                onClick = { /* TODO */ },
-                shape = MaterialTheme.shapes.medium,
-                modifier = Modifier.size(48.dp),
-                contentPadding = PaddingValues(0.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.CompareArrows,
-                    contentDescription = stringResource(R.string.cd_auto_settle_vouches)
                 )
             }
             FilledTonalButton(
@@ -398,57 +392,57 @@ fun SettlePersonDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.title_settle_person)) },
         text = {
-        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            val detail = when (personData?.amount?.signum()) {
-                -1 -> stringResource(
-                    R.string.settle_person_you_owe,
-                    personName,
-                    stringResource(
-                        R.string.amount_euro,
-                        personData.amount.abs().toPlainString()
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                val detail = when (personData?.amount?.signum()) {
+                    -1 -> stringResource(
+                        R.string.settle_person_you_owe,
+                        personName,
+                        stringResource(
+                            R.string.amount_euro,
+                            personData.amount.abs().toPlainString()
+                        )
                     )
-                )
 
-                1 -> stringResource(
-                    R.string.settle_person_owes_you,
-                    personName,
-                    stringResource(
-                        R.string.amount_euro,
-                        personData.amount.abs().toPlainString()
+                    1 -> stringResource(
+                        R.string.settle_person_owes_you,
+                        personName,
+                        stringResource(
+                            R.string.amount_euro,
+                            personData.amount.abs().toPlainString()
+                        )
                     )
-                )
 
-                0 -> ""
-                else -> stringResource(R.string.settle_person_error)
-            }
-            val message = if (detail.isNotEmpty()) {
-                stringResource(R.string.settle_person_message_with_detail, detail)
-            } else {
-                stringResource(R.string.settle_person_message_no_detail)
-            }
-            Text(text = message, style = MaterialTheme.typography.bodyLarge)
+                    0 -> ""
+                    else -> stringResource(R.string.settle_person_error)
+                }
+                val message = if (detail.isNotEmpty()) {
+                    stringResource(R.string.settle_person_message_with_detail, detail)
+                } else {
+                    stringResource(R.string.settle_person_message_no_detail)
+                }
+                Text(text = message, style = MaterialTheme.typography.bodyLarge)
 
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { fullySettle = !fullySettle }) {
-                Checkbox(
-                    checked = fullySettle, onCheckedChange = { fullySettle = !fullySettle }
-                )
-                Spacer(Modifier.width(8.dp))
-                Text(stringResource(R.string.label_difference_paid))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { fullySettle = !fullySettle }) {
+                    Checkbox(
+                        checked = fullySettle, onCheckedChange = { fullySettle = !fullySettle }
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(stringResource(R.string.label_difference_paid))
+                }
             }
-        }
-    }, confirmButton = {
-        Button(onClick = { onConfirm(fullySettle) }) {
-            Text(stringResource(R.string.action_settle))
-        }
-    }, dismissButton = {
-        OutlinedButton(onClick = onDismiss) {
-            Text(stringResource(R.string.action_cancel))
-        }
-    })
+        }, confirmButton = {
+            Button(onClick = { onConfirm(fullySettle) }) {
+                Text(stringResource(R.string.action_settle))
+            }
+        }, dismissButton = {
+            OutlinedButton(onClick = onDismiss) {
+                Text(stringResource(R.string.action_cancel))
+            }
+        })
 }
 
 @Composable

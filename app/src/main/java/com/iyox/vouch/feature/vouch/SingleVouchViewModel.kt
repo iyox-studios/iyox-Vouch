@@ -45,14 +45,19 @@ class SingleVouchViewModel(application: Application) : AndroidViewModel(applicat
     private val _uiState = MutableStateFlow(VouchUiState(currency = Currency.getInstance("EUR")))
     val uiState: StateFlow<VouchUiState> = _uiState.asStateFlow()
 
-    fun loadVouch(id: Long?) {
+    fun loadVouch(id: Long?, prefilledPersonName: String?) {
         _uiState.update { VouchUiState(isLoading = id != null) }
         searchJob?.cancel()
 
         if (id == null) {
             editingVouchId = null
             originalVouch = null
-            _uiState.update { it.copy(isLoading = false) }
+            _uiState.update {
+                it.copy(
+                    isLoading = false,
+                    personName = prefilledPersonName ?: it.personName
+                )
+            }
             return
         }
         val intId = id.toInt()

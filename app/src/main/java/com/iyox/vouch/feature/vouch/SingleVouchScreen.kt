@@ -64,6 +64,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusManager
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
@@ -85,6 +87,7 @@ import kotlinx.coroutines.launch
 fun SingleVouchScreen(
     viewModel: SingleVouchViewModel = viewModel(),
     vouchId: Long? = null,
+    prefilledPersonName: String? = null,
     onNavigateBack: () -> Unit,
     edit: Boolean = false
 ) {
@@ -96,11 +99,17 @@ fun SingleVouchScreen(
     LocalSnackbarHostState.current
     val undoCoordinator = rememberUndoCoordinator()
     val focusManager = LocalFocusManager.current
+    val amountFocusRequester = remember { FocusRequester() }
     val msgVouchCreated = stringResource(R.string.msg_vouch_created)
 
-    LaunchedEffect(vouchId) {
-        viewModel.loadVouch(vouchId)
-        focusManager.moveFocus(FocusDirection.Down)
+    LaunchedEffect(vouchId, edit, prefilledPersonName) {
+        viewModel.loadVouch(vouchId, prefilledPersonName)
+    }
+
+    LaunchedEffect(uiState.isLoading) {
+        if (!uiState.isLoading && !edit) {
+            amountFocusRequester.requestFocus()
+        }
     }
 
     LaunchedEffect(uiState.saveSuccess) {
@@ -191,7 +200,8 @@ fun SingleVouchScreen(
                     currency = uiState.currency,
                     onAmountChange = viewModel::onAmountChange,
                     onCurrencyClick = { showCurrencyDialog = true },
-                    focusManager = focusManager
+                    focusManager = focusManager,
+                    amountFocusRequester = amountFocusRequester
                 )
 
                 VouchDirectionToggle(
@@ -296,6 +306,7 @@ private fun VouchAmountHeader(
     onAmountChange: (String) -> Unit,
     onCurrencyClick: () -> Unit,
     focusManager: FocusManager,
+    amountFocusRequester: FocusRequester,
     modifier: Modifier = Modifier
 ) {
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
@@ -314,7 +325,9 @@ private fun VouchAmountHeader(
         OutlinedTextField(
             value = amount,
             onValueChange = onAmountChange,
-            modifier = Modifier.weight(1f),
+            modifier = Modifier
+                .weight(1f)
+                .focusRequester(amountFocusRequester),
             textStyle = MaterialTheme.typography.displayLarge,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Decimal,

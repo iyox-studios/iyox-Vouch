@@ -105,7 +105,7 @@ fun AppNavigation(snackbarHost: @Composable (() -> Unit) = {}) {
                 VouchesScreen(
                     viewModel = vouchesViewModel,
                     onNavigateToAddVouch = {
-                        navController.navigate(Screen.AddVouch.route)
+                        navController.navigate(Screen.AddVouch.createRoute())
                     },
                     onNavigateToAddGroupVouch = {
                         navController.navigate(Screen.AddGroupVouch.route)
@@ -127,8 +127,20 @@ fun AppNavigation(snackbarHost: @Composable (() -> Unit) = {}) {
                     viewModel(viewModelStoreOwner = backStackEntry)
                 SettingsScreen(viewModel = settingsViewModel)
             }
-            composable(Screen.AddVouch.route) {
+            composable(
+                route = Screen.AddVouch.route,
+                arguments = listOf(
+                    navArgument(Screen.AddVouch.personNameArg) {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = null
+                    }
+                )
+            ) { backStackEntry ->
+                val prefilledPersonName =
+                    backStackEntry.arguments?.getString(Screen.AddVouch.personNameArg)
                 SingleVouchScreen(
+                    prefilledPersonName = prefilledPersonName,
                     onNavigateBack = {
                         navController.popBackStack()
                     })
@@ -150,6 +162,9 @@ fun AppNavigation(snackbarHost: @Composable (() -> Unit) = {}) {
                     personName = personName,
                     onNavigateBack = {
                         navController.popBackStack()
+                    },
+                    onNavigateToAddVouch = { selectedPersonName ->
+                        navController.navigate(Screen.AddVouch.createRoute(selectedPersonName))
                     },
                     onNavigateToEditVouch = { vouchId ->
                         navController.navigate(Screen.EditVouch.createRoute(vouchId))
