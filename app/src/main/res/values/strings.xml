@@ -57,6 +57,7 @@
     <string name="label_difference_paid">Difference has been paid</string>
     <string name="label_unknown">Unknown</string>
     <string name="label_amount">Amount</string>
+    <string name="label_settled">Settled</string>
 
     <string name="filter_unsettled">Unsettled</string>
     <string name="filter_date">Date</string>
@@ -106,6 +107,23 @@
 
     <string name="share_vouch_summary_title">Share Vouch Summary</string>
     <string name="vouch_summary_label">Vouch Summary</string>
+    <string name="title_split_group_vouch">Split with Members</string>
+    <string name="title_distribution">Distribution</string>
+    <string name="group_vouch_step_details">Details</string>
+    <string name="group_vouch_step_members">Split</string>
+    <string name="group_vouch_split_summary">Total to Split</string>
+    <string name="group_vouch_allocated">Assigned: %1$s / %2$s</string>
+    <string name="group_vouch_remaining">Remaining: %1$s</string>
+    <string name="group_vouch_overallocated">Over-allocated: %1$s</string>
+    <string name="group_vouch_balanced">Exact split matched</string>
+    <string name="group_vouch_per_person">%1$s / person</string>
+    <string name="group_vouch_custom_split">Custom</string>
+    <string name="group_vouch_equal_split">Equal</string>
+    <string name="group_vouch_reset_equal">Reset to equal split</string>
+    <string name="group_vouch_add_member_placeholder">Search or enter name…</string>
+    <string name="group_vouch_create_cta">Create Group Vouch (%1$d)</string>
+    <string name="group_vouch_empty_members_title">Add people to split with</string>
+    <string name="group_vouch_empty_members_subtitle">Search existing contacts or type a new name to split the amount.</string>
 
     <string name="format_vouch_date">MMM dd, yyyy HH:mm</string>
     <string name="amount_euro">%1$s€</string>

@@ -50,8 +50,8 @@ fun VouchList(
         modifier = Modifier
             .fillMaxSize()
             .padding(top = innerPadding.calculateTopPadding()),
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(2.dp, Alignment.Top)
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.Top)
     ) {
         itemsIndexed(
             displayedSorted, { _, item -> item.vouch.id }) { _, vouch ->

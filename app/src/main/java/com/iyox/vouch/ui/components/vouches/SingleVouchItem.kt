@@ -2,6 +2,7 @@ package com.iyox.vouch.ui.components.vouches
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowOutward
 import androidx.compose.material.icons.outlined.SouthWest
@@ -31,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import com.iyox.vouch.R
 import com.iyox.vouch.core.currency.CurrencyManager
 import com.iyox.vouch.core.model.VouchWithPerson
+import com.iyox.vouch.feature.vouch.PersonAvatar
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -51,14 +54,15 @@ fun SingleVouchItem(
         stringResource(R.string.action_unsettle)
     }
     val deleteLabel = stringResource(R.string.action_delete)
+    val personName = vouch.persons.firstOrNull()?.person?.name
 
     val content = @Composable {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(MaterialTheme.shapes.largeIncreased)
+                .clip(MaterialTheme.shapes.large)
                 .combinedClickable(onClick = onEdit, onLongClick = {}),
-            shape = MaterialTheme.shapes.largeIncreased,
+            shape = MaterialTheme.shapes.large,
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceContainer
             )
@@ -66,48 +70,68 @@ fun SingleVouchItem(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(20.dp),
+                    .padding(horizontal = 16.dp, vertical = 14.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Surface(
                     shape = MaterialTheme.shapes.medium,
-                    color = if (vouch.vouch.given) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onError,
-                    modifier = Modifier.size(48.dp)
+                    color = if (vouch.vouch.given) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.errorContainer,
+                    modifier = Modifier.size(42.dp)
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
                             imageVector = if (vouch.vouch.given) Icons.Outlined.ArrowOutward else Icons.Outlined.SouthWest,
-                            contentDescription = stringResource(R.string.cd_home),
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                            contentDescription = null,
+                            tint = if (vouch.vouch.given) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onErrorContainer,
+                            modifier = Modifier.size(20.dp)
                         )
                     }
                 }
-                Spacer(modifier = Modifier.width(16.dp))
+
+                Spacer(modifier = Modifier.width(14.dp))
+
                 Column(
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(2.dp)
                 ) {
                     Text(
                         text = CurrencyManager.formatAmountWithSymbol(vouch.vouch.amount),
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Medium
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
                         text = vouch.vouch.description.ifBlank { dateFormat.format(vouch.vouch.timestamp) },
-                        style = MaterialTheme.typography.bodyLarge,
+                        style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                 }
 
-                Spacer(modifier = Modifier.width(16.dp))
-
-                if (vouch.persons.firstOrNull()?.person?.name != null) Text(
-                    text = vouch.persons.firstOrNull()!!.person.name,
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                if (!personName.isNullOrBlank()) {
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Surface(
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.surfaceContainerHigh
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            PersonAvatar(name = personName, size = 20.dp)
+                            Text(
+                                text = personName,
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+                }
             }
         }
     }

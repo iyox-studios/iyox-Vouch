@@ -18,7 +18,10 @@ data class VouchesUiState(
     val vouches: List<VouchWithPerson> = emptyList(),
     val showOnlyUnsettled: Boolean = true,
     val showOnlyGiven: Int = 0,
-    val sortedBy: Int = 0
+    val sortedBy: Int = 0,
+    val totalGiven: Long = 0L,
+    val totalOwed: Long = 0L,
+    val netTotal: Long = 0L
 )
 
 class VouchesViewModel(application: Application) : AndroidViewModel(application) {
@@ -42,11 +45,28 @@ class VouchesViewModel(application: Application) : AndroidViewModel(application)
             else -> displayed.sortedBy { it.vouch.timestamp }
         }.reversed()
 
+        var totalGiven = 0L
+        var totalOwed = 0L
+        for (vouch in vouches) {
+            for (personEntry in vouch.persons) {
+                if (!personEntry.settled) {
+                    if (vouch.vouch.given) {
+                        totalGiven += personEntry.amount
+                    } else {
+                        totalOwed += personEntry.amount
+                    }
+                }
+            }
+        }
+
         VouchesUiState(
             vouches = sorted,
             showOnlyUnsettled = showOnlyUnsettled,
             showOnlyGiven = showOnlyGiven,
-            sortedBy = sortedBy
+            sortedBy = sortedBy,
+            totalGiven = totalGiven,
+            totalOwed = totalOwed,
+            netTotal = totalGiven - totalOwed
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), VouchesUiState())
 

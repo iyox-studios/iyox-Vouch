@@ -21,9 +21,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DoneAll
 import androidx.compose.material.icons.filled.Share
@@ -31,19 +29,17 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarResult
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
@@ -58,9 +54,9 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import androidx.lifecycle.Lifecycle
@@ -74,6 +70,8 @@ import com.iyox.vouch.core.model.VouchWithPerson
 import com.iyox.vouch.core.model.isSettledForPerson
 import com.iyox.vouch.core.utils.LocalSnackbarHostState
 import com.iyox.vouch.core.utils.rememberUndoCoordinator
+import com.iyox.vouch.ui.components.VouchBackButton
+import com.iyox.vouch.ui.components.VouchBalanceHeroCard
 import com.iyox.vouch.ui.components.vouches.GroupVouchSingleItem
 import com.iyox.vouch.ui.components.vouches.SingleVouchItem
 import com.iyox.vouch.ui.components.vouches.VouchList
@@ -122,14 +120,23 @@ fun PersonScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text(personName) }, navigationIcon = {
-                IconButton(onClick = onNavigateBack) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = stringResource(R.string.cd_back)
+            CenterAlignedTopAppBar(
+                title = {
+                    Text(
+                        text = personName,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
+                },
+                navigationIcon = {
+                    VouchBackButton(onClick = onNavigateBack)
+                },
+                actions = {
+                    Spacer(modifier = Modifier.width(48.dp))
                 }
-            })
+            )
         }) { innerPadding ->
         if (state.isLoading) {
             Box(
@@ -240,82 +247,12 @@ fun PersonInfoCard(
     amountOwed: Long,
     modifier: Modifier = Modifier
 ) {
-    Card(
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainer
-        ), shape = MaterialTheme.shapes.large, modifier = modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            val total = personData?.amount ?: 0L
-            val count = personData?.vouchCount ?: 0
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = stringResource(R.string.label_total_balance),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Surface(
-                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    shape = CircleShape,
-                ) {
-                    Text(
-                        text = pluralStringResource(
-                            R.plurals.vouch_count,
-                            count,
-                            count
-                        ),
-                        style = MaterialTheme.typography.labelLarge,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-            Text(
-                text = CurrencyManager.formatAmountWithSymbol(total),
-                style = MaterialTheme.typography.headlineLarge,
-                fontWeight = FontWeight.Medium,
-                color = if (total >= 0L) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.error
-            )
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Column {
-                    Text(
-                        stringResource(R.string.label_given),
-                        style = MaterialTheme.typography.labelMedium
-                    )
-                    Text(
-                        CurrencyManager.formatAmountWithSymbol(amountGiven),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-                Column(horizontalAlignment = Alignment.End) {
-                    Text(
-                        stringResource(R.string.label_received),
-                        style = MaterialTheme.typography.labelMedium
-                    )
-                    Text(
-                        CurrencyManager.formatAmountWithSymbol(amountOwed),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.error
-                    )
-                }
-            }
-        }
-    }
+    VouchBalanceHeroCard(
+        amountGiven = amountGiven,
+        amountOwed = amountOwed,
+        total = personData?.amount ?: (amountGiven - amountOwed),
+        modifier = modifier
+    )
 }
 
 @Composable

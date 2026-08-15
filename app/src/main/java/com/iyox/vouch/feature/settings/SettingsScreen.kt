@@ -113,7 +113,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
         )
     }
 
-    Scaffold(topBar = { PageHeader(stringResource(R.string.screen_settings)) { } }) { paddingValues ->
+    Scaffold(topBar = { PageHeader(stringResource(R.string.screen_settings)) }) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()

@@ -49,6 +49,7 @@
     <string name="label_total_balance">Gesamtsaldo</string>
     <string name="label_difference_paid">Differenz wurde bezahlt</string>
     <string name="label_unknown">Unbekannt</string>
+    <string name="label_settled">Ausgeglichen</string>
 
     <string name="filter_unsettled">Offen</string>
     <string name="filter_date">Datum</string>
@@ -62,6 +63,11 @@
     <plurals name="vouch_count">
         <item quantity="one">%1$d Vouch</item>
         <item quantity="other">%1$d Vouch</item>
+    </plurals>
+
+    <plurals name="person_count">
+        <item quantity="one">%1$d Person</item>
+        <item quantity="other">%1$d Personen</item>
     </plurals>
 
     <string name="msg_vouch_created">Vouch erstellt</string>
@@ -92,6 +98,29 @@
 
     <string name="share_vouch_summary_title">Vouchübersicht teilen</string>
     <string name="vouch_summary_label">Vouchübersicht</string>
+    <string name="title_add_group_vouch">Gruppen-Vouch hinzufügen</string>
+    <string name="action_continue">Weiter</string>
+    <string name="action_create">Erstellen</string>
+    <string name="action_add_person">Person hinzufügen</string>
+    <string name="label_amount">Betrag</string>
+    <string name="empty_group_members">Füge Personen zum Aufteilen hinzu</string>
+    <string name="title_split_group_vouch">Aufteilung auf Mitglieder</string>
+    <string name="title_distribution">Aufteilung</string>
+    <string name="group_vouch_step_details">Details</string>
+    <string name="group_vouch_step_members">Aufteilung</string>
+    <string name="group_vouch_split_summary">Gesamtbetrag</string>
+    <string name="group_vouch_allocated">Zugewiesen: %1$s / %2$s</string>
+    <string name="group_vouch_remaining">Verbleibend: %1$s</string>
+    <string name="group_vouch_overallocated">Überbucht: %1$s</string>
+    <string name="group_vouch_balanced">Betrag exakt aufgeteilt</string>
+    <string name="group_vouch_per_person">%1$s / Person</string>
+    <string name="group_vouch_custom_split">Individuell</string>
+    <string name="group_vouch_equal_split">Gleichmäßig</string>
+    <string name="group_vouch_reset_equal">Gleichmäßig aufteilen</string>
+    <string name="group_vouch_add_member_placeholder">Name suchen oder eingeben…</string>
+    <string name="group_vouch_create_cta">Gruppen-Vouch erstellen (%1$d)</string>
+    <string name="group_vouch_empty_members_title">Personen zum Aufteilen hinzufügen</string>
+    <string name="group_vouch_empty_members_subtitle">Suche vorhandene Kontakte oder tippe einen neuen Namen ein, um den Betrag aufzuteilen.</string>
 
     <string name="format_vouch_date">dd. MMM yyyy HH:mm</string>
     <string name="amount_euro">%1$s€</string>
