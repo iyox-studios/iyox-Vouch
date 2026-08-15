@@ -4,7 +4,6 @@ import android.app.Application
 import android.app.LocaleManager
 import android.app.UiModeManager
 import android.content.Context
-import android.icu.util.Currency
 import android.net.Uri
 import android.os.Build
 import android.os.LocaleList
@@ -23,6 +22,7 @@ import com.google.gson.JsonSerializationContext
 import com.google.gson.JsonSerializer
 import com.google.gson.reflect.TypeToken
 import com.iyox.vouch.R
+import com.iyox.vouch.core.currency.CurrencyManager
 import com.iyox.vouch.core.data.AppDatabase
 import com.iyox.vouch.core.model.Person
 import com.iyox.vouch.core.model.Vouch
@@ -37,18 +37,18 @@ import kotlinx.coroutines.launch
 import java.io.InputStreamReader
 import java.io.OutputStreamWriter
 import java.lang.reflect.Type
-import java.math.BigDecimal
 import java.sql.Timestamp
 
 data class SettingsUiState(
     val theme: Int,
     val dynamicColors: Boolean,
-    val languageTag: String
+    val languageTag: String,
+    val currencyCode: String
 )
 
 data class ExportPersonAmount(
     val name: String,
-    val amount: BigDecimal,
+    val amount: Long,
     val settled: Boolean = false
 )
 
@@ -93,12 +93,13 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     private val _languageTag = MutableStateFlow(currentLanguageTag())
 
     val uiState: StateFlow<SettingsUiState> = combine(
-        _theme, _dynamicColors, _languageTag
-    ) { theme, dynamicColors, languageTag ->
+        _theme, _dynamicColors, _languageTag, CurrencyManager.currencyFlow()
+    ) { theme, dynamicColors, languageTag, currency ->
         SettingsUiState(
             theme = theme,
             dynamicColors = dynamicColors,
-            languageTag = languageTag
+            languageTag = languageTag,
+            currencyCode = currency.currencyCode
         )
     }.stateIn(
         viewModelScope,
@@ -106,7 +107,8 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         SettingsUiState(
             resolveInitialTheme(),
             prefs.getBoolean("dynamic_colors", true),
-            currentLanguageTag()
+            currentLanguageTag(),
+            CurrencyManager.getCurrency().currencyCode
         )
     )
 
@@ -142,47 +144,11 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         localeManager.applicationLocales = appLocale
     }
 
+    fun setCurrency(currencyCode: String) {
+        CurrencyManager.setCurrency(currencyCode)
+    }
+
     private val gson: Gson = GsonBuilder()
-        .registerTypeAdapter(Currency::class.java, object : JsonSerializer<Currency>,
-            JsonDeserializer<Currency> {
-            override fun serialize(
-                src: Currency,
-                typeOfSrc: Type,
-                context: JsonSerializationContext
-            ): JsonElement {
-                return JsonPrimitive(src.currencyCode)
-            }
-
-            override fun deserialize(
-                json: JsonElement,
-                typeOfT: Type,
-                context: JsonDeserializationContext
-            ): Currency {
-                return try {
-                    Currency.getInstance(json.asString)
-                } catch (_: Exception) {
-                    Currency.getInstance("USD")
-                }
-            }
-        })
-        .registerTypeAdapter(BigDecimal::class.java, object : JsonSerializer<BigDecimal>,
-            JsonDeserializer<BigDecimal> {
-            override fun serialize(
-                src: BigDecimal,
-                typeOfSrc: Type,
-                context: JsonSerializationContext
-            ): JsonElement {
-                return JsonPrimitive(src.toString())
-            }
-
-            override fun deserialize(
-                json: JsonElement,
-                typeOfT: Type,
-                context: JsonDeserializationContext
-            ): BigDecimal {
-                return BigDecimal(json.asString)
-            }
-        })
         .registerTypeAdapter(Timestamp::class.java, object : JsonSerializer<Timestamp>,
             JsonDeserializer<Timestamp> {
             override fun serialize(

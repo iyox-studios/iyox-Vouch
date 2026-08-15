@@ -1,7 +1,6 @@
 package com.iyox.vouch.feature.person
 
 import android.app.Application
-import android.icu.util.Currency
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.iyox.vouch.core.data.PersonRepository
@@ -17,13 +16,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
+import kotlin.math.abs
 
 data class PersonUiState(
     val personData: PersonTotal? = null,
     val vouches: List<VouchWithPerson> = emptyList(),
-    val amountGiven: BigDecimal = BigDecimal.ZERO,
-    val amountOwed: BigDecimal = BigDecimal.ZERO,
+    val amountGiven: Long = 0L,
+    val amountOwed: Long = 0L,
     val isLoading: Boolean = true
 )
 
@@ -56,15 +55,15 @@ class PersonViewModel(application: Application) : AndroidViewModel(application) 
             }.sortedByDescending { it.vouch.timestamp }
 
             // Calculate amounts from unsettled vouches
-            var given = BigDecimal.ZERO
-            var owed = BigDecimal.ZERO
+            var given = 0L
+            var owed = 0L
             for (vouch in personVouches) {
                 val personEntry = vouch.persons.firstOrNull { it.person.name == name }
                 if (personEntry != null && !personEntry.settled) {
                     if (vouch.vouch.given) {
-                        given = given.add(personEntry.amount)
+                        given += personEntry.amount
                     } else {
-                        owed = owed.add(personEntry.amount)
+                        owed += personEntry.amount
                     }
                 }
             }
@@ -78,7 +77,7 @@ class PersonViewModel(application: Application) : AndroidViewModel(application) 
                 // fallback if not found in db from query somehow
                 PersonTotal(
                     person = Person(name = name),
-                    amount = given.subtract(owed),
+                    amount = given - owed,
                     vouchCount = personVouches.size
                 )
             } else null
@@ -94,7 +93,6 @@ class PersonViewModel(application: Application) : AndroidViewModel(application) 
             }
         }
     }
-
 
     suspend fun settlePerson(): List<PersonSettlementChange> {
         val personName = _uiState.value.personData?.person?.name ?: return emptyList()
@@ -116,22 +114,21 @@ class PersonViewModel(application: Application) : AndroidViewModel(application) 
      * @return (listOfJustSettledVouches, theNewNettingVouchOrNull)
      */
     suspend fun netVouches(): Pair<List<PersonSettlementChange>, VouchWithPerson?> {
-        val diff = _uiState.value.amountGiven.subtract(_uiState.value.amountOwed)
+        val diff = _uiState.value.amountGiven - _uiState.value.amountOwed
         val settledVouches = settlePerson()
         var newNettingVouch: VouchWithPerson? = null
 
         val personName = _uiState.value.personData?.person?.name
-        if (diff != BigDecimal.ZERO && personName != null) {
+        if (diff != 0L && personName != null) {
             val netVouch = vouchRepository.insert(
                 VouchWithPerson(
                     vouch = Vouch(
-                        amount = diff.abs(),
+                        amount = abs(diff),
                         description = "[NETTING]", // TODO: localization
-                        given = diff > BigDecimal.ZERO,
-                        currency = Currency.getInstance("EUR")
+                        given = diff > 0L
                     ), persons = listOf(
                         PersonWithAmount(
-                            person = Person(name = personName), amount = diff.abs()
+                            person = Person(name = personName), amount = abs(diff)
                         )
                     )
                 )
@@ -165,6 +162,4 @@ class PersonViewModel(application: Application) : AndroidViewModel(application) 
             _uiState.value.personData?.person?.name?.let { loadPerson(it, false) }
         }
     }
-
-
 }

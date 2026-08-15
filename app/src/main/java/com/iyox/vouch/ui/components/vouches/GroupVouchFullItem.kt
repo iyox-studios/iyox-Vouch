@@ -29,6 +29,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.iyox.vouch.R
+import com.iyox.vouch.core.currency.CurrencyManager
 import com.iyox.vouch.core.model.VouchWithPerson
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -86,7 +87,7 @@ fun GroupVouchFullItem(
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(
-                        text = vouch.vouch.amount.toString() + " " + vouch.vouch.currency.symbol,
+                        text = CurrencyManager.formatAmountWithSymbol(vouch.vouch.amount),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Medium
                     )

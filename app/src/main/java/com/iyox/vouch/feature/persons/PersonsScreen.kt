@@ -49,8 +49,8 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.iyox.vouch.R
+import com.iyox.vouch.core.currency.CurrencyManager
 import com.iyox.vouch.ui.components.PageHeader
-import java.math.BigDecimal
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -106,7 +106,7 @@ fun PersonsScreen(
             items(uiState.persons) { personWithTotal ->
                 PersonCard(
                     name = personWithTotal.person.name,
-                    amount = personWithTotal.amount ?: BigDecimal.ZERO,
+                    amount = personWithTotal.amount,
                     vouchCount = personWithTotal.vouchCount,
                     onView = { onNavigateToViewPerson(personWithTotal.person.name) }
                 )
@@ -118,7 +118,7 @@ fun PersonsScreen(
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun PersonCard(
-    name: String, amount: BigDecimal, vouchCount: Int, onView: () -> Unit
+    name: String, amount: Long, vouchCount: Int, onView: () -> Unit
 ) {
     Card(
         colors = CardDefaults.cardColors(
@@ -182,10 +182,10 @@ fun PersonCard(
             }
 
             Text(
-                text = stringResource(R.string.amount_euro, amount.toPlainString()),
+                text = CurrencyManager.formatAmountWithSymbol(amount),
                 style = MaterialTheme.typography.headlineLarge,
                 fontWeight = FontWeight.Medium,
-                color = if (amount >= BigDecimal.ZERO) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.error
+                color = if (amount >= 0L) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.error
             )
         }
     }

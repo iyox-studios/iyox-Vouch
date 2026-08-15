@@ -2,15 +2,16 @@ package com.iyox.vouch
 
 import android.app.Application
 import android.app.LocaleManager
-import android.content.Context
 import android.os.Build
 import android.os.LocaleList
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.edit
+import com.iyox.vouch.core.currency.CurrencyManager
 
 class VouchApplication : Application() {
     override fun onCreate() {
         super.onCreate()
+        CurrencyManager.init(this)
         migrateLegacyLocalesIfNeeded()
     }
 

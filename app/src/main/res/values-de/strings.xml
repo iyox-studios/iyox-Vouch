@@ -12,6 +12,7 @@
     <string name="biometric_title">Biometrische Authentifizierung</string>
     <string name="biometric_subtitle">Authentifiziere dich, um auf die App zuzugreifen</string>
 
+    <string name="settings_section_general">Allgemein</string>
     <string name="settings_section_appearance">Aussehen</string>
     <string name="settings_language">Sprache</string>
     <string name="settings_language_system">Systemstandart</string>
@@ -23,6 +24,8 @@
     <string name="theme_error">Fehler</string>
     <string name="settings_dynamic_colors">Dynamische Farben</string>
     <string name="settings_dynamic_colors_subtitle">Systemfarben verwenden (Android 12+)</string>
+    <string name="settings_currency">Währung</string>
+    <string name="settings_currency_subtitle">App-weite Währung für alle Vouches</string>
     <string name="settings_section_data">Daten</string>
     <string name="settings_export_data">Daten exportieren</string>
     <string name="settings_export_data_subtitle">Deine Daten in eine Datei speichern</string>

@@ -14,6 +14,7 @@
     <string name="biometric_title">Biometric Authentication</string>
     <string name="biometric_subtitle">Authenticate to access the app</string>
 
+    <string name="settings_section_general">General</string>
     <string name="settings_section_appearance">Appearance</string>
     <string name="settings_language">Language</string>
     <string name="settings_language_system">System Default</string>
@@ -25,6 +26,8 @@
     <string name="theme_error">Error</string>
     <string name="settings_dynamic_colors">Dynamic Colors</string>
     <string name="settings_dynamic_colors_subtitle">Use system colors (Android 12+)</string>
+    <string name="settings_currency">Currency</string>
+    <string name="settings_currency_subtitle">App-wide currency for all vouches</string>
     <string name="settings_section_data">Data</string>
     <string name="settings_export_data">Export Data</string>
     <string name="settings_export_data_subtitle">Save your data to a file</string>
