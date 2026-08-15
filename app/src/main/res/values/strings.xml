@@ -57,6 +57,7 @@
     <string name="label_difference_paid">Difference has been paid</string>
     <string name="label_unknown">Unknown</string>
     <string name="label_amount">Amount</string>
+    <string name="label_settled">Settled</string>
 
     <string name="filter_unsettled">Unsettled</string>
     <string name="filter_date">Date</string>

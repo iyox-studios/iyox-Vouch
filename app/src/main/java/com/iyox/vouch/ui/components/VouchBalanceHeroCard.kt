@@ -109,7 +109,7 @@ fun VouchBalanceHeroCard(
                             text = when {
                                 total > 0L -> stringResource(R.string.label_given)
                                 total < 0L -> stringResource(R.string.label_received)
-                                else -> stringResource(R.string.group_vouch_balanced)
+                                else -> stringResource(R.string.label_settled)
                             },
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.SemiBold,

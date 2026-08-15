@@ -49,6 +49,7 @@
     <string name="label_total_balance">Gesamtsaldo</string>
     <string name="label_difference_paid">Differenz wurde bezahlt</string>
     <string name="label_unknown">Unbekannt</string>
+    <string name="label_settled">Ausgeglichen</string>
 
     <string name="filter_unsettled">Offen</string>
     <string name="filter_date">Datum</string>
