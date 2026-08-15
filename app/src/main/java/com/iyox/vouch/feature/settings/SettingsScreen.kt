@@ -117,7 +117,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .padding(top = paddingValues.calculateTopPadding())
                 .verticalScroll(rememberScrollState())
         ) {
             SectionHeader(stringResource(R.string.settings_section_general))
