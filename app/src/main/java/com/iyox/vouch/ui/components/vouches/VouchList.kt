@@ -27,7 +27,7 @@ import com.iyox.vouch.core.utils.rememberUndoCoordinator
  * @param listState The state of the LazyColumn.
  * @param innerPadding The padding to apply to the content.
  * @param sharedVouchActions The sharedVouchActions to use for actions.
- * @param onEdit Callback when a vouch is edited, passing the vouch's ID.
+ * @param onEdit Callback when a vouch is edited, passing the vouch's ID and whether it is a group vouch.
  * @param isSettled A predicate to determine if a vouch is settled.
  * @param groupSingleContextPersonId Determines if a group vouch is shown for the context of the full group or of one person
  */
@@ -37,7 +37,7 @@ fun VouchList(
     listState: LazyListState,
     innerPadding: PaddingValues,
     sharedVouchActions: SharedVouchActions,
-    onEdit: (Int) -> Unit,
+    onEdit: (Int, Boolean) -> Unit,
     isSettled: (VouchWithPerson) -> Boolean = { it.isSettled() },
     groupSingleContextPersonId: Int? = null
 ) {
@@ -111,7 +111,7 @@ fun VouchList(
                                     undoAction = { _: Unit -> sharedVouchActions.addVouch(vouch) }
                                 )
                             },
-                            onEdit = { onEdit(vouch.vouch.id) }
+                            onEdit = { onEdit(vouch.vouch.id, true) }
                         )
                     } else {
                         GroupVouchFullItem(
@@ -131,7 +131,7 @@ fun VouchList(
                                     undoAction = { _: Unit -> sharedVouchActions.addVouch(vouch) }
                                 )
                             },
-                            onEdit = { onEdit(vouch.vouch.id) }
+                            onEdit = { onEdit(vouch.vouch.id, true) }
                         )
                     }
                 } else { // TODO: maybe interface
@@ -152,7 +152,7 @@ fun VouchList(
                                 undoAction = { _: Unit -> sharedVouchActions.addVouch(vouch) }
                             )
                         },
-                        onEdit = { onEdit(vouch.vouch.id) }
+                        onEdit = { onEdit(vouch.vouch.id, false) }
                     )
                 }
             }
