@@ -29,14 +29,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.iyox.vouch.R
-import com.iyox.vouch.core.model.Vouch
+import com.iyox.vouch.core.model.VouchWithPerson
 import java.text.SimpleDateFormat
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalFoundationApi::class)
 @Composable
-fun VouchItem(
-    vouch: Vouch,
+fun GroupVouchFullItem(
+    vouch: VouchWithPerson,
     canSettle: Boolean = true,
     onSettle: () -> Unit,
     onDelete: () -> Unit = {},
@@ -70,12 +70,12 @@ fun VouchItem(
             ) {
                 Surface(
                     shape = MaterialTheme.shapes.medium,
-                    color = if (vouch.given) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onError,
+                    color = if (vouch.vouch.given) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onError,
                     modifier = Modifier.size(48.dp)
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
-                            imageVector = if (vouch.given) Icons.Outlined.ArrowOutward else Icons.Outlined.SouthWest,
+                            imageVector = if (vouch.vouch.given) Icons.Outlined.ArrowOutward else Icons.Outlined.SouthWest,
                             contentDescription = stringResource(R.string.cd_home),
                             tint = MaterialTheme.colorScheme.onPrimaryContainer
                         )
@@ -86,12 +86,12 @@ fun VouchItem(
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(
-                        text = vouch.amount.toString() + " " + vouch.currency.symbol,
+                        text = vouch.vouch.amount.toString() + " " + vouch.vouch.currency.symbol,
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Medium
                     )
                     Text(
-                        text = vouch.description.ifBlank { dateFormat.format(vouch.timestamp) },
+                        text = vouch.vouch.description.ifBlank { dateFormat.format(vouch.vouch.timestamp) },
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
@@ -101,8 +101,8 @@ fun VouchItem(
 
                 Spacer(modifier = Modifier.width(16.dp))
 
-                if (vouch.personName != null) Text(
-                    text = vouch.personName,
+                Text(
+                    text = "${vouch.persons.size} People", //TODO: string resource
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant

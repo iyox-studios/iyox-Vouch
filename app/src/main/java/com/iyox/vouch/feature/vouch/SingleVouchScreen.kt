@@ -64,6 +64,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusManager
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
@@ -75,15 +77,19 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.iyox.vouch.R
 import com.iyox.vouch.core.model.Person
-import com.iyox.vouch.core.model.PersonWithTotal
+import com.iyox.vouch.core.model.PersonTotal
 import com.iyox.vouch.core.utils.LocalSnackbarHostState
 import com.iyox.vouch.core.utils.rememberUndoCoordinator
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun VouchScreen(
-    viewModel: VouchViewModel = viewModel(), vouchId: Long? = null, onNavigateBack: () -> Unit, edit : Boolean = false
+fun SingleVouchScreen(
+    viewModel: SingleVouchViewModel = viewModel(),
+    vouchId: Long? = null,
+    prefilledPersonName: String? = null,
+    onNavigateBack: () -> Unit,
+    edit: Boolean = false
 ) {
     val uiState by viewModel.uiState.collectAsState()
     rememberScrollState()
@@ -93,11 +99,17 @@ fun VouchScreen(
     LocalSnackbarHostState.current
     val undoCoordinator = rememberUndoCoordinator()
     val focusManager = LocalFocusManager.current
+    val amountFocusRequester = remember { FocusRequester() }
     val msgVouchCreated = stringResource(R.string.msg_vouch_created)
 
-    LaunchedEffect(vouchId) {
-        viewModel.loadVouch(vouchId)
-        focusManager.moveFocus(FocusDirection.Down)
+    LaunchedEffect(vouchId, edit, prefilledPersonName) {
+        viewModel.loadVouch(vouchId, prefilledPersonName)
+    }
+
+    LaunchedEffect(uiState.isLoading) {
+        if (!uiState.isLoading && !edit) {
+            amountFocusRequester.requestFocus()
+        }
     }
 
     LaunchedEffect(uiState.saveSuccess) {
@@ -139,7 +151,7 @@ fun VouchScreen(
                                     performAction = { viewModel.saveVouch() },
                                     undoAction = { savedVouch ->
                                         if (savedVouch != null) {
-                                            viewModel.sharedActions.deleteVouch(savedVouch)
+                                            viewModel.sharedActions.deleteVouch(savedVouch.vouch.id)
                                         }
                                     }
                                 )
@@ -188,7 +200,8 @@ fun VouchScreen(
                     currency = uiState.currency,
                     onAmountChange = viewModel::onAmountChange,
                     onCurrencyClick = { showCurrencyDialog = true },
-                    focusManager = focusManager
+                    focusManager = focusManager,
+                    amountFocusRequester = amountFocusRequester
                 )
 
                 VouchDirectionToggle(
@@ -293,6 +306,7 @@ private fun VouchAmountHeader(
     onAmountChange: (String) -> Unit,
     onCurrencyClick: () -> Unit,
     focusManager: FocusManager,
+    amountFocusRequester: FocusRequester,
     modifier: Modifier = Modifier
 ) {
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
@@ -311,7 +325,9 @@ private fun VouchAmountHeader(
         OutlinedTextField(
             value = amount,
             onValueChange = onAmountChange,
-            modifier = Modifier.weight(1f),
+            modifier = Modifier
+                .weight(1f)
+                .focusRequester(amountFocusRequester),
             textStyle = MaterialTheme.typography.displayLarge,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Decimal,
@@ -370,7 +386,7 @@ private fun VouchDirectionToggle(
 @Composable
 private fun PersonAutocompleteField(
     value: String,
-    results: List<PersonWithTotal>,
+    results: List<PersonTotal>,
     onValueChange: (String) -> Unit,
     onPersonSelected: (Person) -> Unit,
     focusManager: FocusManager,
@@ -422,7 +438,7 @@ private fun PersonAutocompleteField(
                     text = {
                         PersonListItem(
                             name = searchResult.person.name,
-                            totalAmount = searchResult.totalAmount?.toDouble() ?: 0.0
+                            totalAmount = searchResult.amount.toDouble()
                         )
                     },
                     onClick = {

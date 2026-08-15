@@ -106,7 +106,7 @@ fun PersonsScreen(
             items(uiState.persons) { personWithTotal ->
                 PersonCard(
                     name = personWithTotal.person.name,
-                    amount = personWithTotal.totalAmount ?: BigDecimal.ZERO,
+                    amount = personWithTotal.amount ?: BigDecimal.ZERO,
                     vouchCount = personWithTotal.vouchCount,
                     onView = { onNavigateToViewPerson(personWithTotal.person.name) }
                 )

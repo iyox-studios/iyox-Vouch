@@ -1,27 +1,19 @@
 package com.iyox.vouch.core.data
 
 import android.content.Context
-import com.iyox.vouch.core.model.Person
-import com.iyox.vouch.core.model.PersonWithTotal
-import com.iyox.vouch.core.model.Vouch
+import com.iyox.vouch.core.model.PersonTotal
 
 class PersonRepository private constructor(context: Context) {
 
     private val personDao = AppDatabase.getDatabase(context).personDao()
 
-    suspend fun getPersonsWithTotal(query: String? = null): List<PersonWithTotal> {
-        return if (query.isNullOrEmpty()) {
-            personDao.getPersonsWithTotalAll()
+    suspend fun getPersonTotal(nameQuery: String? = null): List<PersonTotal> {
+        return if (nameQuery.isNullOrEmpty()) {
+            personDao.getPersonsTotalAll()
         } else {
-            personDao.getPersonsWithTotalFiltered(query)
+            personDao.getPersonsTotalFiltered(nameQuery)
         }
     }
-
-    suspend fun onVouchInserted(vouch: Vouch) {
-        if (vouch.personName.isNullOrBlank()) return
-        personDao.insert(Person(name = vouch.personName.trim()))
-    }
-
 
     companion object {
         @Volatile
