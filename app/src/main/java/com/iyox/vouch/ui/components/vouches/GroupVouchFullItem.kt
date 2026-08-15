@@ -162,14 +162,27 @@ fun GroupVouchFullItem(
         }
     }
 
-    VouchSwipeToDismiss(
-        enableDismissFromStartToEnd = true,
-        onStartToEnd = onSettle,
-        enableDismissFromEndToStart = true,
-        onEndToStart = onDelete,
-        settleText = settleLabel,
-        deleteText = deleteLabel
-    ) {
-        content()
+    if (canSettle) {
+        VouchSwipeToDismiss(
+            enableDismissFromStartToEnd = true,
+            onStartToEnd = onSettle,
+            enableDismissFromEndToStart = true,
+            onEndToStart = onDelete,
+            settleText = settleLabel,
+            deleteText = deleteLabel
+        ) {
+            content()
+        }
+    } else {
+        VouchSwipeToDismiss(
+            enableDismissFromStartToEnd = true,
+            onStartToEnd = onSettle,
+            enableDismissFromEndToStart = true,
+            onEndToStart = onDelete,
+            settleText = settleLabel,
+            deleteText = deleteLabel
+        ) {
+            content()
+        }
     }
 }
