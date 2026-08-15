@@ -1,5 +1,6 @@
 package com.iyox.vouch.feature.vouch
 
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,6 +17,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
@@ -33,6 +35,7 @@ import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
@@ -57,6 +60,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -185,6 +189,7 @@ fun SingleVouchScreen(
                 PersonAutocompleteField(
                     value = uiState.personName,
                     results = uiState.personSearchResults,
+                    suggestedPersons = uiState.suggestedPersons,
                     onValueChange = viewModel::onPersonChange,
                     onPersonSelected = viewModel::onPersonSelected,
                     focusManager = focusManager
@@ -282,6 +287,7 @@ private fun VouchDirectionToggle(
 private fun PersonAutocompleteField(
     value: String,
     results: List<PersonTotal>,
+    suggestedPersons: List<PersonTotal> = emptyList(),
     onValueChange: (String) -> Unit,
     onPersonSelected: (Person) -> Unit,
     focusManager: FocusManager,
@@ -294,55 +300,97 @@ private fun PersonAutocompleteField(
         expanded = results.isNotEmpty()
     }
 
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { expanded = it },
-        modifier = modifier.fillMaxWidth()
-    ) {
-        OutlinedTextField(
-            value = value,
-            onValueChange = {
-                onValueChange(it)
-                expanded = true
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable),
-            label = { Text(stringResource(R.string.label_person)) },
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-            keyboardActions = KeyboardActions(
-                onNext = {
-                    focusManager.moveFocus(FocusDirection.Next)
-                    expanded = false
-                }
-            ),
-            leadingIcon = {
-                Icon(Icons.Filled.Person, null, tint = MaterialTheme.colorScheme.primary)
-            },
-            singleLine = true,
-            shape = MaterialTheme.shapes.medium
-        )
+    val availableSuggestions = remember(suggestedPersons, value) {
+        suggestedPersons
+            .filter { !it.person.name.equals(value, ignoreCase = true) }
+            .sortedByDescending { it.vouchCount }
+            .take(5)
+    }
 
-        ExposedDropdownMenu(
-            expanded = expanded && results.isNotEmpty(),
-            onDismissRequest = { expanded = false },
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+    Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = it },
+            modifier = Modifier.fillMaxWidth()
         ) {
-            results.forEach { searchResult ->
-                DropdownMenuItem(
-                    text = {
-                        PersonListItem(
-                            name = searchResult.person.name,
-                            totalAmount = searchResult.amount
-                        )
-                    },
-                    onClick = {
-                        onPersonSelected(searchResult.person)
+            OutlinedTextField(
+                value = value,
+                onValueChange = {
+                    onValueChange(it)
+                    expanded = true
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable),
+                label = { Text(stringResource(R.string.label_person)) },
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                keyboardActions = KeyboardActions(
+                    onNext = {
                         focusManager.moveFocus(FocusDirection.Next)
                         expanded = false
-                    },
-                    contentPadding = PaddingValues(0.dp)
-                )
+                    }
+                ),
+                leadingIcon = {
+                    Icon(Icons.Filled.Person, null, tint = MaterialTheme.colorScheme.primary)
+                },
+                singleLine = true,
+                shape = MaterialTheme.shapes.medium
+            )
+
+            ExposedDropdownMenu(
+                expanded = expanded && results.isNotEmpty(),
+                onDismissRequest = { expanded = false },
+                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+            ) {
+                results.forEach { searchResult ->
+                    DropdownMenuItem(
+                        text = {
+                            PersonListItem(
+                                name = searchResult.person.name,
+                                totalAmount = searchResult.amount
+                            )
+                        },
+                        onClick = {
+                            onPersonSelected(searchResult.person)
+                            focusManager.moveFocus(FocusDirection.Next)
+                            expanded = false
+                        },
+                        contentPadding = PaddingValues(0.dp)
+                    )
+                }
+            }
+        }
+
+        if (value.isBlank() && availableSuggestions.isNotEmpty()) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                availableSuggestions.forEach { personTotal ->
+                    SuggestionChip(
+                        onClick = {
+                            onPersonSelected(personTotal.person)
+                            focusManager.clearFocus()
+                        },
+                        label = {
+                            Text(
+                                text = personTotal.person.name,
+                                style = MaterialTheme.typography.labelMedium
+                            )
+                        },
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Default.Add,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        },
+                        shape = MaterialTheme.shapes.medium
+                    )
+                }
             }
         }
     }
@@ -366,16 +414,20 @@ private fun PersonListItem(
                 Box(contentAlignment = Alignment.Center) {
                     Text(
                         text = name.take(1).uppercase(),
-                        style = MaterialTheme.typography.titleMedium
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        fontWeight = FontWeight.SemiBold
                     )
                 }
             }
         },
         trailingContent = {
-            Text(
-                text = CurrencyManager.formatAmountWithSymbol(totalAmount),
-                style = MaterialTheme.typography.titleMedium
-            )
+            if (totalAmount != 0L) {
+                Text(
+                    text = CurrencyManager.formatAmountWithSymbol(totalAmount),
+                    style = MaterialTheme.typography.titleMedium
+                )
+            }
         },
         colors = ListItemDefaults.colors(containerColor = Color.Transparent)
     )
@@ -393,7 +445,13 @@ private fun VouchDescriptionField(
         onValueChange = onValueChange,
         modifier = modifier.fillMaxWidth(),
         label = { Text(stringResource(R.string.label_description)) },
-        leadingIcon = { Icon(Icons.Filled.Description, null) },
+        leadingIcon = {
+            Icon(
+                Icons.Filled.Description,
+                null,
+                tint = MaterialTheme.colorScheme.primary
+            )
+        },
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
         keyboardActions = KeyboardActions(
             onDone = {

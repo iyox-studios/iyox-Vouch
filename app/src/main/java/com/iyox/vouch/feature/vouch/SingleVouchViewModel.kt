@@ -27,6 +27,7 @@ data class VouchUiState(
     val isLoading: Boolean = true,
     val saveSuccess: Boolean = false,
     val personSearchResults: List<PersonTotal> = emptyList(),
+    val suggestedPersons: List<PersonTotal> = emptyList(),
     val error: String? = null
 )
 
@@ -42,6 +43,17 @@ class SingleVouchViewModel(application: Application) : AndroidViewModel(applicat
 
     private val _uiState = MutableStateFlow(VouchUiState())
     val uiState: StateFlow<VouchUiState> = _uiState.asStateFlow()
+
+    init {
+        loadSuggestedPersons()
+    }
+
+    fun loadSuggestedPersons() {
+        viewModelScope.launch {
+            val all = personRepository.getPersonsByTotalVouches()
+            _uiState.update { it.copy(suggestedPersons = all) }
+        }
+    }
 
     fun loadVouch(id: Long?, prefilledPersonName: String?) {
         _uiState.update { VouchUiState(isLoading = id != null) }

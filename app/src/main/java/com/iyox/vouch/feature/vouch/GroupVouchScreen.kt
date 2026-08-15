@@ -72,6 +72,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusManager
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.pluralStringResource
@@ -105,9 +107,16 @@ fun GroupVouchScreen(
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = LocalSnackbarHostState.current
     val focusManager = LocalFocusManager.current
+    val amountFocusRequester = remember { FocusRequester() }
 
     BackHandler(enabled = uiState.step == STEP_MEMBERS) {
         viewModel.backToDetails()
+    }
+
+    LaunchedEffect(uiState.step) {
+        if (uiState.step == STEP_DETAILS) {
+            amountFocusRequester.requestFocus()
+        }
     }
 
     LaunchedEffect(uiState.error) {
@@ -189,7 +198,8 @@ fun GroupVouchScreen(
                 GroupVouchAmountHeader(
                     amount = uiState.amount,
                     onAmountChange = viewModel::onAmountChange,
-                    focusManager = focusManager
+                    focusManager = focusManager,
+                    amountFocusRequester = amountFocusRequester
                 )
 
                 GroupVouchDirectionToggle(
@@ -815,6 +825,7 @@ private fun GroupVouchAmountHeader(
     amount: String,
     onAmountChange: (String) -> Unit,
     focusManager: FocusManager,
+    amountFocusRequester: FocusRequester,
     modifier: Modifier = Modifier
 ) {
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
@@ -827,7 +838,9 @@ private fun GroupVouchAmountHeader(
         OutlinedTextField(
             value = amount,
             onValueChange = onAmountChange,
-            modifier = Modifier.weight(1f),
+            modifier = Modifier
+                .weight(1f)
+                .focusRequester(amountFocusRequester),
             textStyle = MaterialTheme.typography.displayLarge,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Decimal,
@@ -894,7 +907,13 @@ private fun GroupVouchDescriptionField(
         onValueChange = onValueChange,
         modifier = modifier.fillMaxWidth(),
         label = { Text(stringResource(R.string.label_description)) },
-        leadingIcon = { Icon(Icons.Filled.Description, null) },
+        leadingIcon = {
+            Icon(
+                Icons.Filled.Description,
+                null,
+                tint = MaterialTheme.colorScheme.primary
+            )
+        },
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
         keyboardActions = KeyboardActions(
             onDone = {
