@@ -1,17 +1,13 @@
 package com.iyox.vouch.feature.persons
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -50,6 +46,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.iyox.vouch.R
 import com.iyox.vouch.core.currency.CurrencyManager
+import com.iyox.vouch.feature.vouch.PersonAvatar
 import com.iyox.vouch.ui.components.PageHeader
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -118,7 +115,10 @@ fun PersonsScreen(
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun PersonCard(
-    name: String, amount: Long, vouchCount: Int, onView: () -> Unit
+    name: String,
+    amount: Long,
+    vouchCount: Int,
+    onView: () -> Unit
 ) {
     Card(
         colors = CardDefaults.cardColors(
@@ -127,7 +127,8 @@ fun PersonCard(
         shape = MaterialTheme.shapes.largeIncreased,
         modifier = Modifier
             .fillMaxWidth()
-            .aspectRatio(1f)
+            .aspectRatio(1.05f)
+            .clip(MaterialTheme.shapes.largeIncreased)
             .combinedClickable(onClick = onView, onLongClick = { }),
     ) {
         Column(
@@ -139,30 +140,12 @@ fun PersonCard(
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Box(
-                        modifier = Modifier
-                            .size(32.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.secondaryContainer),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = name.firstOrNull()?.toString() ?: "",
-                            style = MaterialTheme.typography.titleSmall,
-                            color = MaterialTheme.colorScheme.onSecondaryContainer
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = name,
-                        style = MaterialTheme.typography.titleMedium,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
+                PersonAvatar(
+                    name = name,
+                    size = 38.dp
+                )
 
                 Surface(
                     color = MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -175,18 +158,38 @@ fun PersonCard(
                             vouchCount
                         ),
                         style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Medium,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
 
-            Text(
-                text = CurrencyManager.formatAmountWithSymbol(amount),
-                style = MaterialTheme.typography.headlineLarge,
-                fontWeight = FontWeight.Medium,
-                color = if (amount >= 0L) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.error
-            )
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                Text(
+                    text = name,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = CurrencyManager.formatAmountWithSymbol(amount),
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = when {
+                        amount > 0L -> MaterialTheme.colorScheme.primary
+                        amount < 0L -> MaterialTheme.colorScheme.error
+                        else -> MaterialTheme.colorScheme.outline
+                    },
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
         }
     }
 }
