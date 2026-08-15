@@ -12,10 +12,13 @@ import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.filled.GroupAdd
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonMenu
+import androidx.compose.material3.FloatingActionButtonMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -23,6 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,12 +49,15 @@ import com.iyox.vouch.ui.components.vouches.VouchList
 fun VouchesScreen(
     viewModel: VouchesViewModel = viewModel(),
     onNavigateToAddVouch: () -> Unit = {},
+    onNavigateToAddGroupVouch: () -> Unit = {},
     onNavigateToEditVouch: (Int) -> Unit = {}
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
     rememberUndoCoordinator()
 
     val uiState by viewModel.uiState.collectAsState()
+
+    val fabMenuExpanded = remember { mutableStateOf(false) }
 
     val listState = remember(uiState.showOnlyUnsettled, uiState.showOnlyGiven, uiState.sortedBy) {
         LazyListState()
@@ -80,12 +87,34 @@ fun VouchesScreen(
             )
         }
     }, floatingActionButton = {
-        FloatingActionButton(
-            onClick = onNavigateToAddVouch
+        FloatingActionButtonMenu(
+            expanded = fabMenuExpanded.value,
+            button = {
+                FloatingActionButton(
+                    onClick = { fabMenuExpanded.value = !fabMenuExpanded.value }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = stringResource(R.string.action_add_vouch)
+                    )
+                }
+            }
         ) {
-            Icon(
-                imageVector = Icons.Default.Add,
-                contentDescription = stringResource(R.string.cd_add_vouch)
+            FloatingActionButtonMenuItem(
+                onClick = {
+                    fabMenuExpanded.value = false
+                    onNavigateToAddGroupVouch()
+                },
+                icon = { Icon(Icons.Default.GroupAdd, contentDescription = null) },
+                text = { Text(stringResource(R.string.action_add_group_vouch)) }
+            )
+            FloatingActionButtonMenuItem(
+                onClick = {
+                    fabMenuExpanded.value = false
+                    onNavigateToAddVouch()
+                },
+                icon = { Icon(Icons.Default.Add, contentDescription = null) },
+                text = { Text(stringResource(R.string.action_add_vouch)) }
             )
         }
     }) { innerPadding ->

@@ -4,7 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.iyox.vouch.core.data.PersonRepository
-import com.iyox.vouch.core.model.PersonWithTotal
+import com.iyox.vouch.core.model.PersonTotal
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -13,14 +13,14 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 data class PersonsUiState(
-    val persons: List<PersonWithTotal> = emptyList(),
+    val persons: List<PersonTotal> = emptyList(),
     val showOnlyNonZero: Boolean = true
 )
 
 class PersonsViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = PersonRepository.getInstance(application)
 
-    private val _persons = MutableStateFlow<List<PersonWithTotal>>(emptyList())
+    private val _persons = MutableStateFlow<List<PersonTotal>>(emptyList())
     private val _showOnlyNonZero = MutableStateFlow(true)
 
     val uiState: StateFlow<PersonsUiState> = combine(
@@ -50,7 +50,7 @@ class PersonsViewModel(application: Application) : AndroidViewModel(application)
 
     fun loadPersons() {
         viewModelScope.launch {
-            _persons.value = repository.getPersonsWithTotal()
+            _persons.value = repository.getPersonTotal()
         }
     }
 }

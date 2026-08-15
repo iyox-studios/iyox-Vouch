@@ -16,7 +16,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.iyox.vouch.R
 import com.iyox.vouch.core.domain.SharedVouchActions
-import com.iyox.vouch.core.model.Vouch
+import com.iyox.vouch.core.model.VouchWithPerson
+import com.iyox.vouch.core.model.isSettled
 import com.iyox.vouch.core.utils.rememberUndoCoordinator
 
 /**
@@ -27,14 +28,18 @@ import com.iyox.vouch.core.utils.rememberUndoCoordinator
  * @param innerPadding The padding to apply to the content.
  * @param sharedVouchActions The sharedVouchActions to use for actions.
  * @param onEdit Callback when a vouch is edited, passing the vouch's ID.
+ * @param isSettled A predicate to determine if a vouch is settled.
+ * @param groupSingleContextPersonId Determines if a group vouch is shown for the context of the full group or of one person
  */
 @Composable
 fun VouchList(
-    displayedSorted: List<Vouch>,
+    displayedSorted: List<VouchWithPerson>,
     listState: LazyListState,
     innerPadding: PaddingValues,
     sharedVouchActions: SharedVouchActions,
-    onEdit: (Int) -> Unit
+    onEdit: (Int) -> Unit,
+    isSettled: (VouchWithPerson) -> Boolean = { it.isSettled() },
+    groupSingleContextPersonId: Int? = null
 ) {
     val undoCoordinator = rememberUndoCoordinator()
     val msgVouchUnsettled = stringResource(R.string.msg_vouch_unsettled)
@@ -49,52 +54,105 @@ fun VouchList(
         verticalArrangement = Arrangement.spacedBy(2.dp, Alignment.Top)
     ) {
         itemsIndexed(
-            displayedSorted, { _, item -> item.id }) { _, vouch ->
-            if (vouch.settled) {
-                Box(
-                    modifier = Modifier
-                        .animateItem()
-                        .alpha(0.6f)
-                ) {
-                    VouchItem(
-                        vouch = vouch,
-                        canSettle = false,
-                        onSettle = {
-                            undoCoordinator.executeWithUndo(
-                                message = msgVouchUnsettled,
-                                performAction = { sharedVouchActions.unSettleVouch(vouch) },
-                                undoAction = { sharedVouchActions.settleVouch(vouch) }
-                            )
-                        },
-                        onDelete = {
-                            undoCoordinator.executeWithUndo(
-                                message = msgVouchDeleted,
-                                performAction = { sharedVouchActions.deleteVouch(vouch) },
-                                undoAction = { sharedVouchActions.addVouch(vouch) }
-                            )
-                        },
-                        onEdit = { onEdit(vouch.id) }
-                    )
-                }
+            displayedSorted, { _, item -> item.vouch.id }) { _, vouch ->
+            val settled = isSettled(vouch)
+            val boxModifier = if (settled) {
+                Modifier
+                    .animateItem()
+                    .alpha(0.6f)
             } else {
-                Box(modifier = Modifier.animateItem()) {
-                    VouchItem(
+                Modifier.animateItem()
+            }
+            val settleMessage = if (settled) msgVouchUnsettled else msgVouchSettled
+            val settleAction: suspend () -> Unit = {
+                val isGroupSingleContext = groupSingleContextPersonId != null
+                when (settled to isGroupSingleContext) {
+                    true to true -> sharedVouchActions.setVouchPersonSettlement(
+                        vouchId = vouch.vouch.id,
+                        personId = groupSingleContextPersonId!!,
+                        settled = false
+                    )
+
+                    true to false -> sharedVouchActions.unSettleVouch(vouch)
+                    false to true -> sharedVouchActions.setVouchPersonSettlement(
+                        vouchId = vouch.vouch.id,
+                        personId = groupSingleContextPersonId!!,
+                        settled = true
+                    )
+
+                    false to false -> sharedVouchActions.settleVouch(vouch)
+                }
+            }
+            val undoSettleAction: suspend (Unit) -> Unit = if (settled) {
+                { _ -> sharedVouchActions.settleVouch(vouch) }
+            } else {
+                { _ -> sharedVouchActions.unSettleVouch(vouch) }
+            }
+
+
+            Box(modifier = boxModifier) {
+                if (vouch.persons.size > 1) {
+                    if (groupSingleContextPersonId != null) {
+                        GroupVouchSingleItem(
+                            vouch = vouch,
+                            person = vouch.persons.find { it.person.id == groupSingleContextPersonId }?.person,
+                            canSettle = !settled,
+                            onSettle = {
+                                undoCoordinator.executeWithUndo(
+                                    message = settleMessage,
+                                    performAction = settleAction,
+                                    undoAction = undoSettleAction
+                                )
+                            },
+                            onDelete = {
+                                undoCoordinator.executeWithUndo(
+                                    message = msgVouchDeleted,
+                                    performAction = { sharedVouchActions.deleteVouch(vouch.vouch.id) },
+                                    undoAction = { _: Unit -> sharedVouchActions.addVouch(vouch) }
+                                )
+                            },
+                            onEdit = { onEdit(vouch.vouch.id) }
+                        )
+                    } else {
+                        GroupVouchFullItem(
+                            vouch = vouch,
+                            canSettle = !settled,
+                            onSettle = {
+                                undoCoordinator.executeWithUndo(
+                                    message = settleMessage,
+                                    performAction = settleAction,
+                                    undoAction = undoSettleAction
+                                )
+                            },
+                            onDelete = {
+                                undoCoordinator.executeWithUndo(
+                                    message = msgVouchDeleted,
+                                    performAction = { sharedVouchActions.deleteVouch(vouch.vouch.id) },
+                                    undoAction = { _: Unit -> sharedVouchActions.addVouch(vouch) }
+                                )
+                            },
+                            onEdit = { onEdit(vouch.vouch.id) }
+                        )
+                    }
+                } else { // TODO: maybe interface
+                    SingleVouchItem(
                         vouch = vouch,
+                        canSettle = !settled,
                         onSettle = {
                             undoCoordinator.executeWithUndo(
-                                message = msgVouchSettled,
-                                performAction = { sharedVouchActions.settleVouch(vouch) },
-                                undoAction = { sharedVouchActions.unSettleVouch(vouch) }
+                                message = settleMessage,
+                                performAction = settleAction,
+                                undoAction = undoSettleAction
                             )
                         },
                         onDelete = {
                             undoCoordinator.executeWithUndo(
                                 message = msgVouchDeleted,
-                                performAction = { sharedVouchActions.deleteVouch(vouch) },
-                                undoAction = { sharedVouchActions.addVouch(vouch) }
+                                performAction = { sharedVouchActions.deleteVouch(vouch.vouch.id) },
+                                undoAction = { _: Unit -> sharedVouchActions.addVouch(vouch) }
                             )
                         },
-                        onEdit = { onEdit(vouch.id) }
+                        onEdit = { onEdit(vouch.vouch.id) }
                     )
                 }
             }

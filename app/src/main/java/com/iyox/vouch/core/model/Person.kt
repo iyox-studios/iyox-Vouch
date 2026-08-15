@@ -15,31 +15,81 @@ data class Person(
     @PrimaryKey(autoGenerate = true) val id: Int = 0, val name: String
 )
 
-data class PersonWithTotal(
-    @Embedded val person: Person, val totalAmount: BigDecimal?, val vouchCount: Int
+data class PersonWithAmount(
+    @Embedded val person: Person,
+    val amount: BigDecimal,
+    val settled: Boolean = false
+)
+
+data class PersonTotal(
+    @Embedded val person: Person,
+    val amount: BigDecimal,
+    val vouchCount: Int
 )
 
 @Dao
 interface PersonDao {
-    @Query("SELECT * FROM Person WHERE name LIKE '%' || :query || '%'")
-    suspend fun findPersonsByName(query: String): List<Person>
-
-    @Query("SELECT Person.*, COALESCE(SUM(CASE WHEN Vouch.given = 0 THEN -Vouch.amount ELSE Vouch.amount END), 0) AS totalAmount, COUNT(Vouch.id) AS vouchCount FROM Person LEFT JOIN Vouch ON Person.name = Vouch.personName AND Vouch.settled = 0 GROUP BY Person.id")
-    suspend fun getPersonsWithTotalAll(): List<PersonWithTotal>
-
-    @Query("SELECT Person.*, COALESCE(SUM(CASE WHEN Vouch.given = 0 THEN -Vouch.amount ELSE Vouch.amount END), 0) AS totalAmount, COUNT(Vouch.id) AS vouchCount FROM Person LEFT JOIN Vouch ON Person.name = Vouch.personName AND Vouch.settled = 0 WHERE Person.name LIKE '%' || :query || '%' GROUP BY Person.id")
-    suspend fun getPersonsWithTotalFiltered(query: String): List<PersonWithTotal>
-
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(person: Person): Long
 
-    @Query("DELETE FROM Person WHERE name = :personName")
-    suspend fun deleteByName(personName: String)
-
-    @Query("SELECT COUNT(*) FROM Vouch WHERE personName = :personName")
-    suspend fun getVouchCount(personName: String): Int
-
+    @Query("SELECT * FROM Person WHERE name = :name LIMIT 1")
+    suspend fun getByName(name: String): Person?
 
     @Query("DELETE FROM Person")
     suspend fun deleteAll()
+
+    @Query(
+        """
+        DELETE FROM Person
+        WHERE id NOT IN (SELECT DISTINCT personId FROM vouch_person_cross_ref)
+        """
+    )
+    suspend fun deletePersonsWithoutVouches()
+
+    @Query(
+        """
+        SELECT p.*,
+               COALESCE(
+                   SUM(
+                       CASE
+                           WHEN vpc.settled = 1 THEN 0
+                           WHEN v.id IS NULL THEN 0
+                           WHEN v.given = 0 THEN -vpc.amount
+                           ELSE vpc.amount
+                       END
+                   ),
+                   0
+               ) AS amount,
+               COUNT(DISTINCT CASE WHEN vpc.settled = 0 THEN vpc.vouchId END) AS vouchCount
+        FROM Person p
+        LEFT JOIN vouch_person_cross_ref vpc ON p.id = vpc.personId
+        LEFT JOIN Vouch v ON vpc.vouchId = v.id
+        GROUP BY p.id
+        """
+    )
+    suspend fun getPersonsTotalAll(): List<PersonTotal>
+
+    @Query(
+        """
+        SELECT p.*,
+               COALESCE(
+                   SUM(
+                       CASE
+                           WHEN vpc.settled = 1 THEN 0
+                           WHEN v.id IS NULL THEN 0
+                           WHEN v.given = 0 THEN -vpc.amount
+                           ELSE vpc.amount
+                       END
+                   ),
+                   0
+               ) AS amount,
+               COUNT(DISTINCT CASE WHEN vpc.settled = 0 THEN vpc.vouchId END) AS vouchCount
+        FROM Person p
+        LEFT JOIN vouch_person_cross_ref vpc ON p.id = vpc.personId
+        LEFT JOIN Vouch v ON vpc.vouchId = v.id
+        WHERE p.name LIKE '%' || :query || '%'
+        GROUP BY p.id
+        """
+    )
+    suspend fun getPersonsTotalFiltered(query: String): List<PersonTotal>
 }

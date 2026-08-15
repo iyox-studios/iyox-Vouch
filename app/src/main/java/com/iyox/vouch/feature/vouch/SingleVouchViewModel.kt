@@ -8,8 +8,10 @@ import com.iyox.vouch.core.data.PersonRepository
 import com.iyox.vouch.core.data.VouchRepository
 import com.iyox.vouch.core.domain.SharedVouchActions
 import com.iyox.vouch.core.model.Person
-import com.iyox.vouch.core.model.PersonWithTotal
+import com.iyox.vouch.core.model.PersonTotal
+import com.iyox.vouch.core.model.PersonWithAmount
 import com.iyox.vouch.core.model.Vouch
+import com.iyox.vouch.core.model.VouchWithPerson
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -26,11 +28,11 @@ data class VouchUiState(
     val description: String = "",
     val isLoading: Boolean = true,
     val saveSuccess: Boolean = false,
-    val personSearchResults: List<PersonWithTotal> = emptyList(),
+    val personSearchResults: List<PersonTotal> = emptyList(),
     val error: String? = null
 )
 
-class VouchViewModel(application: Application) : AndroidViewModel(application) {
+class SingleVouchViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = VouchRepository.getInstance(application)
     private val personRepository = PersonRepository.getInstance(application)
 
@@ -38,19 +40,24 @@ class VouchViewModel(application: Application) : AndroidViewModel(application) {
 
     private var searchJob: Job? = null
     private var editingVouchId: Int? = null
-    private var originalVouch: Vouch? = null
+    private var originalVouch: VouchWithPerson? = null
 
     private val _uiState = MutableStateFlow(VouchUiState(currency = Currency.getInstance("EUR")))
     val uiState: StateFlow<VouchUiState> = _uiState.asStateFlow()
 
-    fun loadVouch(id: Long?) {
+    fun loadVouch(id: Long?, prefilledPersonName: String?) {
         _uiState.update { VouchUiState(isLoading = id != null) }
         searchJob?.cancel()
 
         if (id == null) {
             editingVouchId = null
             originalVouch = null
-            _uiState.update { it.copy(isLoading = false) }
+            _uiState.update {
+                it.copy(
+                    isLoading = false,
+                    personName = prefilledPersonName ?: it.personName
+                )
+            }
             return
         }
         val intId = id.toInt()
@@ -58,14 +65,14 @@ class VouchViewModel(application: Application) : AndroidViewModel(application) {
             val vouch = repository.getById(intId)
             _uiState.update { state ->
                 if (vouch != null) {
-                    editingVouchId = vouch.id
+                    editingVouchId = vouch.vouch.id
                     originalVouch = vouch
                     state.copy(
-                        amount = vouch.amount.toPlainString(),
-                        currency = vouch.currency,
-                        given = vouch.given,
-                        personName = vouch.personName ?: "",
-                        description = vouch.description,
+                        amount = vouch.vouch.amount.toPlainString(),
+                        currency = vouch.vouch.currency,
+                        given = vouch.vouch.given,
+                        personName = vouch.persons.firstOrNull()?.person?.name ?: "",
+                        description = vouch.vouch.description,
                         isLoading = false
                     )
                 } else {
@@ -88,7 +95,7 @@ class VouchViewModel(application: Application) : AndroidViewModel(application) {
         searchJob?.cancel()
         searchJob = viewModelScope.launch {
             if (value.isNotBlank()) {
-                val results = personRepository.getPersonsWithTotal(value)
+                val results = personRepository.getPersonTotal(value)
                 _uiState.update { it.copy(personSearchResults = results) }
             } else {
                 _uiState.update { it.copy(personSearchResults = emptyList()) }
@@ -115,7 +122,7 @@ class VouchViewModel(application: Application) : AndroidViewModel(application) {
         _uiState.update { it.copy(description = value) }
     }
 
-    suspend fun saveVouch(): Vouch? {
+    suspend fun saveVouch(): VouchWithPerson? {
         val currentState = _uiState.value
         val amountStr = currentState.amount.trim()
         val fractionDigits = currentState.currency.defaultFractionDigits
@@ -139,25 +146,38 @@ class VouchViewModel(application: Application) : AndroidViewModel(application) {
             return null
         }
 
-        var savedVouch: Vouch?
+        var savedVouch: VouchWithPerson?
         if (editingVouchId != null) {
             val newVouch = originalVouch!!.copy(
-                amount = amountBigDecimal,
-                description = currentState.description.trim(),
-                personName = if (currentState.personName.isBlank()) null else currentState.personName.trim(),
-                given = currentState.given,
-                currency = currentState.currency
+                vouch = originalVouch!!.vouch.copy(
+                    amount = amountBigDecimal,
+                    description = currentState.description.trim(),
+                    given = currentState.given,
+                    currency = currentState.currency
+                ),
+                persons = listOf(
+                    PersonWithAmount(
+                        person = Person(name = currentState.personName.trim()),
+                        amount = amountBigDecimal
+                    )
+                )
             )
-            repository.update(originalVouch!!, newVouch)
+            repository.update(newVouch)
             savedVouch = newVouch
         } else {
-            val vouch = Vouch(
-                id = 0,
-                amount = amountBigDecimal,
-                description = currentState.description.trim(),
-                personName = if (currentState.personName.isBlank()) null else currentState.personName.trim(),
-                given = currentState.given,
-                currency = currentState.currency,
+            val vouch = VouchWithPerson(
+                vouch = Vouch(
+                    id = 0,
+                    amount = amountBigDecimal,
+                    description = currentState.description.trim(),
+                    given = currentState.given,
+                    currency = currentState.currency
+                ), persons = if (currentState.personName.isBlank()) emptyList() else listOf(
+                    PersonWithAmount(
+                        person = Person(name = currentState.personName.trim()),
+                        amount = amountBigDecimal
+                    )
+                )
             )
             savedVouch = repository.insert(vouch)
         }

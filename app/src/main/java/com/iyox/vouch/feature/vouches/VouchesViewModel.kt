@@ -5,7 +5,8 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.iyox.vouch.core.data.VouchRepository
 import com.iyox.vouch.core.domain.SharedVouchActions
-import com.iyox.vouch.core.model.Vouch
+import com.iyox.vouch.core.model.VouchWithPerson
+import com.iyox.vouch.core.model.isSettled
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -14,7 +15,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 data class VouchesUiState(
-    val vouches: List<Vouch> = emptyList(),
+    val vouches: List<VouchWithPerson> = emptyList(),
     val showOnlyUnsettled: Boolean = true,
     val showOnlyGiven: Int = 0,
     val sortedBy: Int = 0
@@ -25,7 +26,7 @@ class VouchesViewModel(application: Application) : AndroidViewModel(application)
 
     val sharedActions = SharedVouchActions(repository) { loadVouches() }
 
-    private val _vouches = MutableStateFlow<List<Vouch>>(emptyList())
+    private val _vouches = MutableStateFlow<List<VouchWithPerson>>(emptyList())
     private val _showOnlyUnsettled = MutableStateFlow(true)
     private val _showOnlyGiven = MutableStateFlow(0)
     private val _sortedBy = MutableStateFlow(0)
@@ -35,10 +36,10 @@ class VouchesViewModel(application: Application) : AndroidViewModel(application)
     ) { vouches, showOnlyUnsettled, showOnlyGiven, sortedBy ->
         val displayed = getDisplayedVouches(showOnlyUnsettled, showOnlyGiven, vouches)
         val sorted = when (sortedBy) {
-            0 -> displayed.sortedBy { it.timestamp }
-            1 -> displayed.sortedBy { it.amount }
-            2 -> displayed.sortedBy { it.personName ?: "" }
-            else -> displayed.sortedBy { it.timestamp }
+            0 -> displayed.sortedBy { it.vouch.timestamp }
+            1 -> displayed.sortedBy { it.vouch.amount }
+            2 -> displayed.sortedBy { if (it.persons.size == 1) it.persons.first().person.name else "" }
+            else -> displayed.sortedBy { it.vouch.timestamp }
         }.reversed()
 
         VouchesUiState(
@@ -77,16 +78,16 @@ class VouchesViewModel(application: Application) : AndroidViewModel(application)
     fun getDisplayedVouches(
         showOnlyUnsettled: Boolean,
         showOnlyGiven: Int,
-        vouches: List<Vouch>
-    ): List<Vouch> {
+        vouches: List<VouchWithPerson>
+    ): List<VouchWithPerson> {
         return vouches.filter {
             when (showOnlyUnsettled) {
-                true -> !it.settled
+                true -> !it.isSettled()
                 else -> true
             } && when (showOnlyGiven) {
                 0 -> true
-                1 -> it.given
-                2 -> !it.given
+                1 -> it.vouch.given
+                2 -> !it.vouch.given
                 else -> true
             }
         }.reversed()

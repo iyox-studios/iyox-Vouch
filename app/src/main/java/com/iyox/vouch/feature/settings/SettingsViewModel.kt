@@ -26,6 +26,7 @@ import com.iyox.vouch.R
 import com.iyox.vouch.core.data.AppDatabase
 import com.iyox.vouch.core.model.Person
 import com.iyox.vouch.core.model.Vouch
+import com.iyox.vouch.core.model.VouchPersonCrossRef
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -43,6 +44,17 @@ data class SettingsUiState(
     val theme: Int,
     val dynamicColors: Boolean,
     val languageTag: String
+)
+
+data class ExportPersonAmount(
+    val name: String,
+    val amount: BigDecimal,
+    val settled: Boolean = false
+)
+
+data class ExportVouch(
+    val vouch: Vouch,
+    val persons: List<ExportPersonAmount>
 )
 
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
@@ -197,8 +209,18 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val app = getApplication<Application>()
-                val vouches = database.vouchDataDao().getAll()
-                val json = gson.toJson(vouches)
+                val exportVouches = database.vouchDataDao().getAll().map { vouch ->
+                    val persons = database.vouchDataDao().getPersonsForVouch(vouch.id)
+                        .map { personWithAmount ->
+                            ExportPersonAmount(
+                                name = personWithAmount.person.name,
+                                amount = personWithAmount.amount,
+                                settled = personWithAmount.settled
+                            )
+                        }
+                    ExportVouch(vouch = vouch, persons = persons)
+                }
+                val json = gson.toJson(exportVouches)
 
                 app.contentResolver.openOutputStream(uri)?.use { outputStream ->
                     OutputStreamWriter(outputStream).use { writer ->
@@ -231,23 +253,34 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 val app = getApplication<Application>()
                 app.contentResolver.openInputStream(uri)?.use { inputStream ->
                     InputStreamReader(inputStream).use { reader ->
-                        val itemType = object : TypeToken<List<Vouch>>() {}.type
-                        val vouches: List<Vouch> = gson.fromJson(reader, itemType)
+                        val itemType = object : TypeToken<List<ExportVouch>>() {}.type
+                        val vouches: List<ExportVouch> = gson.fromJson(reader, itemType)
 
-                        database.personDao().deleteAll()
                         database.vouchDataDao().deleteAll()
+                        database.personDao().deleteAll()
 
-                        val newPersons = mutableSetOf<String>()
-                        vouches.forEach { vouch ->
-                            val newVouch = vouch.copy(id = 0)
-                            database.vouchDataDao().insert(newVouch)
-                            if (!newVouch.personName.isNullOrBlank()) {
-                                newPersons.add(newVouch.personName.trim())
+                        vouches.forEach { export ->
+                            val newVouchId = database.vouchDataDao()
+                                .insert(export.vouch.copy(id = 0))
+                                .toInt()
+
+                            val crossRefs = export.persons.mapNotNull { personAmount ->
+                                val normalizedName = personAmount.name.trim()
+                                if (normalizedName.isBlank()) return@mapNotNull null
+                                database.personDao().insert(Person(name = normalizedName))
+                                val storedPerson = database.personDao().getByName(normalizedName)
+                                    ?: return@mapNotNull null
+                                VouchPersonCrossRef(
+                                    vouchId = newVouchId,
+                                    personId = storedPerson.id,
+                                    amount = personAmount.amount,
+                                    settled = personAmount.settled
+                                )
                             }
-                        }
 
-                        newPersons.forEach {
-                            database.personDao().insert(Person(name = it))
+                            if (crossRefs.isNotEmpty()) {
+                                database.vouchDataDao().insertCrossRefs(crossRefs)
+                            }
                         }
                     }
                 }

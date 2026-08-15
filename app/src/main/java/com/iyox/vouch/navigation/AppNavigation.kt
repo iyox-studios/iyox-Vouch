@@ -37,7 +37,8 @@ import com.iyox.vouch.feature.persons.PersonsScreen
 import com.iyox.vouch.feature.persons.PersonsViewModel
 import com.iyox.vouch.feature.settings.SettingsScreen
 import com.iyox.vouch.feature.settings.SettingsViewModel
-import com.iyox.vouch.feature.vouch.VouchScreen
+import com.iyox.vouch.feature.vouch.GroupVouchScreen
+import com.iyox.vouch.feature.vouch.SingleVouchScreen
 import com.iyox.vouch.feature.vouches.VouchesScreen
 import com.iyox.vouch.feature.vouches.VouchesViewModel
 
@@ -104,7 +105,10 @@ fun AppNavigation(snackbarHost: @Composable (() -> Unit) = {}) {
                 VouchesScreen(
                     viewModel = vouchesViewModel,
                     onNavigateToAddVouch = {
-                        navController.navigate(Screen.AddVouch.route)
+                        navController.navigate(Screen.AddVouch.createRoute())
+                    },
+                    onNavigateToAddGroupVouch = {
+                        navController.navigate(Screen.AddGroupVouch.route)
                     },
                     onNavigateToEditVouch = { vouchId ->
                         navController.navigate(Screen.EditVouch.createRoute(vouchId))
@@ -123,11 +127,30 @@ fun AppNavigation(snackbarHost: @Composable (() -> Unit) = {}) {
                     viewModel(viewModelStoreOwner = backStackEntry)
                 SettingsScreen(viewModel = settingsViewModel)
             }
-            composable(Screen.AddVouch.route) {
-                VouchScreen(
+            composable(
+                route = Screen.AddVouch.route,
+                arguments = listOf(
+                    navArgument(Screen.AddVouch.personNameArg) {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = null
+                    }
+                )
+            ) { backStackEntry ->
+                val prefilledPersonName =
+                    backStackEntry.arguments?.getString(Screen.AddVouch.personNameArg)
+                SingleVouchScreen(
+                    prefilledPersonName = prefilledPersonName,
                     onNavigateBack = {
                         navController.popBackStack()
                     })
+            }
+            composable(Screen.AddGroupVouch.route) {
+                GroupVouchScreen(
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    }
+                )
             }
             composable(
                 route = Screen.ViewPerson.route,
@@ -140,6 +163,9 @@ fun AppNavigation(snackbarHost: @Composable (() -> Unit) = {}) {
                     onNavigateBack = {
                         navController.popBackStack()
                     },
+                    onNavigateToAddVouch = { selectedPersonName ->
+                        navController.navigate(Screen.AddVouch.createRoute(selectedPersonName))
+                    },
                     onNavigateToEditVouch = { vouchId ->
                         navController.navigate(Screen.EditVouch.createRoute(vouchId))
                     }
@@ -150,7 +176,7 @@ fun AppNavigation(snackbarHost: @Composable (() -> Unit) = {}) {
                 arguments = listOf(navArgument("vouchId") { type = NavType.IntType })
             ) { backStackEntry ->
                 val vouchId = backStackEntry.arguments?.getInt("vouchId") ?: return@composable
-                VouchScreen(
+                SingleVouchScreen(
                     vouchId = vouchId.toLong(),
                     edit = true,
                     onNavigateBack = {
