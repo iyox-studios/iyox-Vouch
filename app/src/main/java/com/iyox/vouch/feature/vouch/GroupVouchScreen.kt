@@ -22,7 +22,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
@@ -79,6 +78,7 @@ import com.iyox.vouch.R
 import com.iyox.vouch.core.currency.CurrencyManager
 import com.iyox.vouch.core.model.Person
 import com.iyox.vouch.core.model.PersonTotal
+import com.iyox.vouch.ui.components.VouchBackButton
 import kotlin.math.abs
 
 private const val STEP_DETAILS = 1
@@ -134,22 +134,15 @@ fun GroupVouchScreen(
                     }
                 },
                 navigationIcon = {
-                    Button(
-                        modifier = Modifier.padding(start = 16.dp),
+                    VouchBackButton(
                         onClick = {
                             if (uiState.step == STEP_MEMBERS) {
                                 viewModel.backToDetails()
                             } else {
                                 onNavigateBack()
                             }
-                        },
-                        contentPadding = PaddingValues(horizontal = 12.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.cd_back)
-                        )
-                    }
+                        }
+                    )
                 }
             )
         }
