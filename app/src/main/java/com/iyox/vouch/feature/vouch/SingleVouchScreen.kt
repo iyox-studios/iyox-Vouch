@@ -1,37 +1,25 @@
 package com.iyox.vouch.feature.vouch
 
-import android.icu.util.Currency
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -47,7 +35,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.ToggleButtonDefaults
@@ -72,10 +59,10 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.iyox.vouch.R
+import com.iyox.vouch.core.currency.CurrencyManager
 import com.iyox.vouch.core.model.Person
 import com.iyox.vouch.core.model.PersonTotal
 import com.iyox.vouch.core.utils.LocalSnackbarHostState
@@ -117,18 +104,6 @@ fun SingleVouchScreen(
             viewModel.resetSaveSuccess()
             onNavigateBack()
         }
-    }
-
-    var showCurrencyDialog by remember { mutableStateOf(false) }
-
-    if (showCurrencyDialog) {
-        CurrencySelectionDialog(
-            currentCurrency = uiState.currency,
-            onDismiss = { showCurrencyDialog = false },
-            onCurrencySelected = { selectedCurrency ->
-                viewModel.onCurrencyChange(selectedCurrency)
-                showCurrencyDialog = false
-            })
     }
 
     Scaffold(
@@ -197,9 +172,7 @@ fun SingleVouchScreen(
             ) {
                 VouchAmountHeader(
                     amount = uiState.amount,
-                    currency = uiState.currency,
                     onAmountChange = viewModel::onAmountChange,
-                    onCurrencyClick = { showCurrencyDialog = true },
                     focusManager = focusManager,
                     amountFocusRequester = amountFocusRequester
                 )
@@ -230,98 +203,20 @@ fun SingleVouchScreen(
 }
 
 @Composable
-fun CurrencySelectionDialog(
-    currentCurrency: Currency, onDismiss: () -> Unit, onCurrencySelected: (Currency) -> Unit
-) {
-    val currencies = remember {
-        listOf(
-            Currency.getInstance("EUR"), // Euro
-            Currency.getInstance("USD"), // US Dollar
-            Currency.getInstance("GBP"), // British Pound
-            Currency.getInstance("JPY"), // Japanese Yen
-            Currency.getInstance("CHF"), // Swiss Franc
-            Currency.getInstance("CAD"), // Canadian Dollar
-            Currency.getInstance("AUD"), // Australian Dollar
-            Currency.getInstance("CNY"), // Chinese Yuan
-            Currency.getInstance("INR")  // Indian Rupee
-        )
-    }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.title_select_currency)) },
-        text = {
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(3),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            items(currencies) { currency ->
-                Card(
-                    modifier = Modifier
-                        .aspectRatio(1f)
-                        .clickable { onCurrencySelected(currency) },
-                    colors = CardDefaults.cardColors(
-                        containerColor = if (currency.currencyCode == currentCurrency.currencyCode) {
-                            MaterialTheme.colorScheme.primaryContainer
-                        } else {
-                            MaterialTheme.colorScheme.surface
-                        }
-                    ),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-                ) {
-                    Column(
-                        modifier = Modifier.fillMaxSize(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            text = currency.symbol,
-                            style = MaterialTheme.typography.headlineMedium,
-                            textAlign = TextAlign.Center
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = currency.currencyCode,
-                            style = MaterialTheme.typography.bodySmall,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                }
-            }
-        }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.action_cancel))
-            }
-        })
-}
-
-@Composable
 private fun VouchAmountHeader(
     amount: String,
-    currency: Currency,
     onAmountChange: (String) -> Unit,
-    onCurrencyClick: () -> Unit,
     focusManager: FocusManager,
     amountFocusRequester: FocusRequester,
     modifier: Modifier = Modifier
 ) {
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
-        Button(
-            onClick = onCurrencyClick,
-            shape = RoundedCornerShape(8.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color.Transparent,
-                contentColor = MaterialTheme.colorScheme.onSurface
-            ),
-            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp)
-        ) {
-            Text(currency.symbol, style = MaterialTheme.typography.displayLarge)
-            Icon(Icons.Filled.ArrowDropDown, null)
-        }
+        val currency = CurrencyManager.getCurrency()
+        Text(
+            text = currency.symbol,
+            style = MaterialTheme.typography.displayLarge,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+        )
         OutlinedTextField(
             value = amount,
             onValueChange = onAmountChange,
@@ -438,7 +333,7 @@ private fun PersonAutocompleteField(
                     text = {
                         PersonListItem(
                             name = searchResult.person.name,
-                            totalAmount = searchResult.amount.toDouble()
+                            totalAmount = searchResult.amount
                         )
                     },
                     onClick = {
@@ -456,7 +351,7 @@ private fun PersonAutocompleteField(
 @Composable
 private fun PersonListItem(
     name: String,
-    totalAmount: Double,
+    totalAmount: Long,
     modifier: Modifier = Modifier
 ) {
     ListItem(
@@ -478,7 +373,7 @@ private fun PersonListItem(
         },
         trailingContent = {
             Text(
-                text = stringResource(R.string.amount_euro, totalAmount),
+                text = CurrencyManager.formatAmountWithSymbol(totalAmount),
                 style = MaterialTheme.typography.titleMedium
             )
         },

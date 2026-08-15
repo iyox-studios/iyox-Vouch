@@ -8,8 +8,6 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.PrimaryKey
 import androidx.room.Query
-import java.math.BigDecimal
-
 @Entity(indices = [Index(value = ["name"], unique = true)])
 data class Person(
     @PrimaryKey(autoGenerate = true) val id: Int = 0, val name: String
@@ -17,13 +15,13 @@ data class Person(
 
 data class PersonWithAmount(
     @Embedded val person: Person,
-    val amount: BigDecimal,
+    val amount: Long,
     val settled: Boolean = false
 )
 
 data class PersonTotal(
     @Embedded val person: Person,
-    val amount: BigDecimal,
+    val amount: Long,
     val vouchCount: Int
 )
 

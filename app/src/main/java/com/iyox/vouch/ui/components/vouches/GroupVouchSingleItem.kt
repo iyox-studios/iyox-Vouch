@@ -31,6 +31,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.iyox.vouch.R
+import com.iyox.vouch.core.currency.CurrencyManager
 import com.iyox.vouch.core.model.Person
 import com.iyox.vouch.core.model.VouchWithPerson
 import java.text.SimpleDateFormat
@@ -90,8 +91,8 @@ fun GroupVouchSingleItem(
                 ) {
                     Text(
                         text = buildAnnotatedString {
-                            append(vouch.persons.find { it.person == person }!!.amount.toString())
-                            append(vouch.vouch.currency.symbol)
+                            val personAmount = vouch.persons.find { it.person == person }?.amount ?: 0L
+                            append(CurrencyManager.formatAmountWithSymbol(personAmount))
                             withStyle(
                                 SpanStyle(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -99,8 +100,7 @@ fun GroupVouchSingleItem(
                                 )
                             ) {
                                 append(" / ")
-                                append(vouch.vouch.amount.toString())
-                                append(vouch.vouch.currency.symbol)
+                                append(CurrencyManager.formatAmountWithSymbol(vouch.vouch.amount))
                             }
                         },
                         style = MaterialTheme.typography.titleLarge,

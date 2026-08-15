@@ -1,7 +1,6 @@
 package com.iyox.vouch
 
 import android.app.UiModeManager
-import android.content.Context
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.compose.setContent

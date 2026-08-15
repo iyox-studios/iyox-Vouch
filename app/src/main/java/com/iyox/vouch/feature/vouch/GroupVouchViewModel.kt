@@ -1,9 +1,9 @@
 package com.iyox.vouch.feature.vouch
 
 import android.app.Application
-import android.icu.util.Currency
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.iyox.vouch.core.currency.CurrencyManager
 import com.iyox.vouch.core.data.PersonRepository
 import com.iyox.vouch.core.data.VouchRepository
 import com.iyox.vouch.core.model.Person
@@ -17,8 +17,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
-import java.math.RoundingMode
 
 private const val STEP_DETAILS = 1
 private const val STEP_MEMBERS = 2
@@ -32,7 +30,6 @@ data class GroupMemberInput(
 data class GroupVouchUiState(
     val step: Int = STEP_DETAILS,
     val amount: String = "",
-    val currency: Currency = Currency.getInstance("EUR"),
     val given: Boolean = true,
     val description: String = "",
     val personQuery: String = "",
@@ -53,11 +50,6 @@ class GroupVouchViewModel(application: Application) : AndroidViewModel(applicati
 
     fun onAmountChange(value: String) {
         _uiState.update { it.copy(amount = value) }
-        recomputeDefaultSplitAmounts()
-    }
-
-    fun onCurrencyChange(value: Currency) {
-        _uiState.update { it.copy(currency = value) }
         recomputeDefaultSplitAmounts()
     }
 
@@ -115,7 +107,7 @@ class GroupVouchViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     fun continueToMembers() {
-        if (parseAmountOrNull(_uiState.value.amount, _uiState.value.currency) == null) {
+        if (CurrencyManager.parseToMinorUnits(_uiState.value.amount) == null) {
             _uiState.update { it.copy(error = "Invalid amount format") }
             return
         }
@@ -125,7 +117,7 @@ class GroupVouchViewModel(application: Application) : AndroidViewModel(applicati
 
     fun saveGroupVouches() {
         val currentState = _uiState.value
-        val totalAmount = parseAmountOrNull(currentState.amount, currentState.currency)
+        val totalAmount = CurrencyManager.parseToMinorUnits(currentState.amount)
         if (totalAmount == null) {
             _uiState.update { it.copy(error = "Invalid amount format") }
             return
@@ -135,12 +127,11 @@ class GroupVouchViewModel(application: Application) : AndroidViewModel(applicati
             return
         }
 
-        val defaultSplit =
-            computeDefaultSplitAmount(totalAmount, currentState.currency, currentState.members.size)
-        val memberAmounts = mutableListOf<Pair<String, BigDecimal>>()
+        val defaultSplit = computeDefaultSplitAmount(totalAmount, currentState.members.size)
+        val memberAmounts = mutableListOf<Pair<String, Long>>()
         for (member in currentState.members) {
             val amount = if (member.isCustom) {
-                parseAmountOrNull(member.amount, currentState.currency)
+                CurrencyManager.parseToMinorUnits(member.amount)
             } else {
                 defaultSplit
             }
@@ -156,7 +147,6 @@ class GroupVouchViewModel(application: Application) : AndroidViewModel(applicati
                 vouch = Vouch(
                     id = 0,
                     amount = totalAmount,
-                    currency = currentState.currency,
                     description = currentState.description.trim(),
                     given = currentState.given
                 ),
@@ -201,17 +191,18 @@ class GroupVouchViewModel(application: Application) : AndroidViewModel(applicati
 
     private fun recomputeDefaultSplitAmounts() {
         val state = _uiState.value
-        val totalAmount = parseAmountOrNull(state.amount, state.currency) ?: BigDecimal.ZERO
+        val totalAmount = CurrencyManager.parseToMinorUnits(state.amount) ?: 0L
         val memberCount = state.members.size
         if (memberCount == 0) return
 
-        val defaultSplit = computeDefaultSplitAmount(totalAmount, state.currency, memberCount)
+        val defaultSplit = computeDefaultSplitAmount(totalAmount, memberCount)
+        val formattedDefault = CurrencyManager.formatAmount(defaultSplit)
         _uiState.update { current ->
             val updated = current.members.map { member ->
                 if (member.isCustom) {
                     member
                 } else {
-                    member.copy(amount = defaultSplit.toPlainString())
+                    member.copy(amount = formattedDefault)
                 }
             }
             current.copy(members = updated)
@@ -219,28 +210,10 @@ class GroupVouchViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     private fun computeDefaultSplitAmount(
-        total: BigDecimal,
-        currency: Currency,
+        total: Long,
         memberCount: Int
-    ): BigDecimal {
-        if (memberCount == 0) return BigDecimal.ZERO
-        val scale = currency.defaultFractionDigits.coerceAtLeast(0)
-        return total.divide(BigDecimal(memberCount), scale, RoundingMode.DOWN)
-    }
-
-    private fun parseAmountOrNull(amountStr: String, currency: Currency): BigDecimal? {
-        val fractionDigits = currency.defaultFractionDigits
-        val normalized = amountStr.trim().replace(',', '.')
-        val amountPattern = if (fractionDigits > 0) {
-            Regex("^\\d+([.,]\\d{1,$fractionDigits})?$")
-        } else {
-            Regex("^\\d+$")
-        }
-        if (!amountPattern.matches(amountStr.trim())) return null
-        return try {
-            BigDecimal(normalized)
-        } catch (_: NumberFormatException) {
-            null
-        }
+    ): Long {
+        if (memberCount == 0) return 0L
+        return total / memberCount
     }
 }
