@@ -181,11 +181,7 @@ fun PersonCard(
                     text = CurrencyManager.formatAmountWithSymbol(amount),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
-                    color = when {
-                        amount > 0L -> MaterialTheme.colorScheme.primary
-                        amount < 0L -> MaterialTheme.colorScheme.error
-                        else -> MaterialTheme.colorScheme.outline
-                    },
+                    color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
