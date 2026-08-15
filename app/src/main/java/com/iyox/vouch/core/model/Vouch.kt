@@ -1,6 +1,5 @@
 package com.iyox.vouch.core.model
 
-import android.icu.util.Currency
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Embedded
@@ -11,14 +10,12 @@ import androidx.room.Insert
 import androidx.room.PrimaryKey
 import androidx.room.Query
 import androidx.room.Update
-import java.math.BigDecimal
 import java.sql.Timestamp
 
 @Entity
 data class Vouch(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    val amount: BigDecimal,
-    val currency: Currency,
+    val amount: Long,
     val description: String = "",
     val given: Boolean = true,
     val timestamp: Timestamp = Timestamp(System.currentTimeMillis())
@@ -46,7 +43,7 @@ data class Vouch(
 data class VouchPersonCrossRef(
     val vouchId: Int,
     val personId: Int,
-    val amount: BigDecimal,
+    val amount: Long,
     val settled: Boolean = false
 )
 

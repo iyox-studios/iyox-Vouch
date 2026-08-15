@@ -1,7 +1,6 @@
 package com.iyox.vouch.core.data
 
 import android.content.Context
-import android.icu.util.Currency
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
@@ -12,7 +11,6 @@ import com.iyox.vouch.core.model.PersonDao
 import com.iyox.vouch.core.model.Vouch
 import com.iyox.vouch.core.model.VouchDao
 import com.iyox.vouch.core.model.VouchPersonCrossRef
-import java.math.BigDecimal
 import java.sql.Timestamp
 
 class TimestampConverter {
@@ -23,32 +21,12 @@ class TimestampConverter {
     fun timestampToLong(timestamp: Timestamp?): Long? = timestamp?.time
 }
 
-class CurrencyConverter {
-    @TypeConverter
-    fun fromCurrency(currency: Currency): String = currency.currencyCode
-
-    @TypeConverter
-    fun toCurrency(currencyCode: String): Currency = try {
-        Currency.getInstance(currencyCode)
-    } catch (_: Exception) {
-        Currency.getInstance("USD")
-    }
-}
-
-class BigDecimalConverter {
-    @TypeConverter
-    fun fromBigDecimal(bigDecimal: BigDecimal): String = bigDecimal.toString()
-
-    @TypeConverter
-    fun toBigDecimal(string: String): BigDecimal = BigDecimal(string)
-}
-
 @Database(
     entities = [Vouch::class, Person::class, VouchPersonCrossRef::class],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
-@TypeConverters(TimestampConverter::class, CurrencyConverter::class, BigDecimalConverter::class)
+@TypeConverters(TimestampConverter::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun vouchDataDao(): VouchDao
     abstract fun personDao(): PersonDao
@@ -64,6 +42,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "vouch_database"
                 )
+                    .fallbackToDestructiveMigration()
                     .build()
                 INSTANCE = instance
                 instance
