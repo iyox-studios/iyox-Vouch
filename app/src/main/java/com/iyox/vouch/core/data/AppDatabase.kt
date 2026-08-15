@@ -23,7 +23,7 @@ class TimestampConverter {
 
 @Database(
     entities = [Vouch::class, Person::class, VouchPersonCrossRef::class],
-    version = 2,
+    version = 1,
     exportSchema = false
 )
 @TypeConverters(TimestampConverter::class)
@@ -42,7 +42,6 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "vouch_database"
                 )
-                    .fallbackToDestructiveMigration()
                     .build()
                 INSTANCE = instance
                 instance
