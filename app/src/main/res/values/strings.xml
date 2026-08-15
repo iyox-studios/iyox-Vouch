@@ -124,6 +124,7 @@
     <string name="group_vouch_create_cta">Create Group Vouch (%1$d)</string>
     <string name="group_vouch_empty_members_title">Add people to split with</string>
     <string name="group_vouch_empty_members_subtitle">Search existing contacts or type a new name to split the amount.</string>
+    <string name="group_vouch_self_member">Me</string>
 
     <string name="format_vouch_date">MMM dd, yyyy HH:mm</string>
     <string name="amount_euro">%1$s€</string>

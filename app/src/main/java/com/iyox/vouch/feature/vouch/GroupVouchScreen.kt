@@ -1,6 +1,7 @@
 package com.iyox.vouch.feature.vouch
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -127,7 +128,7 @@ fun GroupVouchScreen(
                         Button(
                             modifier = Modifier.padding(end = 16.dp),
                             onClick = viewModel::saveGroupVouches,
-                            enabled = uiState.members.isNotEmpty()
+                            enabled = uiState.members.any { !it.isSelf }
                         ) {
                             Text(stringResource(R.string.action_save))
                         }
@@ -191,6 +192,7 @@ fun GroupVouchScreen(
                     onQueryChange = viewModel::onPersonQueryChange,
                     onPersonSelected = viewModel::onPersonSelected,
                     onAddPerson = viewModel::addMemberFromQuery,
+                    onAddSelf = viewModel::addSelfMember,
                     focusManager = focusManager
                 )
 
@@ -422,6 +424,7 @@ private fun GroupMemberSelector(
     onQueryChange: (String) -> Unit,
     onPersonSelected: (Person) -> Unit,
     onAddPerson: () -> Unit,
+    onAddSelf: (String) -> Unit,
     focusManager: FocusManager,
     modifier: Modifier = Modifier
 ) {
@@ -431,8 +434,12 @@ private fun GroupMemberSelector(
         expanded = results.isNotEmpty()
     }
 
+    val isSelfAdded = currentMembers.any { it.isSelf }
+    val selfLabel = stringResource(R.string.group_vouch_self_member)
+
     val availableSuggestions = remember(suggestedPersons, currentMembers) {
-        val currentNames = currentMembers.map { it.personName.lowercase() }.toSet()
+        val currentNames =
+            currentMembers.filterNot { it.isSelf }.map { it.personName.lowercase() }.toSet()
         suggestedPersons
             .filter { it.person.name.lowercase() !in currentNames }
             .sortedByDescending { it.vouchCount }
@@ -514,23 +521,20 @@ private fun GroupMemberSelector(
             }
         }
 
-        if (query.isBlank() && availableSuggestions.isNotEmpty()) {
+        if (query.isBlank() && (!isSelfAdded || availableSuggestions.isNotEmpty())) {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                availableSuggestions.forEach { personTotal ->
+                if (!isSelfAdded) {
                     SuggestionChip(
                         onClick = {
-                            onPersonSelected(personTotal.person)
+                            onAddSelf(selfLabel)
                             focusManager.clearFocus()
                         },
                         label = {
                             Text(
-                                text = personTotal.person.name,
+                                text = selfLabel,
                                 style = MaterialTheme.typography.labelMedium
                             )
                         },
@@ -543,6 +547,53 @@ private fun GroupMemberSelector(
                         },
                         shape = MaterialTheme.shapes.medium
                     )
+
+                    if (availableSuggestions.isNotEmpty()) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Box(
+                            modifier = Modifier
+                                .width(1.dp)
+                                .height(22.dp)
+                                .background(
+                                    color = MaterialTheme.colorScheme.outlineVariant,
+                                    shape = CircleShape
+                                )
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                    }
+                }
+
+                if (availableSuggestions.isNotEmpty()) {
+                    Row(
+                        modifier = Modifier
+                            .weight(1f)
+                            .horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        availableSuggestions.forEach { personTotal ->
+                            SuggestionChip(
+                                onClick = {
+                                    onPersonSelected(personTotal.person)
+                                    focusManager.clearFocus()
+                                },
+                                label = {
+                                    Text(
+                                        text = personTotal.person.name,
+                                        style = MaterialTheme.typography.labelMedium
+                                    )
+                                },
+                                icon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Add,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                },
+                                shape = MaterialTheme.shapes.medium
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -552,9 +603,9 @@ private fun GroupMemberSelector(
 @Composable
 private fun GroupMemberList(
     members: List<GroupMemberInput>,
-    onAmountChange: (String, String) -> Unit,
-    onResetMember: (String) -> Unit,
-    onRemove: (String) -> Unit,
+    onAmountChange: (GroupMemberInput, String) -> Unit,
+    onResetMember: (GroupMemberInput) -> Unit,
+    onRemove: (GroupMemberInput) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val currency = CurrencyManager.getCurrency()
@@ -605,13 +656,13 @@ private fun GroupMemberList(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        items(members, key = { it.personName }) { member ->
+        items(members, key = { if (it.isSelf) "__self__" else it.personName }) { member ->
             GroupMemberCard(
                 member = member,
                 currencySymbol = currency.symbol,
-                onAmountChange = { onAmountChange(member.personName, it) },
-                onResetToEqual = { onResetMember(member.personName) },
-                onRemove = { onRemove(member.personName) },
+                onAmountChange = { onAmountChange(member, it) },
+                onResetToEqual = { onResetMember(member) },
+                onRemove = { onRemove(member) },
                 modifier = Modifier.animateItem()
             )
         }

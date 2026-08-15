@@ -24,7 +24,8 @@ private const val STEP_MEMBERS = 2
 data class GroupMemberInput(
     val personName: String,
     val amount: String,
-    val isCustom: Boolean
+    val isCustom: Boolean,
+    val isSelf: Boolean = false
 )
 
 data class GroupVouchUiState(
@@ -86,11 +87,39 @@ class GroupVouchViewModel(application: Application) : AndroidViewModel(applicati
         addMember(_uiState.value.personQuery)
     }
 
+    fun addSelfMember(selfName: String) {
+        addMember(selfName, isSelf = true)
+    }
+
+    fun removeMember(member: GroupMemberInput) {
+        _uiState.update { state ->
+            state.copy(members = state.members.filterNot { it == member })
+        }
+        recomputeDefaultSplitAmounts()
+    }
+
     fun removeMember(personName: String) {
         _uiState.update { state ->
             state.copy(members = state.members.filterNot { it.personName == personName })
         }
         recomputeDefaultSplitAmounts()
+    }
+
+    fun onMemberAmountChange(member: GroupMemberInput, value: String) {
+        _uiState.update { state ->
+            val updated = state.members.map { current ->
+                if (current == member) {
+                    val isCustom = value.isNotBlank()
+                    current.copy(amount = value, isCustom = isCustom)
+                } else {
+                    current
+                }
+            }
+            state.copy(members = updated)
+        }
+        if (value.isBlank()) {
+            recomputeDefaultSplitAmounts()
+        }
     }
 
     fun onMemberAmountChange(personName: String, value: String) {
@@ -144,6 +173,24 @@ class GroupVouchViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
+    fun resetMemberToEqualSplit(member: GroupMemberInput) {
+        val totalAmount = CurrencyManager.parseToMinorUnits(_uiState.value.amount) ?: 0L
+        val memberCount = _uiState.value.members.size
+        if (memberCount == 0) return
+        val defaultSplit = computeDefaultSplitAmount(totalAmount, memberCount)
+        val formattedDefault = CurrencyManager.formatAmount(defaultSplit)
+        _uiState.update { current ->
+            val updated = current.members.map { currentMember ->
+                if (currentMember == member) {
+                    currentMember.copy(amount = formattedDefault, isCustom = false)
+                } else {
+                    currentMember
+                }
+            }
+            current.copy(members = updated)
+        }
+    }
+
     fun resetMemberToEqualSplit(personName: String) {
         val totalAmount = CurrencyManager.parseToMinorUnits(_uiState.value.amount) ?: 0L
         val memberCount = _uiState.value.members.size
@@ -164,17 +211,15 @@ class GroupVouchViewModel(application: Application) : AndroidViewModel(applicati
 
     fun saveGroupVouches() {
         val currentState = _uiState.value
-        val totalAmount = CurrencyManager.parseToMinorUnits(currentState.amount)
-        if (totalAmount == null) {
-            return
-        }
-        if (currentState.members.isEmpty()) {
+        val totalAmount = CurrencyManager.parseToMinorUnits(currentState.amount) ?: return
+        val nonSelfMembers = currentState.members.filterNot { it.isSelf }
+        if (nonSelfMembers.isEmpty()) {
             return
         }
 
         val defaultSplit = computeDefaultSplitAmount(totalAmount, currentState.members.size)
-        val memberAmounts = mutableListOf<Pair<String, Long>>()
-        for (member in currentState.members) {
+        val otherMemberAmounts = mutableListOf<Pair<String, Long>>()
+        for (member in nonSelfMembers) {
             val amount = if (member.isCustom) {
                 CurrencyManager.parseToMinorUnits(member.amount)
             } else {
@@ -183,18 +228,21 @@ class GroupVouchViewModel(application: Application) : AndroidViewModel(applicati
             if (amount == null) {
                 return
             }
-            memberAmounts += member.personName to amount
+            otherMemberAmounts += member.personName to amount
         }
+
+        // The created vouch amount represents the total amount owed by / to the others (excluding self)
+        val vouchTotalAmount = otherMemberAmounts.sumOf { it.second }
 
         viewModelScope.launch {
             val vouch = VouchWithPerson(
                 vouch = Vouch(
                     id = 0,
-                    amount = totalAmount,
+                    amount = vouchTotalAmount,
                     description = currentState.description.trim(),
                     given = currentState.given
                 ),
-                persons = memberAmounts.map { (personName, amount) ->
+                persons = otherMemberAmounts.map { (personName, amount) ->
                     PersonWithAmount(Person(name = personName), amount)
                 }
             )
@@ -208,20 +256,26 @@ class GroupVouchViewModel(application: Application) : AndroidViewModel(applicati
         _uiState.update { it.copy(saveSuccess = false) }
     }
 
-    private fun addMember(name: String) {
+    fun addMember(name: String, isSelf: Boolean = false) {
         val trimmed = name.trim()
         if (trimmed.isBlank()) return
         _uiState.update { state ->
-            if (state.members.any { it.personName.equals(trimmed, ignoreCase = true) }) {
+            if (state.members.any {
+                    it.isSelf == isSelf && it.personName.equals(
+                        trimmed,
+                        ignoreCase = true
+                    )
+                }) {
                 return@update state.copy(personQuery = "", personSearchResults = emptyList())
             }
             val newMember = GroupMemberInput(
                 personName = trimmed,
                 amount = "",
-                isCustom = false
+                isCustom = false,
+                isSelf = isSelf
             )
             state.copy(
-                members = state.members + newMember,
+                members = if (isSelf) listOf(newMember) + state.members else state.members + newMember,
                 personQuery = "",
                 personSearchResults = emptyList()
             )
