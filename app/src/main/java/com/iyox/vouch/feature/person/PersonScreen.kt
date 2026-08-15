@@ -24,8 +24,11 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.DoneAll
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.outlined.ArrowOutward
+import androidx.compose.material.icons.outlined.SouthWest
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -34,8 +37,10 @@ import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -52,11 +57,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -242,6 +247,7 @@ fun PersonScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun PersonInfoCard(
     personData: PersonTotal?,
@@ -249,77 +255,152 @@ fun PersonInfoCard(
     amountOwed: Long,
     modifier: Modifier = Modifier
 ) {
+    val total = personData?.amount ?: 0L
+    val totalVolume = amountGiven + amountOwed
+    val givenRatio = if (totalVolume > 0L) (amountGiven.toFloat() / totalVolume.toFloat()) else 0.5f
+
     Card(
+        shape = MaterialTheme.shapes.largeIncreased,
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainer
-        ), shape = MaterialTheme.shapes.large, modifier = modifier
+        ),
+        modifier = modifier
             .fillMaxWidth()
-            .padding(16.dp)
+            .padding(horizontal = 16.dp)
+            .padding(bottom = 12.dp)
     ) {
         Column(
-            modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 22.dp, vertical = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
-            val total = personData?.amount ?: 0L
-            val count = personData?.vouchCount ?: 0
-
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = stringResource(R.string.label_total_balance),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Surface(
-                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    shape = CircleShape,
-                ) {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(
-                        text = pluralStringResource(
-                            R.plurals.vouch_count,
-                            count,
-                            count
-                        ),
-                        style = MaterialTheme.typography.labelLarge,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        text = stringResource(R.string.label_total_balance).uppercase(),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontWeight = FontWeight.Bold
                     )
+                    Text(
+                        text = CurrencyManager.formatAmountWithSymbol(total),
+                        style = MaterialTheme.typography.headlineLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = if (total >= 0L) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.error
+                    )
+                }
+
+                Surface(
+                    shape = CircleShape,
+                    color = when {
+                        total > 0L -> MaterialTheme.colorScheme.primaryContainer
+                        total < 0L -> MaterialTheme.colorScheme.errorContainer
+                        else -> MaterialTheme.colorScheme.surfaceContainerHighest
+                    }
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Icon(
+                            imageVector = when {
+                                total > 0L -> Icons.Outlined.ArrowOutward
+                                total < 0L -> Icons.Outlined.SouthWest
+                                else -> Icons.Filled.CheckCircle
+                            },
+                            contentDescription = null,
+                            tint = when {
+                                total > 0L -> MaterialTheme.colorScheme.onPrimaryContainer
+                                total < 0L -> MaterialTheme.colorScheme.onErrorContainer
+                                else -> MaterialTheme.colorScheme.onSurfaceVariant
+                            },
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Text(
+                            text = when {
+                                total > 0L -> stringResource(R.string.label_given)
+                                total < 0L -> stringResource(R.string.label_received)
+                                else -> stringResource(R.string.group_vouch_balanced)
+                            },
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = when {
+                                total > 0L -> MaterialTheme.colorScheme.onPrimaryContainer
+                                total < 0L -> MaterialTheme.colorScheme.onErrorContainer
+                                else -> MaterialTheme.colorScheme.onSurfaceVariant
+                            }
+                        )
+                    }
                 }
             }
-            Text(
-                text = CurrencyManager.formatAmountWithSymbol(total),
-                style = MaterialTheme.typography.headlineLarge,
-                fontWeight = FontWeight.Medium,
-                color = if (total >= 0L) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.error
-            )
 
-            Spacer(modifier = Modifier.height(4.dp))
+            if (totalVolume > 0L) {
+                LinearProgressIndicator(
+                    progress = { givenRatio },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp)
+                        .height(8.dp)
+                        .clip(CircleShape),
+                    color = MaterialTheme.colorScheme.primary,
+                    trackColor = MaterialTheme.colorScheme.error
+                )
+            }
 
             Row(
-                modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Column {
-                    Text(
-                        stringResource(R.string.label_given),
-                        style = MaterialTheme.typography.labelMedium
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.ArrowOutward,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(16.dp)
                     )
                     Text(
-                        CurrencyManager.formatAmountWithSymbol(amountGiven),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.primary
+                        text = "${stringResource(R.string.label_given)}: ${
+                            CurrencyManager.formatAmountWithSymbol(
+                                amountGiven
+                            )
+                        }",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
-                Column(horizontalAlignment = Alignment.End) {
-                    Text(
-                        stringResource(R.string.label_received),
-                        style = MaterialTheme.typography.labelMedium
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.SouthWest,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.size(16.dp)
                     )
                     Text(
-                        CurrencyManager.formatAmountWithSymbol(amountOwed),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.error
+                        text = "${stringResource(R.string.label_received)}: ${
+                            CurrencyManager.formatAmountWithSymbol(
+                                amountOwed
+                            )
+                        }",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
             }
