@@ -37,6 +37,7 @@ import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -52,7 +53,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -113,18 +113,8 @@ fun GroupVouchScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    if (uiState.step == STEP_DETAILS) {
-                        Text(
-                            text = stringResource(R.string.title_add_vouch)
-                        )
-                    } else {
-                        Text(
-                            text = stringResource(R.string.title_distribution)
-                        )
-                    }
-                },
+            CenterAlignedTopAppBar(
+                title = {},
                 actions = {
                     if (uiState.step == STEP_DETAILS) {
                         Button(
@@ -144,14 +134,16 @@ fun GroupVouchScreen(
                     }
                 },
                 navigationIcon = {
-                    IconButton(
+                    Button(
+                        modifier = Modifier.padding(start = 16.dp),
                         onClick = {
                             if (uiState.step == STEP_MEMBERS) {
                                 viewModel.backToDetails()
                             } else {
                                 onNavigateBack()
                             }
-                        }
+                        },
+                        contentPadding = PaddingValues(horizontal = 12.dp)
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
