@@ -19,7 +19,10 @@ import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun PageHeader(title: String, filterChips: @Composable (RowScope.() -> Unit)) {
+fun PageHeader(
+    title: String,
+    filterChips: (@Composable (RowScope.() -> Unit))? = null
+) {
     Column(modifier = Modifier.fillMaxWidth()) {
         TopAppBar(
             title = {
@@ -28,11 +31,13 @@ fun PageHeader(title: String, filterChips: @Composable (RowScope.() -> Unit)) {
                 )
             }, windowInsets = WindowInsets(top = 20.dp)
         )
-        Spacer(modifier = Modifier.height(20.dp))
-        Row(
-            modifier = Modifier.padding(horizontal = 16.dp)
-        ) {
-            filterChips()
+        if (filterChips != null) {
+            Spacer(modifier = Modifier.height(20.dp))
+            Row(
+                modifier = Modifier.padding(horizontal = 16.dp)
+            ) {
+                filterChips()
+            }
         }
     }
 }
