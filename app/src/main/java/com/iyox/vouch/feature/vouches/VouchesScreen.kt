@@ -1,9 +1,13 @@
 package com.iyox.vouch.feature.vouches
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListState
@@ -42,6 +46,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.iyox.vouch.R
 import com.iyox.vouch.core.utils.rememberUndoCoordinator
 import com.iyox.vouch.ui.components.PageHeader
+import com.iyox.vouch.ui.components.VouchBalanceHeroCard
 import com.iyox.vouch.ui.components.vouches.VouchList
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -75,70 +80,95 @@ fun VouchesScreen(
         }
     }
 
-    Scaffold(topBar = {
-        PageHeader(stringResource(R.string.screen_vouches)) {
-            VouchFilterRow(
-                sortedBy = uiState.sortedBy,
-                showOnlyGiven = uiState.showOnlyGiven,
-                showOnlyUnsettled = uiState.showOnlyUnsettled,
-                onToggleSort = viewModel::toggleSortedBy,
-                onToggleGiven = viewModel::toggleShowOnlyGiven,
-                onToggleUnsettled = viewModel::toggleShowOnlyUnsettled
-            )
-        }
-    }, floatingActionButton = {
-        FloatingActionButtonMenu(
-            expanded = fabMenuExpanded.value,
-            button = {
-                FloatingActionButton(
-                    onClick = { fabMenuExpanded.value = !fabMenuExpanded.value }
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = stringResource(R.string.action_add_vouch)
-                    )
+    Scaffold(
+        topBar = {
+            PageHeader(stringResource(R.string.screen_vouches))
+        },
+        floatingActionButton = {
+            FloatingActionButtonMenu(
+                expanded = fabMenuExpanded.value,
+                button = {
+                    FloatingActionButton(
+                        onClick = { fabMenuExpanded.value = !fabMenuExpanded.value }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = stringResource(R.string.action_add_vouch)
+                        )
+                    }
                 }
-            }
-        ) {
-            FloatingActionButtonMenuItem(
-                onClick = {
-                    fabMenuExpanded.value = false
-                    onNavigateToAddGroupVouch()
-                },
-                icon = { Icon(Icons.Default.GroupAdd, contentDescription = null) },
-                text = { Text(stringResource(R.string.action_add_group_vouch)) }
-            )
-            FloatingActionButtonMenuItem(
-                onClick = {
-                    fabMenuExpanded.value = false
-                    onNavigateToAddVouch()
-                },
-                icon = { Icon(Icons.Default.Add, contentDescription = null) },
-                text = { Text(stringResource(R.string.action_add_vouch)) }
-            )
-        }
-    }) { innerPadding ->
-        if (uiState.vouches.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(top = innerPadding.calculateTopPadding()),
-                contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = stringResource(R.string.empty_vouches_prompt),
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Center
+                FloatingActionButtonMenuItem(
+                    onClick = {
+                        fabMenuExpanded.value = false
+                        onNavigateToAddGroupVouch()
+                    },
+                    icon = { Icon(Icons.Default.GroupAdd, contentDescription = null) },
+                    text = { Text(stringResource(R.string.action_add_group_vouch)) }
+                )
+                FloatingActionButtonMenuItem(
+                    onClick = {
+                        fabMenuExpanded.value = false
+                        onNavigateToAddVouch()
+                    },
+                    icon = { Icon(Icons.Default.Add, contentDescription = null) },
+                    text = { Text(stringResource(R.string.action_add_vouch)) }
                 )
             }
-        } else {
-            VouchList(
-                displayedSorted = uiState.vouches,
-                listState = listState,
-                innerPadding = innerPadding,
-                sharedVouchActions = viewModel.sharedActions,
-                onEdit = { onNavigateToEditVouch(it) }
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = innerPadding.calculateTopPadding())
+        ) {
+            Spacer(modifier = Modifier.height(12.dp))
+
+            VouchBalanceHeroCard(
+                amountGiven = uiState.totalGiven,
+                amountOwed = uiState.totalOwed,
+                total = uiState.netTotal
             )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .padding(bottom = 8.dp)
+            ) {
+                VouchFilterRow(
+                    sortedBy = uiState.sortedBy,
+                    showOnlyGiven = uiState.showOnlyGiven,
+                    showOnlyUnsettled = uiState.showOnlyUnsettled,
+                    onToggleSort = viewModel::toggleSortedBy,
+                    onToggleGiven = viewModel::toggleShowOnlyGiven,
+                    onToggleUnsettled = viewModel::toggleShowOnlyUnsettled
+                )
+            }
+
+            if (uiState.vouches.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = stringResource(R.string.empty_vouches_prompt),
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center
+                    )
+                }
+            } else {
+                VouchList(
+                    displayedSorted = uiState.vouches,
+                    listState = listState,
+                    innerPadding = PaddingValues(0.dp),
+                    sharedVouchActions = viewModel.sharedActions,
+                    onEdit = { onNavigateToEditVouch(it) }
+                )
+            }
         }
     }
 }
