@@ -59,7 +59,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -80,8 +79,6 @@ import com.iyox.vouch.R
 import com.iyox.vouch.core.currency.CurrencyManager
 import com.iyox.vouch.core.model.Person
 import com.iyox.vouch.core.model.PersonTotal
-import com.iyox.vouch.core.utils.LocalSnackbarHostState
-import kotlinx.coroutines.launch
 import kotlin.math.abs
 
 private const val STEP_DETAILS = 1
@@ -94,8 +91,6 @@ fun GroupVouchScreen(
     onNavigateBack: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val coroutineScope = rememberCoroutineScope()
-    val snackbarHostState = LocalSnackbarHostState.current
     val focusManager = LocalFocusManager.current
     val amountFocusRequester = remember { FocusRequester() }
 
@@ -106,16 +101,6 @@ fun GroupVouchScreen(
     LaunchedEffect(uiState.step) {
         if (uiState.step == STEP_DETAILS) {
             amountFocusRequester.requestFocus()
-        }
-    }
-
-    LaunchedEffect(uiState.error) {
-        val message = uiState.error
-        if (message != null) {
-            coroutineScope.launch {
-                snackbarHostState.showSnackbar(message)
-            }
-            viewModel.clearError()
         }
     }
 

@@ -26,8 +26,7 @@ data class VouchUiState(
     val description: String = "",
     val isLoading: Boolean = true,
     val saveSuccess: Boolean = false,
-    val personSearchResults: List<PersonTotal> = emptyList(),
-    val error: String? = null
+    val personSearchResults: List<PersonTotal> = emptyList()
 )
 
 class SingleVouchViewModel(application: Application) : AndroidViewModel(application) {
@@ -118,7 +117,7 @@ class SingleVouchViewModel(application: Application) : AndroidViewModel(applicat
         val currentState = _uiState.value
         val minorUnits = CurrencyManager.parseToMinorUnits(currentState.amount)
         if (minorUnits == null) {
-            _uiState.update { it.copy(saveSuccess = false, error = "Invalid amount format") }
+            _uiState.update { it.copy(saveSuccess = false) }
             return null
         }
 

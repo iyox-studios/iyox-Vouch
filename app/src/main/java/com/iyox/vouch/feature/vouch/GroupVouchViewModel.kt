@@ -36,7 +36,6 @@ data class GroupVouchUiState(
     val personSearchResults: List<PersonTotal> = emptyList(),
     val suggestedPersons: List<PersonTotal> = emptyList(),
     val members: List<GroupMemberInput> = emptyList(),
-    val error: String? = null,
     val saveSuccess: Boolean = false
 )
 
@@ -113,7 +112,6 @@ class GroupVouchViewModel(application: Application) : AndroidViewModel(applicati
 
     fun continueToMembers() {
         if (CurrencyManager.parseToMinorUnits(_uiState.value.amount) == null) {
-            _uiState.update { it.copy(error = "Invalid amount format") }
             return
         }
         _uiState.update { it.copy(step = STEP_MEMBERS) }
@@ -168,11 +166,9 @@ class GroupVouchViewModel(application: Application) : AndroidViewModel(applicati
         val currentState = _uiState.value
         val totalAmount = CurrencyManager.parseToMinorUnits(currentState.amount)
         if (totalAmount == null) {
-            _uiState.update { it.copy(error = "Invalid amount format") }
             return
         }
         if (currentState.members.isEmpty()) {
-            _uiState.update { it.copy(error = "Add at least one person") }
             return
         }
 
@@ -185,7 +181,6 @@ class GroupVouchViewModel(application: Application) : AndroidViewModel(applicati
                 defaultSplit
             }
             if (amount == null) {
-                _uiState.update { it.copy(error = "Invalid amount for ${member.personName}") }
                 return
             }
             memberAmounts += member.personName to amount
@@ -211,10 +206,6 @@ class GroupVouchViewModel(application: Application) : AndroidViewModel(applicati
 
     fun resetSaveSuccess() {
         _uiState.update { it.copy(saveSuccess = false) }
-    }
-
-    fun clearError() {
-        _uiState.update { it.copy(error = null) }
     }
 
     private fun addMember(name: String) {
