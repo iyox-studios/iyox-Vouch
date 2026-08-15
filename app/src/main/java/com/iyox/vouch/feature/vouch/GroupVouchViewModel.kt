@@ -37,7 +37,8 @@ data class GroupVouchUiState(
     val personSearchResults: List<PersonTotal> = emptyList(),
     val suggestedPersons: List<PersonTotal> = emptyList(),
     val members: List<GroupMemberInput> = emptyList(),
-    val saveSuccess: Boolean = false
+    val saveSuccess: Boolean = false,
+    val isLoading: Boolean = false
 )
 
 class GroupVouchViewModel(application: Application) : AndroidViewModel(application) {
@@ -45,12 +46,58 @@ class GroupVouchViewModel(application: Application) : AndroidViewModel(applicati
     private val personRepository = PersonRepository.getInstance(application)
 
     private var searchJob: Job? = null
+    private var editingVouchId: Int? = null
+    private var originalVouch: VouchWithPerson? = null
 
     private val _uiState = MutableStateFlow(GroupVouchUiState())
     val uiState: StateFlow<GroupVouchUiState> = _uiState.asStateFlow()
 
     init {
         loadSuggestedPersons()
+    }
+
+    fun loadVouch(id: Long?) {
+        searchJob?.cancel()
+        if (id == null) {
+            editingVouchId = null
+            originalVouch = null
+            _uiState.update { it.copy(isLoading = false) }
+            return
+        }
+
+        _uiState.update { it.copy(isLoading = true) }
+        val intId = id.toInt()
+        viewModelScope.launch {
+            val vouch = repository.getById(intId)
+            if (vouch != null) {
+                editingVouchId = vouch.vouch.id
+                originalVouch = vouch
+                val memberCount = vouch.persons.size
+                val totalAmount = vouch.vouch.amount
+                val defaultSplit = if (memberCount > 0) totalAmount / memberCount else 0L
+                val members = vouch.persons.map { p ->
+                    val isCustom = p.amount != defaultSplit
+                    GroupMemberInput(
+                        personName = p.person.name,
+                        amount = CurrencyManager.formatAmount(p.amount),
+                        isCustom = isCustom,
+                        isSelf = false
+                    )
+                }
+                _uiState.update { state ->
+                    state.copy(
+                        amount = CurrencyManager.formatAmount(totalAmount),
+                        given = vouch.vouch.given,
+                        description = vouch.vouch.description,
+                        members = members,
+                        step = STEP_DETAILS,
+                        isLoading = false
+                    )
+                }
+            } else {
+                _uiState.update { it.copy(isLoading = false) }
+            }
+        }
     }
 
     fun onAmountChange(value: String) {
@@ -235,19 +282,32 @@ class GroupVouchViewModel(application: Application) : AndroidViewModel(applicati
         val vouchTotalAmount = otherMemberAmounts.sumOf { it.second }
 
         viewModelScope.launch {
-            val vouch = VouchWithPerson(
-                vouch = Vouch(
-                    id = 0,
-                    amount = vouchTotalAmount,
-                    description = currentState.description.trim(),
-                    given = currentState.given
-                ),
-                persons = otherMemberAmounts.map { (personName, amount) ->
-                    PersonWithAmount(Person(name = personName), amount)
-                }
-            )
-
-            repository.insert(vouch)
+            if (editingVouchId != null && originalVouch != null) {
+                val updatedVouch = originalVouch!!.copy(
+                    vouch = originalVouch!!.vouch.copy(
+                        amount = vouchTotalAmount,
+                        description = currentState.description.trim(),
+                        given = currentState.given
+                    ),
+                    persons = otherMemberAmounts.map { (personName, amount) ->
+                        PersonWithAmount(Person(name = personName), amount)
+                    }
+                )
+                repository.update(updatedVouch)
+            } else {
+                val vouch = VouchWithPerson(
+                    vouch = Vouch(
+                        id = 0,
+                        amount = vouchTotalAmount,
+                        description = currentState.description.trim(),
+                        given = currentState.given
+                    ),
+                    persons = otherMemberAmounts.map { (personName, amount) ->
+                        PersonWithAmount(Person(name = personName), amount)
+                    }
+                )
+                repository.insert(vouch)
+            }
             _uiState.update { it.copy(saveSuccess = true) }
         }
     }

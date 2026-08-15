@@ -110,8 +110,12 @@ fun AppNavigation(snackbarHost: @Composable (() -> Unit) = {}) {
                     onNavigateToAddGroupVouch = {
                         navController.navigate(Screen.AddGroupVouch.route)
                     },
-                    onNavigateToEditVouch = { vouchId ->
-                        navController.navigate(Screen.EditVouch.createRoute(vouchId))
+                    onNavigateToEditVouch = { vouchId, isGroup ->
+                        if (isGroup) {
+                            navController.navigate(Screen.EditGroupVouch.createRoute(vouchId))
+                        } else {
+                            navController.navigate(Screen.EditVouch.createRoute(vouchId))
+                        }
                     }
                 )
             }
@@ -166,8 +170,12 @@ fun AppNavigation(snackbarHost: @Composable (() -> Unit) = {}) {
                     onNavigateToAddVouch = { selectedPersonName ->
                         navController.navigate(Screen.AddVouch.createRoute(selectedPersonName))
                     },
-                    onNavigateToEditVouch = { vouchId ->
-                        navController.navigate(Screen.EditVouch.createRoute(vouchId))
+                    onNavigateToEditVouch = { vouchId, isGroup ->
+                        if (isGroup) {
+                            navController.navigate(Screen.EditGroupVouch.createRoute(vouchId))
+                        } else {
+                            navController.navigate(Screen.EditVouch.createRoute(vouchId))
+                        }
                     }
                 )
             }
@@ -177,6 +185,18 @@ fun AppNavigation(snackbarHost: @Composable (() -> Unit) = {}) {
             ) { backStackEntry ->
                 val vouchId = backStackEntry.arguments?.getInt("vouchId") ?: return@composable
                 SingleVouchScreen(
+                    vouchId = vouchId.toLong(),
+                    edit = true,
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    })
+            }
+            composable(
+                route = Screen.EditGroupVouch.route,
+                arguments = listOf(navArgument("vouchId") { type = NavType.IntType })
+            ) { backStackEntry ->
+                val vouchId = backStackEntry.arguments?.getInt("vouchId") ?: return@composable
+                GroupVouchScreen(
                     vouchId = vouchId.toLong(),
                     edit = true,
                     onNavigateBack = {

@@ -27,4 +27,8 @@ sealed class Screen(val route: String, @StringRes val titleRes: Int) {
     object EditVouch : Screen("edit_vouch/{vouchId}", R.string.title_edit_vouch) {
         fun createRoute(vouchId: Int) = "edit_vouch/$vouchId"
     }
+
+    object EditGroupVouch : Screen("edit_group_vouch/{vouchId}", R.string.title_edit_vouch) {
+        fun createRoute(vouchId: Int) = "edit_group_vouch/$vouchId"
+    }
 }

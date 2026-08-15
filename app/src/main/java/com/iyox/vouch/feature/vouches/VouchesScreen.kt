@@ -55,7 +55,7 @@ fun VouchesScreen(
     viewModel: VouchesViewModel = viewModel(),
     onNavigateToAddVouch: () -> Unit = {},
     onNavigateToAddGroupVouch: () -> Unit = {},
-    onNavigateToEditVouch: (Int) -> Unit = {}
+    onNavigateToEditVouch: (Int, Boolean) -> Unit = { _, _ -> }
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
     rememberUndoCoordinator()
@@ -166,7 +166,7 @@ fun VouchesScreen(
                     listState = listState,
                     innerPadding = PaddingValues(0.dp),
                     sharedVouchActions = viewModel.sharedActions,
-                    onEdit = { onNavigateToEditVouch(it) }
+                    onEdit = onNavigateToEditVouch
                 )
             }
         }

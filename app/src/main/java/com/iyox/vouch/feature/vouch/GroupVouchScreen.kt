@@ -38,6 +38,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -89,18 +90,24 @@ private const val STEP_MEMBERS = 2
 @Composable
 fun GroupVouchScreen(
     viewModel: GroupVouchViewModel = viewModel(),
+    vouchId: Long? = null,
+    edit: Boolean = false,
     onNavigateBack: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val focusManager = LocalFocusManager.current
     val amountFocusRequester = remember { FocusRequester() }
 
+    LaunchedEffect(vouchId, edit) {
+        viewModel.loadVouch(vouchId)
+    }
+
     BackHandler(enabled = uiState.step == STEP_MEMBERS) {
         viewModel.backToDetails()
     }
 
-    LaunchedEffect(uiState.step) {
-        if (uiState.step == STEP_DETAILS) {
+    LaunchedEffect(uiState.step, uiState.isLoading) {
+        if (uiState.step == STEP_DETAILS && !uiState.isLoading && !edit) {
             amountFocusRequester.requestFocus()
         }
     }
@@ -130,7 +137,11 @@ fun GroupVouchScreen(
                             onClick = viewModel::saveGroupVouches,
                             enabled = uiState.members.any { !it.isSelf }
                         ) {
-                            Text(stringResource(R.string.action_save))
+                            Text(
+                                if (edit) stringResource(R.string.action_update) else stringResource(
+                                    R.string.action_save
+                                )
+                            )
                         }
                     }
                 },
@@ -148,61 +159,72 @@ fun GroupVouchScreen(
             )
         }
     ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = innerPadding.calculateTopPadding())
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            if (uiState.step == STEP_DETAILS) {
-                VouchAmountHeader(
-                    amount = uiState.amount,
-                    onAmountChange = viewModel::onAmountChange,
-                    focusManager = focusManager,
-                    amountFocusRequester = amountFocusRequester
-                )
+        if (uiState.isLoading && edit) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = innerPadding.calculateTopPadding())
+            ) {
+                CircularProgressIndicator()
+            }
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = innerPadding.calculateTopPadding())
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                if (uiState.step == STEP_DETAILS) {
+                    VouchAmountHeader(
+                        amount = uiState.amount,
+                        onAmountChange = viewModel::onAmountChange,
+                        focusManager = focusManager,
+                        amountFocusRequester = amountFocusRequester
+                    )
 
-                VouchDirectionToggle(
-                    isGiven = uiState.given,
-                    onToggle = viewModel::onGivenChange
-                )
+                    VouchDirectionToggle(
+                        isGiven = uiState.given,
+                        onToggle = viewModel::onGivenChange
+                    )
 
-                VouchDescriptionField(
-                    value = uiState.description,
-                    onValueChange = viewModel::onDescriptionChange,
-                    focusManager = focusManager
-                )
+                    VouchDescriptionField(
+                        value = uiState.description,
+                        onValueChange = viewModel::onDescriptionChange,
+                        focusManager = focusManager
+                    )
 
-                Spacer(modifier = Modifier.weight(1f))
-            } else {
-                GroupVouchSummaryCard(
-                    amount = uiState.amount,
-                    isGiven = uiState.given,
-                    description = uiState.description,
-                    members = uiState.members,
-                    onResetAllToEqual = viewModel::resetAllToEqualSplit
-                )
+                    Spacer(modifier = Modifier.weight(1f))
+                } else {
+                    GroupVouchSummaryCard(
+                        amount = uiState.amount,
+                        isGiven = uiState.given,
+                        description = uiState.description,
+                        members = uiState.members,
+                        onResetAllToEqual = viewModel::resetAllToEqualSplit
+                    )
 
-                GroupMemberSelector(
-                    query = uiState.personQuery,
-                    results = uiState.personSearchResults,
-                    suggestedPersons = uiState.suggestedPersons,
-                    currentMembers = uiState.members,
-                    onQueryChange = viewModel::onPersonQueryChange,
-                    onPersonSelected = viewModel::onPersonSelected,
-                    onAddPerson = viewModel::addMemberFromQuery,
-                    onAddSelf = viewModel::addSelfMember,
-                    focusManager = focusManager
-                )
+                    GroupMemberSelector(
+                        query = uiState.personQuery,
+                        results = uiState.personSearchResults,
+                        suggestedPersons = uiState.suggestedPersons,
+                        currentMembers = uiState.members,
+                        onQueryChange = viewModel::onPersonQueryChange,
+                        onPersonSelected = viewModel::onPersonSelected,
+                        onAddPerson = viewModel::addMemberFromQuery,
+                        onAddSelf = viewModel::addSelfMember,
+                        focusManager = focusManager
+                    )
 
-                GroupMemberList(
-                    members = uiState.members,
-                    onAmountChange = viewModel::onMemberAmountChange,
-                    onResetMember = viewModel::resetMemberToEqualSplit,
-                    onRemove = viewModel::removeMember,
-                    modifier = Modifier.weight(1f)
-                )
+                    GroupMemberList(
+                        members = uiState.members,
+                        onAmountChange = viewModel::onMemberAmountChange,
+                        onResetMember = viewModel::resetMemberToEqualSplit,
+                        onRemove = viewModel::removeMember,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
             }
         }
     }
