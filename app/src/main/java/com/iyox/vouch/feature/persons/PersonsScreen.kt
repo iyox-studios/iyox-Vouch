@@ -101,7 +101,7 @@ fun PersonsScreen(
             contentPadding = PaddingValues(16.dp),
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
+                .padding(top = innerPadding.calculateTopPadding())
         ) {
             items(uiState.persons) { personWithTotal ->
                 PersonCard(

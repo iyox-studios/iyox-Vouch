@@ -122,7 +122,7 @@ fun VouchesScreen(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(innerPadding),
+                    .padding(top = innerPadding.calculateTopPadding()),
                 contentAlignment = Alignment.Center
             ) {
                 Text(

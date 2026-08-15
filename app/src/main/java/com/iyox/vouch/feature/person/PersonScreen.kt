@@ -136,7 +136,7 @@ fun PersonScreen(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(innerPadding)
+                    .padding(top = innerPadding.calculateTopPadding())
             ) {
                 CircularProgressIndicator()
             }
@@ -144,7 +144,7 @@ fun PersonScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(innerPadding)
+                    .padding(top = innerPadding.calculateTopPadding())
             ) {
                 PersonInfoCard(
                     personData = state.personData,
