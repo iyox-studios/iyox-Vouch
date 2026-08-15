@@ -90,4 +90,28 @@ interface PersonDao {
         """
     )
     suspend fun getPersonsTotalFiltered(query: String): List<PersonTotal>
+
+    @Query(
+        """
+        SELECT p.*,
+               COALESCE(
+                   SUM(
+                       CASE
+                           WHEN vpc.settled = 1 THEN 0
+                           WHEN v.id IS NULL THEN 0
+                           WHEN v.given = 0 THEN -vpc.amount
+                           ELSE vpc.amount
+                       END
+                   ),
+                   0
+               ) AS amount,
+               COUNT(DISTINCT vpc.vouchId) AS vouchCount
+        FROM Person p
+        LEFT JOIN vouch_person_cross_ref vpc ON p.id = vpc.personId
+        LEFT JOIN Vouch v ON vpc.vouchId = v.id
+        GROUP BY p.id
+        ORDER BY vouchCount DESC, p.name ASC
+        """
+    )
+    suspend fun getPersonsByTotalVouches(): List<PersonTotal>
 }

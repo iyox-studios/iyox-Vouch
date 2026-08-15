@@ -15,6 +15,10 @@ class PersonRepository private constructor(context: Context) {
         }
     }
 
+    suspend fun getPersonsByTotalVouches(): List<PersonTotal> {
+        return personDao.getPersonsByTotalVouches()
+    }
+
     companion object {
         @Volatile
         private var INSTANCE: PersonRepository? = null
