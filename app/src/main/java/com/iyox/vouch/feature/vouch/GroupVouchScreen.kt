@@ -1,6 +1,5 @@
 package com.iyox.vouch.feature.vouch
 
-import android.icu.util.Currency
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,17 +12,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -61,6 +57,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.iyox.vouch.R
+import com.iyox.vouch.core.currency.CurrencyManager
 import com.iyox.vouch.core.model.Person
 import com.iyox.vouch.core.model.PersonTotal
 import com.iyox.vouch.core.utils.LocalSnackbarHostState
@@ -80,8 +77,6 @@ fun GroupVouchScreen(
     val snackbarHostState = LocalSnackbarHostState.current
     val focusManager = LocalFocusManager.current
 
-    var showCurrencyDialog by remember { mutableStateOf(false) }
-
     LaunchedEffect(uiState.error) {
         val message = uiState.error
         if (message != null) {
@@ -97,17 +92,6 @@ fun GroupVouchScreen(
             viewModel.resetSaveSuccess()
             onNavigateBack()
         }
-    }
-
-    if (showCurrencyDialog) {
-        CurrencySelectionDialog(
-            currentCurrency = uiState.currency,
-            onDismiss = { showCurrencyDialog = false },
-            onCurrencySelected = { selectedCurrency ->
-                viewModel.onCurrencyChange(selectedCurrency)
-                showCurrencyDialog = false
-            }
-        )
     }
 
     Scaffold(
@@ -152,9 +136,7 @@ fun GroupVouchScreen(
             if (uiState.step == STEP_DETAILS) {
                 GroupVouchAmountHeader(
                     amount = uiState.amount,
-                    currency = uiState.currency,
                     onAmountChange = viewModel::onAmountChange,
-                    onCurrencyClick = { showCurrencyDialog = true },
                     focusManager = focusManager
                 )
 
@@ -317,25 +299,17 @@ private fun GroupMemberList(
 @Composable
 private fun GroupVouchAmountHeader(
     amount: String,
-    currency: Currency,
     onAmountChange: (String) -> Unit,
-    onCurrencyClick: () -> Unit,
     focusManager: FocusManager,
     modifier: Modifier = Modifier
 ) {
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
-        Button(
-            onClick = onCurrencyClick,
-            shape = RoundedCornerShape(8.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color.Transparent,
-                contentColor = MaterialTheme.colorScheme.onSurface
-            ),
-            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp)
-        ) {
-            Text(currency.symbol, style = MaterialTheme.typography.displayLarge)
-            Icon(Icons.Filled.ArrowDropDown, null)
-        }
+        val currency = CurrencyManager.getCurrency()
+        Text(
+            text = currency.symbol,
+            style = MaterialTheme.typography.displayLarge,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+        )
         OutlinedTextField(
             value = amount,
             onValueChange = onAmountChange,

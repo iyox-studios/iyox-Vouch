@@ -68,6 +68,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.iyox.vouch.R
+import com.iyox.vouch.core.currency.CurrencyManager
 import com.iyox.vouch.core.model.PersonTotal
 import com.iyox.vouch.core.model.VouchWithPerson
 import com.iyox.vouch.core.model.isSettledForPerson
@@ -80,7 +81,6 @@ import kotlinx.coroutines.android.awaitFrame
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
-import java.math.BigDecimal
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -236,8 +236,8 @@ fun PersonScreen(
 @Composable
 fun PersonInfoCard(
     personData: PersonTotal?,
-    amountGiven: BigDecimal,
-    amountOwed: BigDecimal,
+    amountGiven: Long,
+    amountOwed: Long,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -250,7 +250,7 @@ fun PersonInfoCard(
         Column(
             modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            val total = personData?.amount?.toPlainString() ?: "0"
+            val total = personData?.amount ?: 0L
             val count = personData?.vouchCount ?: 0
 
             Row(
@@ -280,12 +280,10 @@ fun PersonInfoCard(
                 }
             }
             Text(
-                text = stringResource(R.string.amount_euro, total),
+                text = CurrencyManager.formatAmountWithSymbol(total),
                 style = MaterialTheme.typography.headlineLarge,
                 fontWeight = FontWeight.Medium,
-                color = if ((personData?.amount?.signum()
-                        ?: 0) >= 0
-                ) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.error
+                color = if (total >= 0L) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.error
             )
 
             Spacer(modifier = Modifier.height(4.dp))
@@ -299,7 +297,7 @@ fun PersonInfoCard(
                         style = MaterialTheme.typography.labelMedium
                     )
                     Text(
-                        stringResource(R.string.amount_euro, amountGiven.toPlainString()),
+                        CurrencyManager.formatAmountWithSymbol(amountGiven),
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -310,7 +308,7 @@ fun PersonInfoCard(
                         style = MaterialTheme.typography.labelMedium
                     )
                     Text(
-                        stringResource(R.string.amount_euro, amountOwed.toPlainString()),
+                        CurrencyManager.formatAmountWithSymbol(amountOwed),
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.error
                     )
@@ -393,27 +391,21 @@ fun SettlePersonDialog(
         title = { Text(stringResource(R.string.title_settle_person)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                val detail = when (personData?.amount?.signum()) {
-                    -1 -> stringResource(
+                val totalAmount = personData?.amount ?: 0L
+                val detail = when {
+                    totalAmount < 0L -> stringResource(
                         R.string.settle_person_you_owe,
                         personName,
-                        stringResource(
-                            R.string.amount_euro,
-                            personData.amount.abs().toPlainString()
-                        )
+                        CurrencyManager.formatAmountWithSymbol(kotlin.math.abs(totalAmount))
                     )
 
-                    1 -> stringResource(
+                    totalAmount > 0L -> stringResource(
                         R.string.settle_person_owes_you,
                         personName,
-                        stringResource(
-                            R.string.amount_euro,
-                            personData.amount.abs().toPlainString()
-                        )
+                        CurrencyManager.formatAmountWithSymbol(kotlin.math.abs(totalAmount))
                     )
 
-                    0 -> ""
-                    else -> stringResource(R.string.settle_person_error)
+                    else -> ""
                 }
                 val message = if (detail.isNotEmpty()) {
                     stringResource(R.string.settle_person_message_with_detail, detail)
@@ -449,8 +441,8 @@ fun SettlePersonDialog(
 fun VouchExportTemplate(
     personName: String,
     personData: PersonTotal?,
-    amountGiven: BigDecimal,
-    amountOwed: BigDecimal,
+    amountGiven: Long,
+    amountOwed: Long,
     vouches: List<VouchWithPerson>,
     modifier: Modifier = Modifier
 ) {

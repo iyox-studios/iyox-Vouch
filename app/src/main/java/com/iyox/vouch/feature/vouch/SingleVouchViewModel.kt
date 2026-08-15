@@ -1,9 +1,9 @@
 package com.iyox.vouch.feature.vouch
 
 import android.app.Application
-import android.icu.util.Currency
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.iyox.vouch.core.currency.CurrencyManager
 import com.iyox.vouch.core.data.PersonRepository
 import com.iyox.vouch.core.data.VouchRepository
 import com.iyox.vouch.core.domain.SharedVouchActions
@@ -18,11 +18,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
 
 data class VouchUiState(
     val amount: String = "",
-    val currency: Currency = Currency.getInstance("EUR"),
     val given: Boolean = true,
     val personName: String = "",
     val description: String = "",
@@ -42,7 +40,7 @@ class SingleVouchViewModel(application: Application) : AndroidViewModel(applicat
     private var editingVouchId: Int? = null
     private var originalVouch: VouchWithPerson? = null
 
-    private val _uiState = MutableStateFlow(VouchUiState(currency = Currency.getInstance("EUR")))
+    private val _uiState = MutableStateFlow(VouchUiState())
     val uiState: StateFlow<VouchUiState> = _uiState.asStateFlow()
 
     fun loadVouch(id: Long?, prefilledPersonName: String?) {
@@ -68,8 +66,7 @@ class SingleVouchViewModel(application: Application) : AndroidViewModel(applicat
                     editingVouchId = vouch.vouch.id
                     originalVouch = vouch
                     state.copy(
-                        amount = vouch.vouch.amount.toPlainString(),
-                        currency = vouch.vouch.currency,
+                        amount = CurrencyManager.formatAmount(vouch.vouch.amount),
                         given = vouch.vouch.given,
                         personName = vouch.persons.firstOrNull()?.person?.name ?: "",
                         description = vouch.vouch.description,
@@ -113,35 +110,14 @@ class SingleVouchViewModel(application: Application) : AndroidViewModel(applicat
         searchJob?.cancel()
     }
 
-
-    fun onCurrencyChange(value: Currency) {
-        _uiState.update { it.copy(currency = value) }
-    }
-
     fun onDescriptionChange(value: String) {
         _uiState.update { it.copy(description = value) }
     }
 
     suspend fun saveVouch(): VouchWithPerson? {
         val currentState = _uiState.value
-        val amountStr = currentState.amount.trim()
-        val fractionDigits = currentState.currency.defaultFractionDigits
-
-        val amountPattern = if (fractionDigits > 0) {
-            Regex("^\\d+([.,]\\d{1,$fractionDigits})?$")
-        } else {
-            Regex("^\\d+$")
-        }
-
-        if (!amountPattern.matches(amountStr)) {
-            _uiState.update { it.copy(saveSuccess = false, error = "Invalid amount format") }
-            return null
-        }
-
-        val normalized = amountStr.replace(',', '.')
-        val amountBigDecimal = try {
-            BigDecimal(normalized)
-        } catch (_: NumberFormatException) {
+        val minorUnits = CurrencyManager.parseToMinorUnits(currentState.amount)
+        if (minorUnits == null) {
             _uiState.update { it.copy(saveSuccess = false, error = "Invalid amount format") }
             return null
         }
@@ -150,15 +126,14 @@ class SingleVouchViewModel(application: Application) : AndroidViewModel(applicat
         if (editingVouchId != null) {
             val newVouch = originalVouch!!.copy(
                 vouch = originalVouch!!.vouch.copy(
-                    amount = amountBigDecimal,
+                    amount = minorUnits,
                     description = currentState.description.trim(),
-                    given = currentState.given,
-                    currency = currentState.currency
+                    given = currentState.given
                 ),
                 persons = listOf(
                     PersonWithAmount(
                         person = Person(name = currentState.personName.trim()),
-                        amount = amountBigDecimal
+                        amount = minorUnits
                     )
                 )
             )
@@ -168,14 +143,13 @@ class SingleVouchViewModel(application: Application) : AndroidViewModel(applicat
             val vouch = VouchWithPerson(
                 vouch = Vouch(
                     id = 0,
-                    amount = amountBigDecimal,
+                    amount = minorUnits,
                     description = currentState.description.trim(),
-                    given = currentState.given,
-                    currency = currentState.currency
+                    given = currentState.given
                 ), persons = if (currentState.personName.isBlank()) emptyList() else listOf(
                     PersonWithAmount(
                         person = Person(name = currentState.personName.trim()),
-                        amount = amountBigDecimal
+                        amount = minorUnits
                     )
                 )
             )
@@ -185,7 +159,6 @@ class SingleVouchViewModel(application: Application) : AndroidViewModel(applicat
         _uiState.update { it.copy(saveSuccess = true) }
         return savedVouch
     }
-
 
     fun resetSaveSuccess() {
         _uiState.update { it.copy(saveSuccess = false) }
