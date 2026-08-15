@@ -64,6 +64,11 @@
         <item quantity="other">%1$d Vouch</item>
     </plurals>
 
+    <plurals name="person_count">
+        <item quantity="one">%1$d Person</item>
+        <item quantity="other">%1$d Personen</item>
+    </plurals>
+
     <string name="msg_vouch_created">Vouch erstellt</string>
     <string name="msg_vouch_settled">Vouch beglichen</string>
     <string name="msg_vouch_unsettled">Begleichung aufgehoben</string>
