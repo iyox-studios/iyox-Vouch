@@ -1,30 +1,40 @@
 package com.iyox.vouch.feature.settings
 
 import android.app.UiModeManager
+import android.icu.util.Currency
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AttachMoney
 import androidx.compose.material.icons.outlined.Brightness4
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.material.icons.outlined.Upload
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
@@ -33,6 +43,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -43,9 +54,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.iyox.vouch.R
+import com.iyox.vouch.core.currency.CurrencyManager
 import com.iyox.vouch.ui.components.PageHeader
 
 data class SupportedLanguage(
@@ -64,6 +77,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
     val uiState by viewModel.uiState.collectAsState()
     var showThemeDropdown by remember { mutableStateOf(false) }
     var showLanguageDropdown by remember { mutableStateOf(false) }
+    var showCurrencyDialog by remember { mutableStateOf(false) }
     val isPerAppLanguageSupported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
 
     val exportLauncher = rememberLauncherForActivityResult(
@@ -82,6 +96,23 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
         }
     }
 
+    val currentCurrency = try {
+        Currency.getInstance(uiState.currencyCode)
+    } catch (_: Exception) {
+        CurrencyManager.getCurrency()
+    }
+
+    if (showCurrencyDialog) {
+        CurrencySelectionDialog(
+            currentCurrency = currentCurrency,
+            onDismiss = { showCurrencyDialog = false },
+            onCurrencySelected = { selectedCurrency ->
+                viewModel.setCurrency(selectedCurrency.currencyCode)
+                showCurrencyDialog = false
+            }
+        )
+    }
+
     Scaffold(topBar = { PageHeader(stringResource(R.string.screen_settings)) { } }) { paddingValues ->
         Column(
             modifier = Modifier
@@ -89,7 +120,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
         ) {
-            SectionHeader(stringResource(R.string.settings_section_appearance))
+            SectionHeader(stringResource(R.string.settings_section_general))
 
             Box {
                 SettingItem(
@@ -126,6 +157,15 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
                     }
                 }
             }
+
+            SettingItem(
+                icon = Icons.Outlined.AttachMoney,
+                title = stringResource(R.string.settings_currency),
+                subtitle = "${currentCurrency.symbol} (${currentCurrency.currencyCode})",
+                onClick = { showCurrencyDialog = true }
+            )
+
+            SectionHeader(stringResource(R.string.settings_section_appearance))
 
             Box {
                 SettingItem(
@@ -260,3 +300,63 @@ fun SettingItem(
         }
     }
 }
+
+@Composable
+fun CurrencySelectionDialog(
+    currentCurrency: Currency,
+    onDismiss: () -> Unit,
+    onCurrencySelected: (Currency) -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.title_select_currency)) },
+        text = {
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(3),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                items(CurrencyManager.supportedCurrencies) { currency ->
+                    Card(
+                        modifier = Modifier
+                            .aspectRatio(1f)
+                            .clickable { onCurrencySelected(currency) },
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (currency.currencyCode == currentCurrency.currencyCode) {
+                                MaterialTheme.colorScheme.primaryContainer
+                            } else {
+                                MaterialTheme.colorScheme.surface
+                            }
+                        ),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.fillMaxSize(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Text(
+                                text = currency.symbol,
+                                style = MaterialTheme.typography.headlineMedium,
+                                textAlign = TextAlign.Center
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = currency.currencyCode,
+                                style = MaterialTheme.typography.bodySmall,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.action_cancel))
+            }
+        }
+    )
+}
+
