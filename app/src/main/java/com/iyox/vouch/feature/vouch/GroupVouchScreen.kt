@@ -135,7 +135,7 @@ fun GroupVouchScreen(
                         Button(
                             modifier = Modifier.padding(end = 16.dp),
                             onClick = viewModel::saveGroupVouches,
-                            enabled = uiState.members.any { !it.isSelf }
+                            enabled = uiState.members.count { !it.isSelf } >= 2
                         ) {
                             Text(
                                 if (edit) stringResource(R.string.action_update) else stringResource(
