@@ -7,6 +7,7 @@ import androidx.core.content.edit
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import java.text.DecimalFormatSymbols
 import java.util.Locale
 import kotlin.math.abs
 
@@ -73,6 +74,10 @@ object CurrencyManager {
 
     fun currencyFlow(): StateFlow<Currency> = currencyFlow
 
+    fun getDecimalSeparator(locale: Locale = Locale.getDefault()): Char {
+        return DecimalFormatSymbols.getInstance(locale).decimalSeparator
+    }
+
     fun getMinorUnitFactor(currency: Currency = getCurrency()): Int {
         val fractionDigits = maxOf(0, currency.defaultFractionDigits)
         var factor = 1
@@ -80,29 +85,45 @@ object CurrencyManager {
         return factor
     }
 
-    fun formatAmount(minorUnits: Long, currency: Currency = getCurrency()): String {
+    fun formatAmount(
+        minorUnits: Long,
+        currency: Currency = getCurrency(),
+        locale: Locale = Locale.getDefault()
+    ): String {
         val fractionDigits = maxOf(0, currency.defaultFractionDigits)
         val isNegative = minorUnits < 0
         val absVal = abs(minorUnits)
         val factor = getMinorUnitFactor(currency)
         val whole = absVal / factor
         val remainder = absVal % factor
+        val decimalSeparator = getDecimalSeparator(locale)
         val formatted = if (fractionDigits > 0) {
             val fractionStr = remainder.toString().padStart(fractionDigits, '0')
-            "$whole.$fractionStr"
+            "$whole$decimalSeparator$fractionStr"
         } else {
             whole.toString()
         }
         return if (isNegative) "-$formatted" else formatted
     }
 
-    fun formatAmountWithSymbol(minorUnits: Long, currency: Currency = getCurrency()): String {
-        val formatted = formatAmount(minorUnits, currency)
+    fun formatAmountWithSymbol(
+        minorUnits: Long,
+        currency: Currency = getCurrency(),
+        locale: Locale = Locale.getDefault()
+    ): String {
+        val formatted = formatAmount(minorUnits, currency, locale)
         return "$formatted ${currency.symbol}"
     }
 
-    fun parseToMinorUnits(userInput: String, currency: Currency = getCurrency()): Long? {
-        val trimmed = userInput.trim().replace(',', '.')
+    fun parseToMinorUnits(
+        userInput: String,
+        currency: Currency = getCurrency(),
+        locale: Locale = Locale.getDefault()
+    ): Long? {
+        val decimalSeparator = getDecimalSeparator(locale)
+        val trimmed = userInput.trim()
+            .replace(decimalSeparator, '.')
+            .replace(',', '.')
         if (trimmed.isBlank()) return null
 
         val fractionDigits = maxOf(0, currency.defaultFractionDigits)
