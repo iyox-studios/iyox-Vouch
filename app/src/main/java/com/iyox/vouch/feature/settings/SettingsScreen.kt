@@ -1,11 +1,17 @@
 package com.iyox.vouch.feature.settings
 
 import android.app.UiModeManager
+import android.content.Context
+import android.content.ContextWrapper
 import android.icu.util.Currency
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
+import androidx.biometric.BiometricManager
+import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
+import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_WEAK
+import androidx.biometric.BiometricPrompt
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -29,6 +35,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AttachMoney
 import androidx.compose.material.icons.outlined.Brightness4
 import androidx.compose.material.icons.outlined.Download
+import androidx.compose.material.icons.outlined.Fingerprint
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.Translate
@@ -61,6 +68,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.iyox.vouch.R
 import com.iyox.vouch.core.currency.CurrencyManager
@@ -233,6 +242,33 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
                     )
                 },
                 onClick = { viewModel.setDynamicColors(!uiState.dynamicColors) }
+            )
+
+            SectionHeader(stringResource(R.string.settings_section_security))
+
+            SettingItem(
+                icon = Icons.Outlined.Fingerprint,
+                title = stringResource(R.string.settings_biometric_auth),
+                subtitle = stringResource(R.string.settings_biometric_auth_subtitle),
+                trailing = {
+                    Switch(
+                        checked = uiState.biometricEnabled,
+                        onCheckedChange = { enabled ->
+                            if (enabled) {
+                                authenticateAndEnableBiometric(context, viewModel)
+                            } else {
+                                viewModel.setBiometricEnabled(false)
+                            }
+                        }
+                    )
+                },
+                onClick = {
+                    if (!uiState.biometricEnabled) {
+                        authenticateAndEnableBiometric(context, viewModel)
+                    } else {
+                        viewModel.setBiometricEnabled(false)
+                    }
+                }
             )
 
             SectionHeader(stringResource(R.string.settings_section_data))
@@ -414,4 +450,54 @@ fun CurrencySelectionDialog(
         }
     )
 }
+
+private fun authenticateAndEnableBiometric(
+    context: Context,
+    viewModel: SettingsViewModel
+) {
+    val biometricManager = BiometricManager.from(context)
+    when (biometricManager.canAuthenticate(BIOMETRIC_STRONG or BIOMETRIC_WEAK)) {
+        BiometricManager.BIOMETRIC_SUCCESS -> {
+            val activity = context.findFragmentActivity() ?: return
+            val executor = ContextCompat.getMainExecutor(activity)
+            val biometricPrompt = BiometricPrompt(
+                activity,
+                executor,
+                object : BiometricPrompt.AuthenticationCallback() {
+                    override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                        super.onAuthenticationSucceeded(result)
+                        viewModel.setBiometricEnabled(true)
+                    }
+
+                }
+            )
+
+            val promptInfo = BiometricPrompt.PromptInfo.Builder()
+                .setTitle(context.getString(R.string.biometric_title))
+                .setSubtitle(context.getString(R.string.biometric_subtitle))
+                .setNegativeButtonText(context.getString(R.string.action_cancel))
+                .build()
+
+            biometricPrompt.authenticate(promptInfo)
+        }
+
+        BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> {
+            viewModel.showBiometricError(R.string.toast_biometric_none_enrolled)
+        }
+
+        else -> {
+            viewModel.showBiometricError(R.string.toast_biometric_not_available)
+        }
+    }
+}
+
+private fun Context.findFragmentActivity(): FragmentActivity? {
+    var current = this
+    while (current is ContextWrapper) {
+        if (current is FragmentActivity) return current
+        current = current.baseContext
+    }
+    return null
+}
+
 

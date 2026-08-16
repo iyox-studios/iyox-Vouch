@@ -9,7 +9,6 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
 import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_WEAK
-import androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
 import androidx.biometric.BiometricPrompt
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.core.content.ContextCompat
@@ -19,11 +18,35 @@ import com.iyox.vouch.core.utils.LocalVibrationManager
 import com.iyox.vouch.core.utils.VibrationManager
 
 class MainActivity : FragmentActivity() {
+
+    private var isAuthenticated = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         applyStoredTheme()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        if (savedInstanceState != null) {
+            isAuthenticated = savedInstanceState.getBoolean(KEY_IS_AUTHENTICATED, false)
+        }
+
+        val prefs = getSharedPreferences("settings", MODE_PRIVATE)
+        val biometricEnabled = prefs.getBoolean("biometric_enabled", false)
+
+        if (biometricEnabled && !isAuthenticated) {
+            authenticateUser()
+        } else {
+            showApp()
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBoolean(KEY_IS_AUTHENTICATED, isAuthenticated)
+    }
+
+    private fun showApp() {
         val vibrationManager = VibrationManager(this)
         setContent {
             CompositionLocalProvider(LocalVibrationManager provides vibrationManager) {
@@ -44,33 +67,38 @@ class MainActivity : FragmentActivity() {
     }
 
     private fun authenticateUser() {
-        val executor = ContextCompat.getMainExecutor(this)
-        val biometricPrompt = BiometricPrompt(
-            this, executor, object : BiometricPrompt.AuthenticationCallback() {
-                override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                    super.onAuthenticationSucceeded(result)
-                    setContent {
-                        VouchApp()
+        val biometricManager = BiometricManager.from(this)
+        if (biometricManager.canAuthenticate(BIOMETRIC_STRONG or BIOMETRIC_WEAK) == BiometricManager.BIOMETRIC_SUCCESS) {
+            val executor = ContextCompat.getMainExecutor(this)
+            val biometricPrompt = BiometricPrompt(
+                this, executor, object : BiometricPrompt.AuthenticationCallback() {
+                    override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                        super.onAuthenticationSucceeded(result)
+                        isAuthenticated = true
+                        showApp()
                     }
-                }
 
-            })
+                    override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                        super.onAuthenticationError(errorCode, errString)
+                        finish()
+                    }
+                })
 
-        val promptInfo = BiometricPrompt.PromptInfo.Builder()
-            .setTitle(getString(R.string.biometric_title))
-            .setSubtitle(getString(R.string.biometric_subtitle))
-            .setNegativeButtonText(getString(R.string.action_cancel))
-            .build()
-        if (BiometricManager.from(this)
-                .canAuthenticate(BIOMETRIC_STRONG or BIOMETRIC_WEAK or DEVICE_CREDENTIAL) == BiometricManager.BIOMETRIC_SUCCESS
-        ) {
+            val promptInfo = BiometricPrompt.PromptInfo.Builder()
+                .setTitle(getString(R.string.biometric_title))
+                .setSubtitle(getString(R.string.biometric_subtitle))
+                .setNegativeButtonText(getString(R.string.action_cancel))
+                .build()
+
             biometricPrompt.authenticate(promptInfo)
         } else {
-            setContent {
-                VouchApp()
-            }
+            isAuthenticated = true
+            showApp()
         }
+    }
 
+    companion object {
+        private const val KEY_IS_AUTHENTICATED = "is_authenticated"
     }
 }
 
