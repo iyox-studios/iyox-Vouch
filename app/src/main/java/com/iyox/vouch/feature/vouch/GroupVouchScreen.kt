@@ -259,6 +259,7 @@ fun GroupVouchScreen(
                         onAmountChange = viewModel::onMemberAmountChange,
                         onResetMember = viewModel::resetMemberToEqualSplit,
                         onRemove = viewModel::removeMember,
+                        focusManager = focusManager,
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -619,8 +620,8 @@ private fun GroupMemberSelector(
                     onDone = {
                         if (query.isNotBlank()) {
                             onAddPerson()
-                            focusManager.clearFocus()
                         }
+                        focusManager.clearFocus()
                     }
                 ),
                 singleLine = true,
@@ -737,6 +738,7 @@ private fun GroupMemberList(
     onAmountChange: (GroupMemberInput, String) -> Unit,
     onResetMember: (GroupMemberInput) -> Unit,
     onRemove: (GroupMemberInput) -> Unit,
+    focusManager: FocusManager,
     modifier: Modifier = Modifier
 ) {
     val currency = CurrencyManager.getCurrency()
@@ -794,6 +796,7 @@ private fun GroupMemberList(
                 onAmountChange = { onAmountChange(member, it) },
                 onResetToEqual = { onResetMember(member) },
                 onRemove = { onRemove(member) },
+                focusManager = focusManager,
                 modifier = Modifier.animateItem()
             )
         }
@@ -807,6 +810,7 @@ private fun GroupMemberCard(
     onAmountChange: (String) -> Unit,
     onResetToEqual: () -> Unit,
     onRemove: () -> Unit,
+    focusManager: FocusManager,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -889,6 +893,11 @@ private fun GroupMemberCard(
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Decimal,
                     imeAction = ImeAction.Done
+                ),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        focusManager.clearFocus()
+                    }
                 ),
                 singleLine = true,
                 textStyle = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
