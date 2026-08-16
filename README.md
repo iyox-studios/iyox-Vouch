@@ -12,6 +12,13 @@ in [Material You Expressive](https://m3.material.io/) style.
 
 </div>
 
+## Screenshots
+
+[<img width=200 alt="Vouches Overview" src="assets/screenshots/Vouches%20Overview.png">]()
+[<img width=200 alt="Add Vouch" src="assets/screenshots/Add%20Vouch.png">]()
+[<img width=200 alt="Persons Overview" src="assets/screenshots/Persons%20Overview.png">]()
+[<img width=200 alt="Person Overview" src="assets/screenshots/Person%20Overview.png">]()
+
 ## Features
 
 - **Debt & IOU Tracking**: Easily track money borrowed or lent with amounts, dates, and
@@ -20,7 +27,7 @@ in [Material You Expressive](https://m3.material.io/) style.
 - **People Overview**: View individual balances, net debts/credits, and settle balances with one
   tap.
 - **Material You Expressive**: Clean, modern interface with dynamic colors and dark theme support.
-- **Multi-Currency & Multilingual**: Customizable currency selection and multi-language support (
+- **Multi-Currency & Multilingual**: Customizable currency selection and multilingual support (
   English, German).
 - **Data Backup & Restore**: Export and import your data in JSON format for safe keeping and easy
   migration.
