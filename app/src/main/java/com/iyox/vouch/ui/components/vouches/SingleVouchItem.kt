@@ -1,6 +1,7 @@
 package com.iyox.vouch.ui.components.vouches
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -126,9 +127,11 @@ fun SingleVouchItem(
                 ) {
                     if (!personName.isNullOrBlank()) {
                         Surface(
-                            onClick = { onPersonClick(personName) },
                             shape = CircleShape,
-                            color = MaterialTheme.colorScheme.surfaceContainerHigh
+                            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .clickable { onPersonClick(personName) }
                         ) {
                             Row(
                                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
