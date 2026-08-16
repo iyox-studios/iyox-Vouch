@@ -34,6 +34,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.iyox.vouch.R
 import com.iyox.vouch.core.currency.CurrencyManager
 import com.iyox.vouch.core.model.Person
@@ -66,6 +67,13 @@ fun GroupVouchSingleItem(
             0f,
             1f
         ) else 0f
+    val hasDescription = vouch.vouch.description.isNotBlank()
+    val descriptionText = if (hasDescription) {
+        vouch.vouch.description
+    } else {
+        stringResource(R.string.label_no_description)
+    }
+    val formattedDate = dateFormat.format(vouch.vouch.timestamp)
 
     val content = @Composable {
         Card(
@@ -111,7 +119,7 @@ fun GroupVouchSingleItem(
                     ) {
                         Text(
                             text = CurrencyManager.formatAmountWithSymbol(personAmount),
-                            style = MaterialTheme.typography.titleMedium,
+                            style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp),
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
@@ -123,9 +131,9 @@ fun GroupVouchSingleItem(
                         )
                     }
                     Text(
-                        text = vouch.vouch.description.ifBlank { dateFormat.format(vouch.vouch.timestamp) },
+                        text = descriptionText,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = if (hasDescription) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.outline,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -145,32 +153,43 @@ fun GroupVouchSingleItem(
 
                 Spacer(modifier = Modifier.width(12.dp))
 
-                Surface(
-                    shape = CircleShape,
-                    color = MaterialTheme.colorScheme.surfaceContainerHigh
+                Column(
+                    horizontalAlignment = Alignment.End,
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    Surface(
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.surfaceContainerHigh
                     ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Group,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Text(
-                            text = pluralStringResource(
-                                R.plurals.person_count,
-                                vouch.persons.size,
-                                vouch.persons.size
-                            ),
-                            style = MaterialTheme.typography.labelLarge,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
+                        Row(
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Group,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Text(
+                                text = pluralStringResource(
+                                    R.plurals.person_count,
+                                    vouch.persons.size,
+                                    vouch.persons.size
+                                ),
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
                     }
+                    Text(
+                        text = formattedDate,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.outline,
+                        maxLines = 1
+                    )
                 }
             }
         }
