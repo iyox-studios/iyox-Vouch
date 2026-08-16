@@ -45,7 +45,8 @@ fun SingleVouchItem(
     canSettle: Boolean = true,
     onSettle: () -> Unit,
     onDelete: () -> Unit = {},
-    onEdit: () -> Unit = {}
+    onEdit: () -> Unit = {},
+    onPersonClick: (String) -> Unit = {}
 ) {
     val dateFormat =
         SimpleDateFormat(stringResource(R.string.format_vouch_date), Locale.getDefault())
@@ -125,6 +126,7 @@ fun SingleVouchItem(
                 ) {
                     if (!personName.isNullOrBlank()) {
                         Surface(
+                            onClick = { onPersonClick(personName) },
                             shape = CircleShape,
                             color = MaterialTheme.colorScheme.surfaceContainerHigh
                         ) {

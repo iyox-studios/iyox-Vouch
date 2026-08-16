@@ -116,6 +116,9 @@ fun AppNavigation(snackbarHost: @Composable (() -> Unit) = {}) {
                         } else {
                             navController.navigate(Screen.EditVouch.createRoute(vouchId))
                         }
+                    },
+                    onNavigateToPerson = { personName ->
+                        navController.navigate(Screen.ViewPerson.createRoute(personName))
                     }
                 )
             }
@@ -175,6 +178,11 @@ fun AppNavigation(snackbarHost: @Composable (() -> Unit) = {}) {
                             navController.navigate(Screen.EditGroupVouch.createRoute(vouchId))
                         } else {
                             navController.navigate(Screen.EditVouch.createRoute(vouchId))
+                        }
+                    },
+                    onNavigateToPerson = { selectedPersonName ->
+                        if (selectedPersonName != personName) {
+                            navController.navigate(Screen.ViewPerson.createRoute(selectedPersonName))
                         }
                     }
                 )

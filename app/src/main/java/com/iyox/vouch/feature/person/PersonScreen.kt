@@ -84,7 +84,8 @@ fun PersonScreen(
     personName: String,
     onNavigateBack: () -> Unit,
     onNavigateToAddVouch: (String) -> Unit = {},
-    onNavigateToEditVouch: (Int, Boolean) -> Unit = { _, _ -> }
+    onNavigateToEditVouch: (Int, Boolean) -> Unit = { _, _ -> },
+    onNavigateToPerson: (String) -> Unit = {}
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
     val viewModel: PersonViewModel = viewModel()
@@ -182,6 +183,7 @@ fun PersonScreen(
                         innerPadding = PaddingValues(0.dp),
                         sharedVouchActions = viewModel.sharedActions,
                         onEdit = onNavigateToEditVouch,
+                        onNavigateToPerson = onNavigateToPerson,
                         isSettled = { vouch -> vouch.isSettledForPerson(personName) },
                         groupSingleContextPersonId = personUiState.personData?.person?.id
                     )
