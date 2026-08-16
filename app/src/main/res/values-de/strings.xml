@@ -14,6 +14,7 @@
 
     <string name="settings_section_general">Allgemein</string>
     <string name="settings_section_appearance">Aussehen</string>
+    <string name="settings_section_security">Sicherheit</string>
     <string name="settings_language">Sprache</string>
     <string name="settings_language_system">Systemstandart</string>
     <string name="settings_language_android_13_only">Verfügbar unter Android 13+</string>
@@ -26,6 +27,8 @@
     <string name="settings_dynamic_colors_subtitle">Systemfarben verwenden (Android 12+)</string>
     <string name="settings_currency">Währung</string>
     <string name="settings_currency_subtitle">App-weite Währung für alle Vouches</string>
+    <string name="settings_biometric_auth">Biometrische Authentifizierung</string>
+    <string name="settings_biometric_auth_subtitle">Biometrische Entsperrung beim Öffnen anfordern</string>
     <string name="settings_section_data">Daten</string>
     <string name="settings_export_data">Exportieren</string>
     <string name="settings_export_data_subtitle">Deine Daten in eine Datei speichern</string>
@@ -98,6 +101,8 @@
     <string name="toast_export_failed">Export fehlgeschlagen</string>
     <string name="toast_import_success">Import erfolgreich</string>
     <string name="toast_import_failed">Import fehlgeschlagen</string>
+    <string name="toast_biometric_not_available">Biometrische Authentifizierung wird auf diesem Gerät nicht unterstützt</string>
+    <string name="toast_biometric_none_enrolled">Keine biometrischen Daten auf diesem Gerät hinterlegt</string>
 
     <string name="cd_back">Zurück</string>
     <string name="cd_add_vouch">Vouch hinzufügen</string>

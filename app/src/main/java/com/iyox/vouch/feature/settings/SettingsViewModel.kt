@@ -51,7 +51,8 @@ data class SettingsUiState(
     val theme: Int,
     val dynamicColors: Boolean,
     val languageTag: String,
-    val currencyCode: String
+    val currencyCode: String,
+    val biometricEnabled: Boolean
 )
 
 data class ExportPersonAmount(
@@ -102,15 +103,17 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     private val _theme = MutableStateFlow(resolveInitialTheme())
     private val _dynamicColors = MutableStateFlow(prefs.getBoolean("dynamic_colors", true))
     private val _languageTag = MutableStateFlow(currentLanguageTag())
+    private val _biometricEnabled = MutableStateFlow(prefs.getBoolean("biometric_enabled", false))
 
     val uiState: StateFlow<SettingsUiState> = combine(
-        _theme, _dynamicColors, _languageTag, CurrencyManager.currencyFlow()
-    ) { theme, dynamicColors, languageTag, currency ->
+        _theme, _dynamicColors, _languageTag, CurrencyManager.currencyFlow(), _biometricEnabled
+    ) { theme, dynamicColors, languageTag, currency, biometricEnabled ->
         SettingsUiState(
             theme = theme,
             dynamicColors = dynamicColors,
             languageTag = languageTag,
-            currencyCode = currency.currencyCode
+            currencyCode = currency.currencyCode,
+            biometricEnabled = biometricEnabled
         )
     }.stateIn(
         viewModelScope,
@@ -119,7 +122,8 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             resolveInitialTheme(),
             prefs.getBoolean("dynamic_colors", true),
             currentLanguageTag(),
-            CurrencyManager.getCurrency().currencyCode
+            CurrencyManager.getCurrency().currencyCode,
+            prefs.getBoolean("biometric_enabled", false)
         )
     )
 
@@ -135,6 +139,17 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
     fun setDynamicColors(enabled: Boolean) {
         _dynamicColors.value = enabled
+    }
+
+    fun setBiometricEnabled(enabled: Boolean) {
+        _biometricEnabled.value = enabled
+        prefs.edit { putBoolean("biometric_enabled", enabled) }
+    }
+
+    fun showBiometricError(@StringRes messageRes: Int) {
+        viewModelScope.launch {
+            _toastEvents.emit(ToastEvent.Error(messageRes))
+        }
     }
 
     fun setLanguage(tag: String) {
