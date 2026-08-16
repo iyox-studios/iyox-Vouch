@@ -17,6 +17,16 @@ class SharedVouchActions(
         onDataChanged()
     }
 
+    suspend fun deletePersonFromVouch(vouchId: Int, personId: Int) {
+        repository.deletePersonFromVouch(vouchId, personId)
+        onDataChanged()
+    }
+
+    suspend fun restoreVouch(vouchWithPerson: VouchWithPerson) {
+        repository.restoreVouch(vouchWithPerson)
+        onDataChanged()
+    }
+
     // TODO: make this one method and use id instead of vouch and also use this everywhere instead of update
     suspend fun settleVouch(vouch: VouchWithPerson) {
         repository.setVouchSettled(vouch.vouch.id, true)

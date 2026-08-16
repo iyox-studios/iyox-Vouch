@@ -67,6 +67,47 @@ class VouchRepository private constructor(context: Context) {
         notifyDataChanged()
     }
 
+    suspend fun deletePersonFromVouch(vouchId: Int, personId: Int) {
+        database.withTransaction {
+            val currentVouch = vouchDataDao.getById(vouchId) ?: return@withTransaction
+            val currentPersons = vouchDataDao.getPersonsForVouch(vouchId)
+            val remainingPersons = currentPersons.filterNot { it.person.id == personId }
+
+            if (remainingPersons.isEmpty()) {
+                vouchDataDao.deleteById(vouchId)
+            } else {
+                val newTotalAmount = remainingPersons.sumOf { it.amount }
+                vouchDataDao.update(currentVouch.copy(amount = newTotalAmount))
+                upsertCrossRefs(vouchId, remainingPersons, deleteExisting = true)
+            }
+            personDataDao.deletePersonsWithoutVouches()
+        }
+        notifyDataChanged()
+    }
+
+    suspend fun restoreVouch(vouchWithPerson: VouchWithPerson) {
+        database.withTransaction {
+            val existing = vouchDataDao.getById(vouchWithPerson.vouch.id)
+            if (existing != null) {
+                vouchDataDao.update(vouchWithPerson.vouch)
+                upsertCrossRefs(
+                    vouchWithPerson.vouch.id,
+                    vouchWithPerson.persons,
+                    deleteExisting = true
+                )
+            } else {
+                vouchDataDao.insert(vouchWithPerson.vouch)
+                upsertCrossRefs(
+                    vouchWithPerson.vouch.id,
+                    vouchWithPerson.persons,
+                    deleteExisting = false
+                )
+            }
+            personDataDao.deletePersonsWithoutVouches()
+        }
+        notifyDataChanged()
+    }
+
     suspend fun update(newVouch: VouchWithPerson) {
         database.withTransaction {
             vouchDataDao.update(newVouch.vouch)
