@@ -30,6 +30,7 @@ import com.iyox.vouch.core.utils.rememberUndoCoordinator
  * @param onEdit Callback when a vouch is edited, passing the vouch's ID and whether it is a group vouch.
  * @param isSettled A predicate to determine if a vouch is settled.
  * @param groupSingleContextPersonId Determines if a group vouch is shown for the context of the full group or of one person
+ * @param contentPadding The padding applied to the list content.
  */
 @Composable
 fun VouchList(
@@ -39,7 +40,8 @@ fun VouchList(
     sharedVouchActions: SharedVouchActions,
     onEdit: (Int, Boolean) -> Unit,
     isSettled: (VouchWithPerson) -> Boolean = { it.isSettled() },
-    groupSingleContextPersonId: Int? = null
+    groupSingleContextPersonId: Int? = null,
+    contentPadding: PaddingValues = PaddingValues(16.dp)
 ) {
     val undoCoordinator = rememberUndoCoordinator()
     val msgVouchUnsettled = stringResource(R.string.msg_vouch_unsettled)
@@ -50,7 +52,7 @@ fun VouchList(
         modifier = Modifier
             .fillMaxSize()
             .padding(top = innerPadding.calculateTopPadding()),
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+        contentPadding = contentPadding,
         verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.Top)
     ) {
         itemsIndexed(
