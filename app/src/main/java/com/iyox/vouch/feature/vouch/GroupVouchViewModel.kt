@@ -159,16 +159,12 @@ class GroupVouchViewModel(application: Application) : AndroidViewModel(applicati
         _uiState.update { state ->
             val updated = state.members.map { current ->
                 if (current == member) {
-                    val isCustom = value.isNotBlank()
-                    current.copy(amount = value, isCustom = isCustom)
+                    current.copy(amount = value, isCustom = true)
                 } else {
                     current
                 }
             }
             state.copy(members = updated)
-        }
-        if (value.isBlank()) {
-            recomputeDefaultSplitAmounts()
         }
     }
 
@@ -176,16 +172,12 @@ class GroupVouchViewModel(application: Application) : AndroidViewModel(applicati
         _uiState.update { state ->
             val updated = state.members.map { member ->
                 if (member.personName == personName) {
-                    val isCustom = value.isNotBlank()
-                    member.copy(amount = value, isCustom = isCustom)
+                    member.copy(amount = value, isCustom = true)
                 } else {
                     member
                 }
             }
             state.copy(members = updated)
-        }
-        if (value.isBlank()) {
-            recomputeDefaultSplitAmounts()
         }
     }
 
@@ -211,52 +203,67 @@ class GroupVouchViewModel(application: Application) : AndroidViewModel(applicati
 
     fun resetAllToEqualSplit() {
         val totalAmount = CurrencyManager.parseToMinorUnits(_uiState.value.amount) ?: 0L
-        val memberCount = _uiState.value.members.size
-        if (memberCount == 0) return
-        val defaultSplit = computeDefaultSplitAmount(totalAmount, memberCount)
-        val formattedDefault = CurrencyManager.formatAmount(defaultSplit)
-        _uiState.update { current ->
-            val updated = current.members.map { member ->
-                member.copy(amount = formattedDefault, isCustom = false)
+        val members = _uiState.value.members
+        if (members.isEmpty()) return
+
+        val customMembers = members.filter { it.isCustom }
+        val nonCustomMembers = members.filterNot { it.isCustom }
+        val sumCustom = customMembers.sumOf { CurrencyManager.parseToMinorUnits(it.amount) ?: 0L }
+        val nonCustomCount = nonCustomMembers.size
+
+        if (nonCustomCount > 0) {
+            val remainingForNonCustom = (totalAmount - sumCustom).coerceAtLeast(0L)
+            val splitAmount = remainingForNonCustom / nonCustomCount
+            val formattedSplit = CurrencyManager.formatAmount(splitAmount)
+            _uiState.update { current ->
+                val updated = current.members.map { member ->
+                    if (member.isCustom) {
+                        member
+                    } else {
+                        member.copy(amount = formattedSplit, isCustom = false)
+                    }
+                }
+                current.copy(members = updated)
             }
-            current.copy(members = updated)
+        } else {
+            // If all members are custom, reset all to equal
+            val splitAmount = totalAmount / members.size
+            val formattedSplit = CurrencyManager.formatAmount(splitAmount)
+            _uiState.update { current ->
+                val updated = current.members.map { member ->
+                    member.copy(amount = formattedSplit, isCustom = false)
+                }
+                current.copy(members = updated)
+            }
         }
     }
 
     fun resetMemberToEqualSplit(member: GroupMemberInput) {
-        val totalAmount = CurrencyManager.parseToMinorUnits(_uiState.value.amount) ?: 0L
-        val memberCount = _uiState.value.members.size
-        if (memberCount == 0) return
-        val defaultSplit = computeDefaultSplitAmount(totalAmount, memberCount)
-        val formattedDefault = CurrencyManager.formatAmount(defaultSplit)
         _uiState.update { current ->
             val updated = current.members.map { currentMember ->
                 if (currentMember == member) {
-                    currentMember.copy(amount = formattedDefault, isCustom = false)
+                    currentMember.copy(isCustom = false)
                 } else {
                     currentMember
                 }
             }
             current.copy(members = updated)
         }
+        recomputeDefaultSplitAmounts()
     }
 
     fun resetMemberToEqualSplit(personName: String) {
-        val totalAmount = CurrencyManager.parseToMinorUnits(_uiState.value.amount) ?: 0L
-        val memberCount = _uiState.value.members.size
-        if (memberCount == 0) return
-        val defaultSplit = computeDefaultSplitAmount(totalAmount, memberCount)
-        val formattedDefault = CurrencyManager.formatAmount(defaultSplit)
         _uiState.update { current ->
             val updated = current.members.map { member ->
                 if (member.personName == personName) {
-                    member.copy(amount = formattedDefault, isCustom = false)
+                    member.copy(isCustom = false)
                 } else {
                     member
                 }
             }
             current.copy(members = updated)
         }
+        recomputeDefaultSplitAmounts()
     }
 
     suspend fun saveGroupVouches(): VouchWithPerson? {
@@ -356,20 +363,28 @@ class GroupVouchViewModel(application: Application) : AndroidViewModel(applicati
     private fun recomputeDefaultSplitAmounts() {
         val state = _uiState.value
         val totalAmount = CurrencyManager.parseToMinorUnits(state.amount) ?: 0L
-        val memberCount = state.members.size
-        if (memberCount == 0) return
+        val members = state.members
+        if (members.isEmpty()) return
 
-        val defaultSplit = computeDefaultSplitAmount(totalAmount, memberCount)
-        val formattedDefault = CurrencyManager.formatAmount(defaultSplit)
-        _uiState.update { current ->
-            val updated = current.members.map { member ->
-                if (member.isCustom) {
-                    member
-                } else {
-                    member.copy(amount = formattedDefault)
+        val customMembers = members.filter { it.isCustom }
+        val nonCustomMembers = members.filterNot { it.isCustom }
+        val sumCustom = customMembers.sumOf { CurrencyManager.parseToMinorUnits(it.amount) ?: 0L }
+        val nonCustomCount = nonCustomMembers.size
+
+        if (nonCustomCount > 0) {
+            val remainingForNonCustom = (totalAmount - sumCustom).coerceAtLeast(0L)
+            val defaultSplit = remainingForNonCustom / nonCustomCount
+            val formattedDefault = CurrencyManager.formatAmount(defaultSplit)
+            _uiState.update { current ->
+                val updated = current.members.map { member ->
+                    if (member.isCustom) {
+                        member
+                    } else {
+                        member.copy(amount = formattedDefault)
+                    }
                 }
+                current.copy(members = updated)
             }
-            current.copy(members = updated)
         }
     }
 

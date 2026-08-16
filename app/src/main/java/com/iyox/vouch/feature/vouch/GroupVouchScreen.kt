@@ -1,9 +1,11 @@
 package com.iyox.vouch.feature.vouch
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -46,7 +48,6 @@ import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -62,13 +63,17 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -278,12 +283,6 @@ private fun GroupVouchSummaryCard(
     val hasCustomSplit = members.any { it.isCustom }
     val isBalanced = remainingMinor == 0L && members.isNotEmpty()
 
-    val progressRatio = if (totalAmountMinor > 0) {
-        (sumAssignedMinor.toFloat() / totalAmountMinor.toFloat()).coerceIn(0f, 1f)
-    } else {
-        0f
-    }
-
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.largeIncreased,
@@ -365,18 +364,10 @@ private fun GroupVouchSummaryCard(
                 }
             }
 
-            LinearProgressIndicator(
-                progress = { progressRatio },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(8.dp)
-                    .clip(CircleShape),
-                color = when {
-                    isBalanced -> MaterialTheme.colorScheme.primary
-                    remainingMinor < 0L -> MaterialTheme.colorScheme.error
-                    else -> MaterialTheme.colorScheme.primary
-                },
-                trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
+            GroupVouchSplitSlider(
+                totalAmountMinor = totalAmountMinor,
+                members = members,
+                isOverallocated = remainingMinor < 0L
             )
 
             Row(
@@ -415,8 +406,8 @@ private fun GroupVouchSummaryCard(
                             CurrencyManager.formatAmountWithSymbol(remainingMinor)
                         ),
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontWeight = FontWeight.Medium
+                        color = if (isSystemInDarkTheme()) Color(0xFFFFC107) else Color(0xFFB45309),
+                        fontWeight = FontWeight.SemiBold
                     )
                 } else {
                     Text(
@@ -463,6 +454,91 @@ private fun GroupVouchSummaryCard(
                         fontWeight = FontWeight.Medium
                     )
                 }
+            }
+        }
+    }
+}
+
+private data class GroupSplitSection(
+    val amount: Long,
+    val color: Color
+)
+
+@Composable
+private fun GroupVouchSplitSlider(
+    totalAmountMinor: Long,
+    members: List<GroupMemberInput>,
+    isOverallocated: Boolean,
+    modifier: Modifier = Modifier
+) {
+    val trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
+    val fillColor = when {
+        isOverallocated -> MaterialTheme.colorScheme.error
+        else -> MaterialTheme.colorScheme.primary
+    }
+
+    Canvas(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(8.dp)
+            .clip(CircleShape)
+    ) {
+        val width = size.width
+        val height = size.height
+
+        val memberAmounts = members.map {
+            CurrencyManager.parseToMinorUnits(it.amount) ?: 0L
+        }
+        val sumAssignedMinor = memberAmounts.sum()
+        val remainingMinor = totalAmountMinor - sumAssignedMinor
+        val activeMembers = memberAmounts.filter { it > 0L }
+
+        val sections = mutableListOf<GroupSplitSection>()
+        for (amount in activeMembers) {
+            sections.add(GroupSplitSection(amount = amount, color = fillColor))
+        }
+        if (remainingMinor > 0L) {
+            sections.add(GroupSplitSection(amount = remainingMinor, color = trackColor))
+        }
+
+        if (sections.isEmpty()) {
+            drawRoundRect(
+                color = trackColor,
+                size = size,
+                cornerRadius = CornerRadius(height / 2f, height / 2f)
+            )
+            return@Canvas
+        }
+
+        val baseAmount =
+            if (sumAssignedMinor > totalAmountMinor) sumAssignedMinor else totalAmountMinor
+        val gap = if (sections.size > 1) 4.dp.toPx() else 0f
+        val totalGaps = (sections.size - 1) * gap
+        val availableWidth = (width - totalGaps).coerceAtLeast(0f)
+
+        var currentX = 0f
+
+        for (section in sections) {
+            val sectionWidth = if (baseAmount > 0L) {
+                (availableWidth * (section.amount.toFloat() / baseAmount.toFloat())).coerceAtLeast(
+                    0f
+                )
+            } else {
+                0f
+            }
+
+            if (sectionWidth > 0f) {
+                val segmentCornerRadius = CornerRadius(
+                    minOf(sectionWidth / 2f, height / 2f),
+                    height / 2f
+                )
+                drawRoundRect(
+                    color = section.color,
+                    topLeft = Offset(x = currentX, y = 0f),
+                    size = Size(width = sectionWidth, height = height),
+                    cornerRadius = segmentCornerRadius
+                )
+                currentX += sectionWidth + gap
             }
         }
     }

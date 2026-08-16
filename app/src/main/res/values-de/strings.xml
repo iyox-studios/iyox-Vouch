@@ -128,7 +128,7 @@
     <string name="group_vouch_per_person">%1$s / Person</string>
     <string name="group_vouch_custom_split">Individuell</string>
     <string name="group_vouch_equal_split">Gleichmäßig</string>
-    <string name="group_vouch_reset_equal">Gleichmäßig aufteilen</string>
+    <string name="group_vouch_reset_equal">Neu verteilen</string>
     <string name="group_vouch_add_member_placeholder">Name suchen oder eingeben…</string>
     <string name="group_vouch_create_cta">Gruppen-Vouch erstellen (%1$d)</string>
     <string name="group_vouch_empty_members_title">Personen zum Aufteilen hinzufügen</string>
