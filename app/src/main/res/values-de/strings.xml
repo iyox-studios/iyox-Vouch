@@ -59,7 +59,11 @@
     <string name="filter_given_received_short">Geg. &amp; Erh.</string>
 
     <string name="empty_vouches_prompt">Tippe auf +, um einen neuen Vouch hinzuzufügen</string>
+    <string name="empty_vouches_title">Noch keine Vouches</string>
+    <string name="empty_vouches_subtitle">Tippe auf +, um einen neuen Einzel- oder Gruppen-Vouch hinzuzufügen</string>
     <string name="empty_person_vouches">Keine Vouch für diese Person</string>
+    <string name="empty_people_title">Noch keine Personen</string>
+    <string name="empty_people_subtitle">Personen erscheinen hier, sobald du Vouches mit ihnen erstellst</string>
 
     <plurals name="vouch_count">
         <item quantity="one">%1$d Vouch</item>
