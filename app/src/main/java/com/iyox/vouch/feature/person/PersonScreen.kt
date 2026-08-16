@@ -38,7 +38,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -68,8 +67,7 @@ import com.iyox.vouch.core.currency.CurrencyManager
 import com.iyox.vouch.core.model.PersonTotal
 import com.iyox.vouch.core.model.VouchWithPerson
 import com.iyox.vouch.core.model.isSettledForPerson
-import com.iyox.vouch.core.utils.LocalSnackbarHostState
-import com.iyox.vouch.core.utils.rememberUndoCoordinator
+import com.iyox.vouch.core.utils.rememberToastManager
 import com.iyox.vouch.ui.components.VouchBackButton
 import com.iyox.vouch.ui.components.VouchBalanceHeroCard
 import com.iyox.vouch.ui.components.vouches.GroupVouchSingleItem
@@ -96,10 +94,10 @@ fun PersonScreen(
 
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
-    val snackbarHost = LocalSnackbarHostState.current
-    rememberUndoCoordinator()
+    val toastManager = rememberToastManager()
     val msgPersonSettled = stringResource(R.string.msg_person_settled)
     val msgVouchesNetted = stringResource(R.string.msg_vouches_netted)
+    val msgSettleFailed = stringResource(R.string.msg_settle_failed)
     val actionUndo = stringResource(R.string.action_undo)
 
     var showSettleDialog by remember { mutableStateOf(false) }
@@ -220,20 +218,26 @@ fun PersonScreen(
                 onDismiss = { showSettleDialog = false },
                 onConfirm = { fullySettle ->
                     showSettleDialog = false
-                    coroutineScope.launch {
-                        if (fullySettle) {
-                            val settled = viewModel.settlePerson()
-                            val result = snackbarHost.showSnackbar(msgPersonSettled, actionUndo)
-                            if (result == SnackbarResult.ActionPerformed) {
+                    if (fullySettle) {
+                        toastManager.executeWithUndo(
+                            message = msgPersonSettled,
+                            actionLabel = actionUndo,
+                            errorMessage = msgSettleFailed,
+                            performAction = { viewModel.settlePerson() },
+                            undoAction = { settled ->
                                 viewModel.undoSettlePerson(settled)
                             }
-                        } else {
-                            val (settled, nettingVouch) = viewModel.netVouches()
-                            val result = snackbarHost.showSnackbar(msgVouchesNetted, actionUndo)
-                            if (result == SnackbarResult.ActionPerformed) {
+                        )
+                    } else {
+                        toastManager.executeWithUndo(
+                            message = msgVouchesNetted,
+                            actionLabel = actionUndo,
+                            errorMessage = msgSettleFailed,
+                            performAction = { viewModel.netVouches() },
+                            undoAction = { (settled, nettingVouch) ->
                                 viewModel.undoNetVouches(settled, nettingVouch)
                             }
-                        }
+                        )
                     }
                 })
         }

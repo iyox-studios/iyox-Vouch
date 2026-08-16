@@ -26,8 +26,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.iyox.vouch.R
-import com.iyox.vouch.core.utils.LocalSnackbarHostState
-import com.iyox.vouch.core.utils.rememberUndoCoordinator
+import com.iyox.vouch.core.utils.rememberToastManager
 import com.iyox.vouch.ui.components.VouchBackButton
 import kotlinx.coroutines.launch
 
@@ -43,11 +42,12 @@ fun SingleVouchScreen(
     val uiState by viewModel.uiState.collectAsState()
 
     val coroutineScope = rememberCoroutineScope()
-    LocalSnackbarHostState.current
-    val undoCoordinator = rememberUndoCoordinator()
+    val toastManager = rememberToastManager()
     val focusManager = LocalFocusManager.current
     val amountFocusRequester = remember { FocusRequester() }
     val msgVouchCreated = stringResource(R.string.msg_vouch_created)
+    val msgSaveFailed = stringResource(R.string.msg_save_failed)
+    val actionUndo = stringResource(R.string.action_undo)
 
     LaunchedEffect(vouchId, edit, prefilledPersonName) {
         viewModel.loadVouch(vouchId, prefilledPersonName)
@@ -75,8 +75,10 @@ fun SingleVouchScreen(
                         modifier = Modifier.padding(end = 16.dp),
                         onClick = {
                             if (!edit) {
-                                undoCoordinator.executeWithUndo(
+                                toastManager.executeWithUndo(
                                     message = msgVouchCreated,
+                                    actionLabel = actionUndo,
+                                    errorMessage = msgSaveFailed,
                                     performAction = { viewModel.saveVouch() },
                                     undoAction = { savedVouch ->
                                         if (savedVouch != null) {
@@ -86,7 +88,11 @@ fun SingleVouchScreen(
                                 )
                             } else {
                                 coroutineScope.launch {
-                                    viewModel.saveVouch()
+                                    try {
+                                        viewModel.saveVouch()
+                                    } catch (e: Exception) {
+                                        toastManager.showError(msgSaveFailed)
+                                    }
                                 }
                             }
                         },

@@ -38,6 +38,17 @@ class PersonViewModel(application: Application) : AndroidViewModel(application) 
     private val _uiState = MutableStateFlow(PersonUiState())
     val uiState: StateFlow<PersonUiState> = _uiState.asStateFlow()
 
+    init {
+        viewModelScope.launch {
+            vouchRepository.dataUpdates.collect {
+                val personName = _uiState.value.personData?.person?.name
+                if (personName != null) {
+                    loadPerson(personName, false)
+                }
+            }
+        }
+    }
+
     val sharedActions = SharedVouchActions(vouchRepository) {
         val personName = _uiState.value.personData?.person?.name
         if (personName != null) {

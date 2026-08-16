@@ -76,11 +76,17 @@
     </plurals>
 
     <string name="msg_vouch_created">Vouch erstellt</string>
+    <string name="msg_group_vouch_created">Gruppen-Vouch erstellt</string>
     <string name="msg_vouch_settled">Vouch beglichen</string>
     <string name="msg_vouch_unsettled">Begleichung aufgehoben</string>
     <string name="msg_vouch_deleted">Vouch gelöscht</string>
     <string name="msg_person_settled">Person beglichen</string>
     <string name="msg_vouches_netted">Vouch verrechnet</string>
+    <string name="msg_save_failed">Vouch konnte nicht gespeichert werden</string>
+    <string name="msg_delete_failed">Vouch konnte nicht gelöscht werden</string>
+    <string name="msg_settle_failed">Vouch konnte nicht aktualisiert werden</string>
+    <string name="msg_all_data_deleted">Alle Daten gelöscht</string>
+    <string name="msg_delete_data_failed">Daten konnten nicht gelöscht werden</string>
 
     <string name="settle_person_message_with_detail">Alle Vouch mit dieser Person (gegeben und erhalten) werden beglichen.\n%1$s.</string>
     <string name="settle_person_message_no_detail">Alle Vouch mit dieser Person (gegeben und erhalten) werden beglichen.</string>

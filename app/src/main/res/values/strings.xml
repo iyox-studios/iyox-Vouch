@@ -85,11 +85,17 @@
     </plurals>
 
     <string name="msg_vouch_created">Vouch created</string>
+    <string name="msg_group_vouch_created">Group vouch created</string>
     <string name="msg_vouch_settled">Vouch settled</string>
     <string name="msg_vouch_unsettled">Vouch unsettled</string>
     <string name="msg_vouch_deleted">Vouch deleted</string>
     <string name="msg_person_settled">Person settled</string>
     <string name="msg_vouches_netted">Vouches netted</string>
+    <string name="msg_save_failed">Failed to save vouch</string>
+    <string name="msg_delete_failed">Failed to delete vouch</string>
+    <string name="msg_settle_failed">Failed to update vouch</string>
+    <string name="msg_all_data_deleted">All data deleted</string>
+    <string name="msg_delete_data_failed">Failed to delete data</string>
 
     <string name="settle_person_message_with_detail">All vouches with this person (given and received) will be settled.\n%1$s.</string>
     <string name="settle_person_message_no_detail">All vouches with this person (given and received) will be settled.</string>

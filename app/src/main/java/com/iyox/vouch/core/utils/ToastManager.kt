@@ -1,0 +1,120 @@
+package com.iyox.vouch.core.utils
+
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.SnackbarVisuals
+import androidx.compose.runtime.Composable
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+
+enum class ToastType {
+    INFO,
+    ERROR
+}
+
+data class VouchSnackbarVisuals(
+    override val message: String,
+    override val actionLabel: String? = null,
+    override val withDismissAction: Boolean = false,
+    override val duration: SnackbarDuration = SnackbarDuration.Short,
+    val type: ToastType = ToastType.INFO
+) : SnackbarVisuals
+
+class ToastManager(
+    val snackbarHostState: SnackbarHostState,
+    private val coroutineScope: CoroutineScope
+) {
+    fun show(
+        message: String,
+        type: ToastType = ToastType.INFO,
+        duration: SnackbarDuration = SnackbarDuration.Short
+    ) {
+        coroutineScope.launch {
+            snackbarHostState.currentSnackbarData?.dismiss()
+            snackbarHostState.showSnackbar(
+                VouchSnackbarVisuals(
+                    message = message,
+                    duration = duration,
+                    type = type
+                )
+            )
+        }
+    }
+
+    fun showInfo(
+        message: String,
+        actionLabel: String? = null,
+        duration: SnackbarDuration = SnackbarDuration.Short,
+        onAction: (() -> Unit)? = null
+    ) {
+        coroutineScope.launch {
+            snackbarHostState.currentSnackbarData?.dismiss()
+            val visuals = VouchSnackbarVisuals(
+                message = message,
+                actionLabel = actionLabel,
+                duration = duration,
+                type = ToastType.INFO
+            )
+            val result = snackbarHostState.showSnackbar(visuals)
+            if (result == SnackbarResult.ActionPerformed) {
+                onAction?.invoke()
+            }
+        }
+    }
+
+    fun showError(
+        message: String,
+        duration: SnackbarDuration = SnackbarDuration.Short
+    ) {
+        coroutineScope.launch {
+            snackbarHostState.currentSnackbarData?.dismiss()
+            snackbarHostState.showSnackbar(
+                VouchSnackbarVisuals(
+                    message = message,
+                    duration = duration,
+                    type = ToastType.ERROR
+                )
+            )
+        }
+    }
+
+    fun <T> executeWithUndo(
+        message: String,
+        actionLabel: String = "Undo",
+        errorMessage: String? = null,
+        performAction: suspend () -> T,
+        undoAction: suspend (T) -> Unit
+    ) {
+        coroutineScope.launch {
+            try {
+                val resultData = performAction()
+                if (resultData == null) {
+                    return@launch
+                }
+                snackbarHostState.currentSnackbarData?.dismiss()
+                val visuals = VouchSnackbarVisuals(
+                    message = message,
+                    actionLabel = actionLabel,
+                    duration = SnackbarDuration.Short,
+                    type = ToastType.INFO
+                )
+                val snackbarResult = snackbarHostState.showSnackbar(visuals)
+                if (snackbarResult == SnackbarResult.ActionPerformed) {
+                    try {
+                        undoAction(resultData)
+                    } catch (e: Exception) {
+                        showError(errorMessage ?: "Operation failed")
+                    }
+                }
+            } catch (e: Exception) {
+                showError(errorMessage ?: "Operation failed")
+            }
+        }
+    }
+}
+
+@Composable
+fun rememberToastManager(): ToastManager {
+    return LocalToastManager.current
+}

@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.iyox.vouch.core.currency.CurrencyManager
 import com.iyox.vouch.core.data.PersonRepository
 import com.iyox.vouch.core.data.VouchRepository
+import com.iyox.vouch.core.domain.SharedVouchActions
 import com.iyox.vouch.core.model.Person
 import com.iyox.vouch.core.model.PersonTotal
 import com.iyox.vouch.core.model.PersonWithAmount
@@ -44,6 +45,8 @@ data class GroupVouchUiState(
 class GroupVouchViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = VouchRepository.getInstance(application)
     private val personRepository = PersonRepository.getInstance(application)
+
+    val sharedActions = SharedVouchActions(repository) {}
 
     private var searchJob: Job? = null
     private var editingVouchId: Int? = null
@@ -256,12 +259,17 @@ class GroupVouchViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
-    fun saveGroupVouches() {
+    suspend fun saveGroupVouches(): VouchWithPerson? {
         val currentState = _uiState.value
-        val totalAmount = CurrencyManager.parseToMinorUnits(currentState.amount) ?: return
+        val totalAmount = CurrencyManager.parseToMinorUnits(currentState.amount)
+        if (totalAmount == null) {
+            _uiState.update { it.copy(saveSuccess = false) }
+            return null
+        }
         val nonSelfMembers = currentState.members.filterNot { it.isSelf }
         if (nonSelfMembers.size < 2) {
-            return
+            _uiState.update { it.copy(saveSuccess = false) }
+            return null
         }
 
         val defaultSplit = computeDefaultSplitAmount(totalAmount, currentState.members.size)
@@ -273,7 +281,8 @@ class GroupVouchViewModel(application: Application) : AndroidViewModel(applicati
                 defaultSplit
             }
             if (amount == null) {
-                return
+                _uiState.update { it.copy(saveSuccess = false) }
+                return null
             }
             otherMemberAmounts += member.personName to amount
         }
@@ -281,35 +290,36 @@ class GroupVouchViewModel(application: Application) : AndroidViewModel(applicati
         // The created vouch amount represents the total amount owed by / to the others (excluding self)
         val vouchTotalAmount = otherMemberAmounts.sumOf { it.second }
 
-        viewModelScope.launch {
-            if (editingVouchId != null && originalVouch != null) {
-                val updatedVouch = originalVouch!!.copy(
-                    vouch = originalVouch!!.vouch.copy(
-                        amount = vouchTotalAmount,
-                        description = currentState.description.trim(),
-                        given = currentState.given
-                    ),
-                    persons = otherMemberAmounts.map { (personName, amount) ->
-                        PersonWithAmount(Person(name = personName), amount)
-                    }
-                )
-                repository.update(updatedVouch)
-            } else {
-                val vouch = VouchWithPerson(
-                    vouch = Vouch(
-                        id = 0,
-                        amount = vouchTotalAmount,
-                        description = currentState.description.trim(),
-                        given = currentState.given
-                    ),
-                    persons = otherMemberAmounts.map { (personName, amount) ->
-                        PersonWithAmount(Person(name = personName), amount)
-                    }
-                )
-                repository.insert(vouch)
-            }
-            _uiState.update { it.copy(saveSuccess = true) }
+        val savedVouch: VouchWithPerson?
+        if (editingVouchId != null && originalVouch != null) {
+            val updatedVouch = originalVouch!!.copy(
+                vouch = originalVouch!!.vouch.copy(
+                    amount = vouchTotalAmount,
+                    description = currentState.description.trim(),
+                    given = currentState.given
+                ),
+                persons = otherMemberAmounts.map { (personName, amount) ->
+                    PersonWithAmount(Person(name = personName), amount)
+                }
+            )
+            repository.update(updatedVouch)
+            savedVouch = updatedVouch
+        } else {
+            val vouch = VouchWithPerson(
+                vouch = Vouch(
+                    id = 0,
+                    amount = vouchTotalAmount,
+                    description = currentState.description.trim(),
+                    given = currentState.given
+                ),
+                persons = otherMemberAmounts.map { (personName, amount) ->
+                    PersonWithAmount(Person(name = personName), amount)
+                }
+            )
+            savedVouch = repository.insert(vouch)
         }
+        _uiState.update { it.copy(saveSuccess = true) }
+        return savedVouch
     }
 
     fun resetSaveSuccess() {

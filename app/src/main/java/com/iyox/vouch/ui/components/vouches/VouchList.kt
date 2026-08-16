@@ -18,7 +18,7 @@ import com.iyox.vouch.R
 import com.iyox.vouch.core.domain.SharedVouchActions
 import com.iyox.vouch.core.model.VouchWithPerson
 import com.iyox.vouch.core.model.isSettled
-import com.iyox.vouch.core.utils.rememberUndoCoordinator
+import com.iyox.vouch.core.utils.rememberToastManager
 
 /**
  * Displays a list of vouches with swipe-to-dismiss and edit capabilities.
@@ -43,10 +43,13 @@ fun VouchList(
     groupSingleContextPersonId: Int? = null,
     contentPadding: PaddingValues = PaddingValues(16.dp)
 ) {
-    val undoCoordinator = rememberUndoCoordinator()
+    val toastManager = rememberToastManager()
     val msgVouchUnsettled = stringResource(R.string.msg_vouch_unsettled)
     val msgVouchDeleted = stringResource(R.string.msg_vouch_deleted)
     val msgVouchSettled = stringResource(R.string.msg_vouch_settled)
+    val msgSettleFailed = stringResource(R.string.msg_settle_failed)
+    val msgDeleteFailed = stringResource(R.string.msg_delete_failed)
+    val actionUndo = stringResource(R.string.action_undo)
     LazyColumn(
         state = listState,
         modifier = Modifier
@@ -100,15 +103,19 @@ fun VouchList(
                             person = vouch.persons.find { it.person.id == groupSingleContextPersonId }?.person,
                             canSettle = !settled,
                             onSettle = {
-                                undoCoordinator.executeWithUndo(
+                                toastManager.executeWithUndo(
                                     message = settleMessage,
+                                    actionLabel = actionUndo,
+                                    errorMessage = msgSettleFailed,
                                     performAction = settleAction,
                                     undoAction = undoSettleAction
                                 )
                             },
                             onDelete = {
-                                undoCoordinator.executeWithUndo(
+                                toastManager.executeWithUndo(
                                     message = msgVouchDeleted,
+                                    actionLabel = actionUndo,
+                                    errorMessage = msgDeleteFailed,
                                     performAction = { sharedVouchActions.deleteVouch(vouch.vouch.id) },
                                     undoAction = { _: Unit -> sharedVouchActions.addVouch(vouch) }
                                 )
@@ -120,15 +127,19 @@ fun VouchList(
                             vouch = vouch,
                             canSettle = !settled,
                             onSettle = {
-                                undoCoordinator.executeWithUndo(
+                                toastManager.executeWithUndo(
                                     message = settleMessage,
+                                    actionLabel = actionUndo,
+                                    errorMessage = msgSettleFailed,
                                     performAction = settleAction,
                                     undoAction = undoSettleAction
                                 )
                             },
                             onDelete = {
-                                undoCoordinator.executeWithUndo(
+                                toastManager.executeWithUndo(
                                     message = msgVouchDeleted,
+                                    actionLabel = actionUndo,
+                                    errorMessage = msgDeleteFailed,
                                     performAction = { sharedVouchActions.deleteVouch(vouch.vouch.id) },
                                     undoAction = { _: Unit -> sharedVouchActions.addVouch(vouch) }
                                 )
@@ -141,15 +152,19 @@ fun VouchList(
                         vouch = vouch,
                         canSettle = !settled,
                         onSettle = {
-                            undoCoordinator.executeWithUndo(
+                            toastManager.executeWithUndo(
                                 message = settleMessage,
+                                actionLabel = actionUndo,
+                                errorMessage = msgSettleFailed,
                                 performAction = settleAction,
                                 undoAction = undoSettleAction
                             )
                         },
                         onDelete = {
-                            undoCoordinator.executeWithUndo(
+                            toastManager.executeWithUndo(
                                 message = msgVouchDeleted,
+                                actionLabel = actionUndo,
+                                errorMessage = msgDeleteFailed,
                                 performAction = { sharedVouchActions.deleteVouch(vouch.vouch.id) },
                                 undoAction = { _: Unit -> sharedVouchActions.addVouch(vouch) }
                             )

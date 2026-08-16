@@ -7,3 +7,7 @@ val LocalSnackbarHostState = compositionLocalOf<SnackbarHostState> {
     error("No SnackbarHostState provided")
 }
 
+val LocalToastManager = compositionLocalOf<ToastManager> {
+    error("No ToastManager provided")
+}
+
