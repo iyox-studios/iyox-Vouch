@@ -39,6 +39,7 @@ fun VouchList(
     innerPadding: PaddingValues,
     sharedVouchActions: SharedVouchActions,
     onEdit: (Int, Boolean) -> Unit,
+    onNavigateToPerson: (String) -> Unit = {},
     isSettled: (VouchWithPerson) -> Boolean = { it.isSettled() },
     groupSingleContextPersonId: Int? = null,
     contentPadding: PaddingValues = PaddingValues(16.dp)
@@ -183,7 +184,8 @@ fun VouchList(
                                 undoAction = { _: Unit -> sharedVouchActions.restoreVouch(vouch) }
                             )
                         },
-                        onEdit = { onEdit(vouch.vouch.id, false) }
+                        onEdit = { onEdit(vouch.vouch.id, false) },
+                        onPersonClick = onNavigateToPerson
                     )
                 }
             }

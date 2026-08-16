@@ -57,7 +57,8 @@ fun VouchesScreen(
     viewModel: VouchesViewModel = viewModel(),
     onNavigateToAddVouch: () -> Unit = {},
     onNavigateToAddGroupVouch: () -> Unit = {},
-    onNavigateToEditVouch: (Int, Boolean) -> Unit = { _, _ -> }
+    onNavigateToEditVouch: (Int, Boolean) -> Unit = { _, _ -> },
+    onNavigateToPerson: (String) -> Unit = {}
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
 
@@ -177,7 +178,8 @@ fun VouchesScreen(
                     listState = listState,
                     innerPadding = PaddingValues(0.dp),
                     sharedVouchActions = viewModel.sharedActions,
-                    onEdit = onNavigateToEditVouch
+                    onEdit = onNavigateToEditVouch,
+                    onNavigateToPerson = onNavigateToPerson
                 )
             }
         }
