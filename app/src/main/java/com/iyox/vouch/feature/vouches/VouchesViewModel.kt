@@ -73,6 +73,11 @@ class VouchesViewModel(application: Application) : AndroidViewModel(application)
 
     init {
         loadVouches()
+        viewModelScope.launch {
+            repository.dataUpdates.collect {
+                loadVouches()
+            }
+        }
     }
 
     fun loadVouches() {

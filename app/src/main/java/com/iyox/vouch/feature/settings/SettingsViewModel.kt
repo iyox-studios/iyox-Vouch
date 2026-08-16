@@ -7,7 +7,7 @@ import android.content.Context
 import android.net.Uri
 import android.os.Build
 import android.os.LocaleList
-import android.widget.Toast
+import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.edit
 import androidx.lifecycle.AndroidViewModel
@@ -28,9 +28,12 @@ import com.iyox.vouch.core.model.Person
 import com.iyox.vouch.core.model.Vouch
 import com.iyox.vouch.core.model.VouchPersonCrossRef
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -38,6 +41,11 @@ import java.io.InputStreamReader
 import java.io.OutputStreamWriter
 import java.lang.reflect.Type
 import java.sql.Timestamp
+
+sealed interface ToastEvent {
+    data class Info(@field:StringRes val messageRes: Int) : ToastEvent
+    data class Error(@field:StringRes val messageRes: Int) : ToastEvent
+}
 
 data class SettingsUiState(
     val theme: Int,
@@ -58,6 +66,9 @@ data class ExportVouch(
 )
 
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
+
+    private val _toastEvents = MutableSharedFlow<ToastEvent>()
+    val toastEvents: SharedFlow<ToastEvent> = _toastEvents.asSharedFlow()
 
     val uiModeManager = application.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
     private val prefs = application.getSharedPreferences("settings", Context.MODE_PRIVATE)
@@ -193,22 +204,10 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                         writer.write(json)
                     }
                 }
-                launch(Dispatchers.Main) {
-                    Toast.makeText(
-                        app,
-                        app.getString(R.string.toast_export_success),
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
+                _toastEvents.emit(ToastEvent.Info(R.string.toast_export_success))
             } catch (e: Exception) {
                 e.printStackTrace()
-                launch(Dispatchers.Main) {
-                    Toast.makeText(
-                        getApplication(),
-                        getApplication<Application>().getString(R.string.toast_export_failed),
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
+                _toastEvents.emit(ToastEvent.Error(R.string.toast_export_failed))
             }
         }
     }
@@ -250,22 +249,23 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                         }
                     }
                 }
-                launch(Dispatchers.Main) {
-                    Toast.makeText(
-                        app,
-                        app.getString(R.string.toast_import_success),
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
+                _toastEvents.emit(ToastEvent.Info(R.string.toast_import_success))
             } catch (e: Exception) {
                 e.printStackTrace()
-                launch(Dispatchers.Main) {
-                    Toast.makeText(
-                        getApplication(),
-                        getApplication<Application>().getString(R.string.toast_import_failed),
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
+                _toastEvents.emit(ToastEvent.Error(R.string.toast_import_failed))
+            }
+        }
+    }
+
+    fun deleteAllData() {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                database.vouchDataDao().deleteAll()
+                database.personDao().deleteAll()
+                _toastEvents.emit(ToastEvent.Info(R.string.msg_all_data_deleted))
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _toastEvents.emit(ToastEvent.Error(R.string.msg_delete_data_failed))
             }
         }
     }

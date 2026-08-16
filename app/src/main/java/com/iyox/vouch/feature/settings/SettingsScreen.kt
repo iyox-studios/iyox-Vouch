@@ -47,6 +47,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -55,6 +56,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -62,6 +64,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.iyox.vouch.R
 import com.iyox.vouch.core.currency.CurrencyManager
+import com.iyox.vouch.core.utils.rememberToastManager
 import com.iyox.vouch.ui.components.PageHeader
 
 data class SupportedLanguage(
@@ -78,6 +81,18 @@ private val supportedLanguages = listOf(
 @Composable
 fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+    val toastManager = rememberToastManager()
+
+    LaunchedEffect(viewModel) {
+        viewModel.toastEvents.collect { event ->
+            when (event) {
+                is ToastEvent.Info -> toastManager.showInfo(context.getString(event.messageRes))
+                is ToastEvent.Error -> toastManager.showError(context.getString(event.messageRes))
+            }
+        }
+    }
+
     var showThemeDropdown by remember { mutableStateOf(false) }
     var showLanguageDropdown by remember { mutableStateOf(false) }
     var showCurrencyDialog by remember { mutableStateOf(false) }

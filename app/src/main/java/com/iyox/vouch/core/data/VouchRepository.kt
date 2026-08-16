@@ -6,12 +6,22 @@ import com.iyox.vouch.core.model.Person
 import com.iyox.vouch.core.model.PersonWithAmount
 import com.iyox.vouch.core.model.VouchPersonCrossRef
 import com.iyox.vouch.core.model.VouchWithPerson
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 
 class VouchRepository private constructor(context: Context) {
 
     private val database = AppDatabase.getDatabase(context)
     private val vouchDataDao = database.vouchDataDao()
     private val personDataDao = database.personDao()
+
+    private val _dataUpdates = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    val dataUpdates: SharedFlow<Unit> = _dataUpdates.asSharedFlow()
+
+    fun notifyDataChanged() {
+        _dataUpdates.tryEmit(Unit)
+    }
 
     suspend fun getAll(): List<VouchWithPerson> {
         return database.withTransaction {
@@ -35,7 +45,7 @@ class VouchRepository private constructor(context: Context) {
     }
 
     suspend fun insert(vouchWithPerson: VouchWithPerson): VouchWithPerson {
-        return database.withTransaction {
+        val result = database.withTransaction {
             val newVouchId = vouchDataDao.insert(vouchWithPerson.vouch).toInt()
 
             upsertCrossRefs(newVouchId, vouchWithPerson.persons, deleteExisting = false)
@@ -45,6 +55,8 @@ class VouchRepository private constructor(context: Context) {
                 persons = vouchDataDao.getPersonsForVouch(newVouchId)
             )
         }
+        notifyDataChanged()
+        return result
     }
 
     suspend fun delete(vouchId: Int) {
@@ -52,6 +64,7 @@ class VouchRepository private constructor(context: Context) {
             vouchDataDao.deleteById(vouchId) //also deletes cross refs by cascade
             personDataDao.deletePersonsWithoutVouches()
         }
+        notifyDataChanged()
     }
 
     suspend fun update(newVouch: VouchWithPerson) {
@@ -60,18 +73,21 @@ class VouchRepository private constructor(context: Context) {
             upsertCrossRefs(newVouch.vouch.id, newVouch.persons, deleteExisting = true)
             personDataDao.deletePersonsWithoutVouches()
         }
+        notifyDataChanged()
     }
 
     suspend fun setVouchSettled(vouchId: Int, settled: Boolean) {
         database.withTransaction {
             vouchDataDao.updateCrossRefsSettledByVouchId(vouchId, settled)
         }
+        notifyDataChanged()
     }
 
     suspend fun setPersonSettlement(vouchId: Int, personId: Int, settled: Boolean) {
         database.withTransaction {
             vouchDataDao.updateCrossRefSettlement(vouchId, personId, settled)
         }
+        notifyDataChanged()
     }
 
     private suspend fun upsertCrossRefs(

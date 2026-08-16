@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.iyox.vouch.core.data.PersonRepository
+import com.iyox.vouch.core.data.VouchRepository
 import com.iyox.vouch.core.model.PersonTotal
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -19,6 +20,7 @@ data class PersonsUiState(
 
 class PersonsViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = PersonRepository.getInstance(application)
+    private val vouchRepository = VouchRepository.getInstance(application)
 
     private val _persons = MutableStateFlow<List<PersonTotal>>(emptyList())
     private val _showOnlyNonZero = MutableStateFlow(true)
@@ -42,6 +44,11 @@ class PersonsViewModel(application: Application) : AndroidViewModel(application)
 
     init {
         loadPersons()
+        viewModelScope.launch {
+            vouchRepository.dataUpdates.collect {
+                loadPersons()
+            }
+        }
     }
 
     fun toggleShowOnlyNonZero() {

@@ -63,6 +63,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -82,7 +83,9 @@ import com.iyox.vouch.R
 import com.iyox.vouch.core.currency.CurrencyManager
 import com.iyox.vouch.core.model.Person
 import com.iyox.vouch.core.model.PersonTotal
+import com.iyox.vouch.core.utils.rememberToastManager
 import com.iyox.vouch.ui.components.VouchBackButton
+import kotlinx.coroutines.launch
 import kotlin.math.abs
 
 private const val STEP_DETAILS = 1
@@ -97,8 +100,13 @@ fun GroupVouchScreen(
     onNavigateBack: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val coroutineScope = rememberCoroutineScope()
+    val toastManager = rememberToastManager()
     val focusManager = LocalFocusManager.current
     val amountFocusRequester = remember { FocusRequester() }
+    val msgGroupVouchCreated = stringResource(R.string.msg_group_vouch_created)
+    val msgSaveFailed = stringResource(R.string.msg_save_failed)
+    val actionUndo = stringResource(R.string.action_undo)
 
     LaunchedEffect(vouchId, edit) {
         viewModel.loadVouch(vouchId)
@@ -136,7 +144,29 @@ fun GroupVouchScreen(
                     } else {
                         Button(
                             modifier = Modifier.padding(end = 16.dp),
-                            onClick = viewModel::saveGroupVouches,
+                            onClick = {
+                                if (!edit) {
+                                    toastManager.executeWithUndo(
+                                        message = msgGroupVouchCreated,
+                                        actionLabel = actionUndo,
+                                        errorMessage = msgSaveFailed,
+                                        performAction = { viewModel.saveGroupVouches() },
+                                        undoAction = { savedVouch ->
+                                            if (savedVouch != null) {
+                                                viewModel.sharedActions.deleteVouch(savedVouch.vouch.id)
+                                            }
+                                        }
+                                    )
+                                } else {
+                                    coroutineScope.launch {
+                                        try {
+                                            viewModel.saveGroupVouches()
+                                        } catch (e: Exception) {
+                                            toastManager.showError(msgSaveFailed)
+                                        }
+                                    }
+                                }
+                            },
                             enabled = uiState.members.count { !it.isSelf } >= 2
                         ) {
                             Text(
