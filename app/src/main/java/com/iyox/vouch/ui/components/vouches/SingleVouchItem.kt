@@ -30,6 +30,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.iyox.vouch.R
 import com.iyox.vouch.core.currency.CurrencyManager
 import com.iyox.vouch.core.model.VouchWithPerson
@@ -55,6 +56,13 @@ fun SingleVouchItem(
     }
     val deleteLabel = stringResource(R.string.action_delete)
     val personName = vouch.persons.firstOrNull()?.person?.name
+    val hasDescription = vouch.vouch.description.isNotBlank()
+    val descriptionText = if (hasDescription) {
+        vouch.vouch.description
+    } else {
+        stringResource(R.string.label_no_description)
+    }
+    val formattedDate = dateFormat.format(vouch.vouch.timestamp)
 
     val content = @Composable {
         Card(
@@ -96,41 +104,53 @@ fun SingleVouchItem(
                 ) {
                     Text(
                         text = CurrencyManager.formatAmountWithSymbol(vouch.vouch.amount),
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp),
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = vouch.vouch.description.ifBlank { dateFormat.format(vouch.vouch.timestamp) },
+                        text = descriptionText,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = if (hasDescription) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.outline,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                 }
 
-                if (!personName.isNullOrBlank()) {
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Surface(
-                        shape = CircleShape,
-                        color = MaterialTheme.colorScheme.surfaceContainerHigh
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                Spacer(modifier = Modifier.width(12.dp))
+
+                Column(
+                    horizontalAlignment = Alignment.End,
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    if (!personName.isNullOrBlank()) {
+                        Surface(
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.surfaceContainerHigh
                         ) {
-                            PersonAvatar(name = personName, size = 20.dp)
-                            Text(
-                                text = personName,
-                                style = MaterialTheme.typography.labelLarge,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
+                            Row(
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                PersonAvatar(name = personName, size = 18.dp)
+                                Text(
+                                    text = personName,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
                         }
                     }
+                    Text(
+                        text = formattedDate,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.outline,
+                        maxLines = 1
+                    )
                 }
             }
         }

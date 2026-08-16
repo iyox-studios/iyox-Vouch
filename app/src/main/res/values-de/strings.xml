@@ -44,6 +44,7 @@
     <string name="placeholder_amount">0.00</string>
     <string name="label_person">Person</string>
     <string name="label_description">Beschreibung</string>
+    <string name="label_no_description">Keine Beschreibung</string>
     <string name="label_given">Gegeben</string>
     <string name="label_received">Erhalten</string>
     <string name="label_total_balance">Gesamtsaldo</string>
@@ -123,7 +124,7 @@
     <string name="group_vouch_empty_members_subtitle">Suche vorhandene Kontakte oder tippe einen neuen Namen ein, um den Betrag aufzuteilen.</string>
     <string name="group_vouch_self_member">Ich</string>
 
-    <string name="format_vouch_date">dd. MMM yyyy HH:mm</string>
+    <string name="format_vouch_date">dd. MMM yyyy</string>
     <string name="amount_euro">%1$s€</string>
     <string name="settings_lang_en">English</string>
     <string name="settings_lang_de">Deutsch</string>
