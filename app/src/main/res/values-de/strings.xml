@@ -27,9 +27,9 @@
     <string name="settings_currency">Währung</string>
     <string name="settings_currency_subtitle">App-weite Währung für alle Vouches</string>
     <string name="settings_section_data">Daten</string>
-    <string name="settings_export_data">Daten exportieren</string>
+    <string name="settings_export_data">Exportieren</string>
     <string name="settings_export_data_subtitle">Deine Daten in eine Datei speichern</string>
-    <string name="settings_import_data">Daten importieren</string>
+    <string name="settings_import_data">Importieren</string>
     <string name="settings_import_data_subtitle">Daten aus einer Datei wiederherstellen</string>
     <string name="settings_app_version">App-Version</string>
 
@@ -100,6 +100,7 @@
     <string name="share_vouch_summary_title">Vouchübersicht teilen</string>
     <string name="vouch_summary_label">Vouchübersicht</string>
     <string name="title_add_group_vouch">Gruppen-Vouch hinzufügen</string>
+    <string name="action_add_group_vouch">Gruppen-Vouch hinzufügen</string>
     <string name="action_continue">Weiter</string>
     <string name="action_create">Erstellen</string>
     <string name="action_add_person">Person hinzufügen</string>
@@ -128,4 +129,5 @@
     <string name="amount_euro">%1$s€</string>
     <string name="settings_lang_en">English</string>
     <string name="settings_lang_de">Deutsch</string>
+    <string name="action_add_vouch">Vouch hinzufügen</string>
 </resources>

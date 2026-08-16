@@ -260,7 +260,7 @@ class GroupVouchViewModel(application: Application) : AndroidViewModel(applicati
         val currentState = _uiState.value
         val totalAmount = CurrencyManager.parseToMinorUnits(currentState.amount) ?: return
         val nonSelfMembers = currentState.members.filterNot { it.isSelf }
-        if (nonSelfMembers.isEmpty()) {
+        if (nonSelfMembers.size < 2) {
             return
         }
 
