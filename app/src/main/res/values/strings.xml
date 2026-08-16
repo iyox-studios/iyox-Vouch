@@ -67,7 +67,11 @@
     <string name="filter_given_received_short">Giv. &amp; Rec.</string>
 
     <string name="empty_vouches_prompt">Tap + to add a new vouch</string>
+    <string name="empty_vouches_title">No vouches yet</string>
+    <string name="empty_vouches_subtitle">Tap + to add a single or group vouch</string>
     <string name="empty_person_vouches">No vouches for this person</string>
+    <string name="empty_people_title">No people yet</string>
+    <string name="empty_people_subtitle">People will appear here once you add vouches with them</string>
     <string name="empty_group_members">Add people to split the amount</string>
 
     <plurals name="vouch_count">
