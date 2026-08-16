@@ -199,7 +199,7 @@ fun GroupVouchSingleItem(
         VouchSwipeToDismiss(
             enableDismissFromStartToEnd = true,
             onStartToEnd = onSettle,
-            enableDismissFromEndToStart = false,
+            enableDismissFromEndToStart = true,
             onEndToStart = onDelete,
             settleText = settleLabel,
             deleteText = deleteLabel
@@ -210,7 +210,7 @@ fun GroupVouchSingleItem(
         VouchSwipeToDismiss(
             enableDismissFromStartToEnd = true,
             onStartToEnd = onSettle,
-            enableDismissFromEndToStart = false,
+            enableDismissFromEndToStart = true,
             onEndToStart = onDelete,
             settleText = settleLabel,
             deleteText = deleteLabel

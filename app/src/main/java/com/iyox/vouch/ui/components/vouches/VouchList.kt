@@ -116,8 +116,13 @@ fun VouchList(
                                     message = msgVouchDeleted,
                                     actionLabel = actionUndo,
                                     errorMessage = msgDeleteFailed,
-                                    performAction = { sharedVouchActions.deleteVouch(vouch.vouch.id) },
-                                    undoAction = { _: Unit -> sharedVouchActions.addVouch(vouch) }
+                                    performAction = {
+                                        sharedVouchActions.deletePersonFromVouch(
+                                            vouchId = vouch.vouch.id,
+                                            personId = groupSingleContextPersonId!!
+                                        )
+                                    },
+                                    undoAction = { _: Unit -> sharedVouchActions.restoreVouch(vouch) }
                                 )
                             },
                             onEdit = { onEdit(vouch.vouch.id, true) }
@@ -141,7 +146,7 @@ fun VouchList(
                                     actionLabel = actionUndo,
                                     errorMessage = msgDeleteFailed,
                                     performAction = { sharedVouchActions.deleteVouch(vouch.vouch.id) },
-                                    undoAction = { _: Unit -> sharedVouchActions.addVouch(vouch) }
+                                    undoAction = { _: Unit -> sharedVouchActions.restoreVouch(vouch) }
                                 )
                             },
                             onEdit = { onEdit(vouch.vouch.id, true) }
@@ -165,8 +170,17 @@ fun VouchList(
                                 message = msgVouchDeleted,
                                 actionLabel = actionUndo,
                                 errorMessage = msgDeleteFailed,
-                                performAction = { sharedVouchActions.deleteVouch(vouch.vouch.id) },
-                                undoAction = { _: Unit -> sharedVouchActions.addVouch(vouch) }
+                                performAction = {
+                                    if (groupSingleContextPersonId != null) {
+                                        sharedVouchActions.deletePersonFromVouch(
+                                            vouchId = vouch.vouch.id,
+                                            personId = groupSingleContextPersonId
+                                        )
+                                    } else {
+                                        sharedVouchActions.deleteVouch(vouch.vouch.id)
+                                    }
+                                },
+                                undoAction = { _: Unit -> sharedVouchActions.restoreVouch(vouch) }
                             )
                         },
                         onEdit = { onEdit(vouch.vouch.id, false) }
