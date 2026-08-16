@@ -4,10 +4,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListState
@@ -46,7 +44,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.iyox.vouch.R
 import com.iyox.vouch.core.utils.rememberUndoCoordinator
 import com.iyox.vouch.ui.components.PageHeader
-import com.iyox.vouch.ui.components.VouchBalanceHeroCard
 import com.iyox.vouch.ui.components.vouches.VouchList
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -82,7 +79,16 @@ fun VouchesScreen(
 
     Scaffold(
         topBar = {
-            PageHeader(stringResource(R.string.screen_vouches))
+            PageHeader(stringResource(R.string.screen_vouches)) {
+                VouchFilterRow(
+                    sortedBy = uiState.sortedBy,
+                    showOnlyGiven = uiState.showOnlyGiven,
+                    showOnlyUnsettled = uiState.showOnlyUnsettled,
+                    onToggleSort = viewModel::toggleSortedBy,
+                    onToggleGiven = viewModel::toggleShowOnlyGiven,
+                    onToggleUnsettled = viewModel::toggleShowOnlyUnsettled
+                )
+            }
         },
         floatingActionButton = {
             FloatingActionButtonMenu(
@@ -122,32 +128,6 @@ fun VouchesScreen(
                 .fillMaxSize()
                 .padding(top = innerPadding.calculateTopPadding())
         ) {
-            Spacer(modifier = Modifier.height(12.dp))
-
-            VouchBalanceHeroCard(
-                amountGiven = uiState.totalGiven,
-                amountOwed = uiState.totalOwed,
-                total = uiState.netTotal
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .padding(bottom = 8.dp)
-            ) {
-                VouchFilterRow(
-                    sortedBy = uiState.sortedBy,
-                    showOnlyGiven = uiState.showOnlyGiven,
-                    showOnlyUnsettled = uiState.showOnlyUnsettled,
-                    onToggleSort = viewModel::toggleSortedBy,
-                    onToggleGiven = viewModel::toggleShowOnlyGiven,
-                    onToggleUnsettled = viewModel::toggleShowOnlyUnsettled
-                )
-            }
-
             if (uiState.vouches.isEmpty()) {
                 Box(
                     modifier = Modifier
