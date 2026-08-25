@@ -33,7 +33,6 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="content" />
                 <data android:scheme="file" />
-                <data android:host="*" />
                 <data android:mimeType="application/x-iyxv" />
             </intent-filter>
 
@@ -44,8 +43,8 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="content" />
                 <data android:scheme="file" />
-                <data android:host="*" />
                 <data android:mimeType="*/*" />
+                <data android:mimeType="application/*" />
                 <data android:mimeType="application/octet-stream" />
                 <data android:mimeType="application/json" />
                 <data android:mimeType="text/plain" />
@@ -64,7 +63,6 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="content" />
                 <data android:scheme="file" />
-                <data android:host="*" />
                 <data android:pathPattern=".*\\.iyxv" />
                 <data android:pathPattern=".*\\..*\\.iyxv" />
                 <data android:pathPattern=".*\\..*\\..*\\.iyxv" />

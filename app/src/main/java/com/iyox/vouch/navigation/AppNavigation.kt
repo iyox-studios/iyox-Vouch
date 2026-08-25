@@ -47,7 +47,10 @@ data class NavigationItem(
 )
 
 @Composable
-fun AppNavigation(snackbarHost: @Composable (() -> Unit) = {}) {
+fun AppNavigation(
+    snackbarHost: @Composable (() -> Unit) = {},
+    settingsViewModel: SettingsViewModel = viewModel()
+) {
     val navController = rememberNavController()
     val haptic = LocalHapticFeedback.current
 
@@ -129,9 +132,7 @@ fun AppNavigation(snackbarHost: @Composable (() -> Unit) = {}) {
                     navController.navigate(Screen.ViewPerson.createRoute(personName))
                 })
             }
-            composable(Screen.Settings.route) { backStackEntry ->
-                val settingsViewModel: SettingsViewModel =
-                    viewModel(viewModelStoreOwner = backStackEntry)
+            composable(Screen.Settings.route) {
                 SettingsScreen(viewModel = settingsViewModel)
             }
             composable(
