@@ -90,37 +90,35 @@ class PersonViewModel(
     }
 
     private fun buildState(name: String, personVouches: List<VouchWithPerson>): PersonUiState {
+        val sortedVouches = personVouches.sortedByDescending { it.vouch.timestamp }
         var given = 0L
         var owed = 0L
-        var netAmount = 0L
-        for (vouch in personVouches) {
+        var unsettledCount = 0
+        for (vouch in sortedVouches) {
             val personEntry = vouch.persons.firstOrNull { it.person.name == name }
-            if (personEntry != null) {
-                val signedAmount = if (vouch.vouch.given) personEntry.amount else -personEntry.amount
-                netAmount += signedAmount
-                if (!personEntry.settled) {
-                    if (vouch.vouch.given) {
-                        given += personEntry.amount
-                    } else {
-                        owed += personEntry.amount
-                    }
+            if (personEntry != null && !personEntry.settled) {
+                unsettledCount++
+                if (vouch.vouch.given) {
+                    given += personEntry.amount
+                } else {
+                    owed += personEntry.amount
                 }
             }
         }
 
-        val updatedPersonData = if (personVouches.isNotEmpty()) {
+        val updatedPersonData = if (sortedVouches.isNotEmpty()) {
             PersonTotal(
-                person = personVouches
+                person = sortedVouches
                     .firstNotNullOfOrNull { v -> v.persons.firstOrNull { it.person.name == name }?.person }
                     ?: Person(name = name),
-                amount = netAmount,
-                vouchCount = personVouches.size
+                amount = given - owed,
+                vouchCount = unsettledCount
             )
         } else null
 
         return PersonUiState(
             personData = updatedPersonData,
-            vouches = personVouches,
+            vouches = sortedVouches,
             amountGiven = given,
             amountOwed = owed,
             isLoading = false
