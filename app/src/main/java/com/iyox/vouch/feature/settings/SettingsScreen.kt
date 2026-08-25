@@ -4,6 +4,7 @@ import android.app.UiModeManager
 import android.content.Context
 import android.content.ContextWrapper
 import android.icu.util.Currency
+import com.iyox.vouch.core.backup.IyoxEnvelope
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -108,7 +109,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
     val isPerAppLanguageSupported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
 
     val exportLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.CreateDocument("application/json")
+        contract = ActivityResultContracts.CreateDocument(IyoxEnvelope.MIME_TYPE)
     ) { uri ->
         if (uri != null) {
             viewModel.exportData(uri)
@@ -280,7 +281,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 FilledTonalButton(
-                    onClick = { exportLauncher.launch("vouch_backup.json") },
+                    onClick = { exportLauncher.launch(IyoxEnvelope.DEFAULT_BACKUP_FILE_NAME) },
                     modifier = Modifier
                         .weight(1f)
                         .height(52.dp),
@@ -302,7 +303,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
                 }
 
                 FilledTonalButton(
-                    onClick = { importLauncher.launch(arrayOf("application/json", "*/*")) },
+                    onClick = { importLauncher.launch(arrayOf("*/*", IyoxEnvelope.MIME_TYPE, "application/octet-stream", "application/json")) },
                     modifier = Modifier
                         .weight(1f)
                         .height(52.dp),

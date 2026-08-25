@@ -110,8 +110,18 @@
     <string name="toast_export_failed">Export failed</string>
     <string name="toast_import_success">Import successful</string>
     <string name="toast_import_failed">Import failed</string>
+    <string name="toast_import_invalid_file">Invalid .iyxv file</string>
     <string name="toast_biometric_not_available">Biometric authentication is not supported on this device</string>
     <string name="toast_biometric_none_enrolled">No biometric credentials registered on this device</string>
+
+    <string name="import_dialog_title">Import Data?</string>
+    <string name="import_dialog_message">You are about to restore data from a backup file. All existing vouches and contacts on this device will be replaced.</string>
+    <string name="import_dialog_overview_title">Backup Overview</string>
+    <string name="import_dialog_vouches_count">Vouches</string>
+    <string name="import_dialog_people_count">People</string>
+    <string name="import_dialog_version">Format Version</string>
+    <string name="import_dialog_confirm_checkbox">I understand that current data will be overwritten</string>
+    <string name="import_dialog_action_import">Import &amp; Restore</string>
 
     <string name="cd_back">Back</string>
     <string name="cd_add_vouch">Add Vouch</string>

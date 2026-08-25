@@ -1,6 +1,8 @@
 package com.iyox.vouch
 
 import android.app.UiModeManager
+import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.compose.setContent
@@ -11,6 +13,7 @@ import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
 import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_WEAK
 import androidx.biometric.BiometricPrompt
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.mutableStateOf
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.fragment.app.FragmentActivity
@@ -20,6 +23,7 @@ import com.iyox.vouch.core.utils.VibrationManager
 class MainActivity : FragmentActivity() {
 
     private var isAuthenticated = false
+    private val pendingImportUri = mutableStateOf<Uri?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
@@ -31,6 +35,8 @@ class MainActivity : FragmentActivity() {
             isAuthenticated = savedInstanceState.getBoolean(KEY_IS_AUTHENTICATED, false)
         }
 
+        handleIntentData(intent)
+
         val prefs = getSharedPreferences("settings", MODE_PRIVATE)
         val biometricEnabled = prefs.getBoolean("biometric_enabled", false)
 
@@ -41,16 +47,39 @@ class MainActivity : FragmentActivity() {
         }
     }
 
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        val prefs = getSharedPreferences("settings", MODE_PRIVATE)
+        val biometricEnabled = prefs.getBoolean("biometric_enabled", false)
+
+        if (biometricEnabled && !isAuthenticated) {
+            authenticateUser()
+        } else {
+            handleIntentData(intent)
+        }
+    }
+
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putBoolean(KEY_IS_AUTHENTICATED, isAuthenticated)
+    }
+
+    private fun handleIntentData(intent: Intent?) {
+        val uri = intent?.data ?: return
+        if (intent.action == Intent.ACTION_VIEW || intent.action == Intent.ACTION_SEND) {
+            pendingImportUri.value = uri
+        }
     }
 
     private fun showApp() {
         val vibrationManager = VibrationManager(this)
         setContent {
             CompositionLocalProvider(LocalVibrationManager provides vibrationManager) {
-                VouchApp()
+                VouchApp(
+                    pendingImportUri = pendingImportUri.value,
+                    onImportUriConsumed = { pendingImportUri.value = null }
+                )
             }
         }
     }
@@ -75,6 +104,7 @@ class MainActivity : FragmentActivity() {
                     override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
                         super.onAuthenticationSucceeded(result)
                         isAuthenticated = true
+                        handleIntentData(intent)
                         showApp()
                     }
 
@@ -93,6 +123,7 @@ class MainActivity : FragmentActivity() {
             biometricPrompt.authenticate(promptInfo)
         } else {
             isAuthenticated = true
+            handleIntentData(intent)
             showApp()
         }
     }
@@ -101,4 +132,3 @@ class MainActivity : FragmentActivity() {
         private const val KEY_IS_AUTHENTICATED = "is_authenticated"
     }
 }
-

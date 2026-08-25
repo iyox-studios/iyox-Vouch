@@ -12,35 +12,23 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.edit
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.gson.Gson
-import com.google.gson.GsonBuilder
-import com.google.gson.JsonDeserializationContext
-import com.google.gson.JsonDeserializer
-import com.google.gson.JsonElement
-import com.google.gson.JsonPrimitive
-import com.google.gson.JsonSerializationContext
-import com.google.gson.JsonSerializer
-import com.google.gson.reflect.TypeToken
 import com.iyox.vouch.R
+import com.iyox.vouch.core.backup.BackupPreview
+import com.iyox.vouch.core.backup.BackupRepository
+import com.iyox.vouch.core.backup.ExportPersonAmount
+import com.iyox.vouch.core.backup.ExportVouch
+import com.iyox.vouch.core.backup.InvalidSignatureException
 import com.iyox.vouch.core.currency.CurrencyManager
-import com.iyox.vouch.core.data.AppDatabase
-import com.iyox.vouch.core.model.Person
-import com.iyox.vouch.core.model.Vouch
-import com.iyox.vouch.core.model.VouchPersonCrossRef
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.io.InputStreamReader
-import java.io.OutputStreamWriter
-import java.lang.reflect.Type
-import java.sql.Timestamp
 
 sealed interface ToastEvent {
     data class Info(@field:StringRes val messageRes: Int) : ToastEvent
@@ -55,24 +43,17 @@ data class SettingsUiState(
     val biometricEnabled: Boolean
 )
 
-data class ExportPersonAmount(
-    val name: String,
-    val amount: Long,
-    val settled: Boolean = false
-)
-
-data class ExportVouch(
-    val vouch: Vouch,
-    val persons: List<ExportPersonAmount>
-)
-
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _toastEvents = MutableSharedFlow<ToastEvent>()
     val toastEvents: SharedFlow<ToastEvent> = _toastEvents.asSharedFlow()
 
+    private val _pendingImportPreview = MutableStateFlow<BackupPreview?>(null)
+    val pendingImportPreview: StateFlow<BackupPreview?> = _pendingImportPreview.asStateFlow()
+
     val uiModeManager = application.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
     private val prefs = application.getSharedPreferences("settings", Context.MODE_PRIVATE)
+    private val backupRepository = BackupRepository.getInstance(application)
 
     private fun currentLanguageTag(): String {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
@@ -174,112 +155,68 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         CurrencyManager.setCurrency(currencyCode)
     }
 
-    private val gson: Gson = GsonBuilder()
-        .registerTypeAdapter(Timestamp::class.java, object : JsonSerializer<Timestamp>,
-            JsonDeserializer<Timestamp> {
-            override fun serialize(
-                src: Timestamp,
-                typeOfSrc: Type,
-                context: JsonSerializationContext
-            ): JsonElement {
-                return JsonPrimitive(src.time)
-            }
-
-            override fun deserialize(
-                json: JsonElement,
-                typeOfT: Type,
-                context: JsonDeserializationContext
-            ): Timestamp {
-                return Timestamp(json.asLong)
-            }
-        })
-        .create()
-
-    private val database = AppDatabase.getDatabase(application)
-
     fun exportData(uri: Uri) {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                val app = getApplication<Application>()
-                val exportVouches = database.vouchDataDao().getAll().map { vouch ->
-                    val persons = database.vouchDataDao().getPersonsForVouch(vouch.id)
-                        .map { personWithAmount ->
-                            ExportPersonAmount(
-                                name = personWithAmount.person.name,
-                                amount = personWithAmount.amount,
-                                settled = personWithAmount.settled
-                            )
-                        }
-                    ExportVouch(vouch = vouch, persons = persons)
-                }
-                val json = gson.toJson(exportVouches)
-
-                app.contentResolver.openOutputStream(uri)?.use { outputStream ->
-                    OutputStreamWriter(outputStream).use { writer ->
-                        writer.write(json)
-                    }
-                }
+        viewModelScope.launch {
+            val result = backupRepository.exportData(uri)
+            if (result.isSuccess) {
                 _toastEvents.emit(ToastEvent.Info(R.string.toast_export_success))
-            } catch (e: Exception) {
-                e.printStackTrace()
+            } else {
+                result.exceptionOrNull()?.printStackTrace()
                 _toastEvents.emit(ToastEvent.Error(R.string.toast_export_failed))
             }
         }
     }
 
-    fun importData(uri: Uri) {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                val app = getApplication<Application>()
-                app.contentResolver.openInputStream(uri)?.use { inputStream ->
-                    InputStreamReader(inputStream).use { reader ->
-                        val itemType = object : TypeToken<List<ExportVouch>>() {}.type
-                        val vouches: List<ExportVouch> = gson.fromJson(reader, itemType)
-
-                        database.vouchDataDao().deleteAll()
-                        database.personDao().deleteAll()
-
-                        vouches.forEach { export ->
-                            val newVouchId = database.vouchDataDao()
-                                .insert(export.vouch.copy(id = 0))
-                                .toInt()
-
-                            val crossRefs = export.persons.mapNotNull { personAmount ->
-                                val normalizedName = personAmount.name.trim()
-                                if (normalizedName.isBlank()) return@mapNotNull null
-                                database.personDao().insert(Person(name = normalizedName))
-                                val storedPerson = database.personDao().getByName(normalizedName)
-                                    ?: return@mapNotNull null
-                                VouchPersonCrossRef(
-                                    vouchId = newVouchId,
-                                    personId = storedPerson.id,
-                                    amount = personAmount.amount,
-                                    settled = personAmount.settled
-                                )
-                            }
-
-                            if (crossRefs.isNotEmpty()) {
-                                database.vouchDataDao().insertCrossRefs(crossRefs)
-                            }
-                        }
-                    }
+    fun requestImport(uri: Uri) {
+        viewModelScope.launch {
+            val result = backupRepository.readPreview(uri)
+            if (result.isSuccess) {
+                _pendingImportPreview.value = result.getOrNull()
+            } else {
+                val error = result.exceptionOrNull()
+                error?.printStackTrace()
+                if (error is InvalidSignatureException) {
+                    _toastEvents.emit(ToastEvent.Error(R.string.toast_import_invalid_file))
+                } else {
+                    _toastEvents.emit(ToastEvent.Error(R.string.toast_import_failed))
                 }
-                _toastEvents.emit(ToastEvent.Info(R.string.toast_import_success))
-            } catch (e: Exception) {
-                e.printStackTrace()
-                _toastEvents.emit(ToastEvent.Error(R.string.toast_import_failed))
             }
         }
     }
 
+    fun confirmImport(preview: BackupPreview) {
+        _pendingImportPreview.value = null
+        viewModelScope.launch {
+            val result = backupRepository.importData(preview.uri)
+            if (result.isSuccess) {
+                _toastEvents.emit(ToastEvent.Info(R.string.toast_import_success))
+            } else {
+                val error = result.exceptionOrNull()
+                error?.printStackTrace()
+                if (error is InvalidSignatureException) {
+                    _toastEvents.emit(ToastEvent.Error(R.string.toast_import_invalid_file))
+                } else {
+                    _toastEvents.emit(ToastEvent.Error(R.string.toast_import_failed))
+                }
+            }
+        }
+    }
+
+    fun dismissImportDialog() {
+        _pendingImportPreview.value = null
+    }
+
+    fun importData(uri: Uri) {
+        requestImport(uri)
+    }
+
     fun deleteAllData() {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                database.vouchDataDao().deleteAll()
-                database.personDao().deleteAll()
+        viewModelScope.launch {
+            val result = backupRepository.deleteAllData()
+            if (result.isSuccess) {
                 _toastEvents.emit(ToastEvent.Info(R.string.msg_all_data_deleted))
-            } catch (e: Exception) {
-                e.printStackTrace()
+            } else {
+                result.exceptionOrNull()?.printStackTrace()
                 _toastEvents.emit(ToastEvent.Error(R.string.msg_delete_data_failed))
             }
         }
