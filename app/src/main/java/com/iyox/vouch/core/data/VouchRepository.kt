@@ -19,12 +19,26 @@ class VouchRepository private constructor(context: Context) {
     private val _dataUpdates = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     val dataUpdates: SharedFlow<Unit> = _dataUpdates.asSharedFlow()
 
+    @Volatile
+    private var cachedVouches: List<VouchWithPerson>? = null
+
+    @Volatile
+    private var cachedVouchesByPerson: Map<String, List<VouchWithPerson>> = emptyMap()
+
+    fun getCachedVouchesByPerson(name: String): List<VouchWithPerson>? =
+        cachedVouchesByPerson[name]
+
     fun notifyDataChanged() {
+        cachedVouches = null
+        cachedVouchesByPerson = emptyMap()
         _dataUpdates.tryEmit(Unit)
     }
 
+    fun getCachedVouches(): List<VouchWithPerson>? = cachedVouches
+
     suspend fun getAll(): List<VouchWithPerson> {
-        return database.withTransaction {
+        cachedVouches?.let { return it }
+        val result = database.withTransaction {
             val vouches = vouchDataDao.getAll()
             val personRows = vouchDataDao.getAllPersonRows()
             val personsByVouchId = personRows.groupBy { it.vouchId }
@@ -41,10 +55,24 @@ class VouchRepository private constructor(context: Context) {
                 )
             }
         }
+        cachedVouches = result
+
+        // Pre-warm the per-person cache for free — data is already in memory.
+        // Every person the user might tap on PersonsScreen or VouchesScreen will
+        // open instantly without a spinner on first entry.
+        val byPerson = mutableMapOf<String, MutableList<VouchWithPerson>>()
+        result.forEach { vouch ->
+            vouch.persons.forEach { personWithAmount ->
+                byPerson.getOrPut(personWithAmount.person.name) { mutableListOf() }.add(vouch)
+            }
+        }
+        cachedVouchesByPerson = byPerson
+
+        return result
     }
 
     suspend fun getVouchesByPersonName(name: String): List<VouchWithPerson> {
-        return database.withTransaction {
+        val result = database.withTransaction {
             val vouches = vouchDataDao.getVouchesByPersonName(name)
             if (vouches.isEmpty()) return@withTransaction emptyList()
             val personRows = vouchDataDao.getPersonRowsForVouchesOfPerson(name)
@@ -62,9 +90,20 @@ class VouchRepository private constructor(context: Context) {
                 )
             }
         }
+        cachedVouchesByPerson = cachedVouchesByPerson + (name to result)
+        return result
+    }
+
+    fun getCachedVouchById(id: Int): VouchWithPerson? {
+        cachedVouches?.firstOrNull { it.vouch.id == id }?.let { return it }
+        for (personVouches in cachedVouchesByPerson.values) {
+            personVouches.firstOrNull { it.vouch.id == id }?.let { return it }
+        }
+        return null
     }
 
     suspend fun getById(id: Int): VouchWithPerson? {
+        getCachedVouchById(id)?.let { return it }
         return database.withTransaction {
             val vouch = vouchDataDao.getById(id) ?: return@withTransaction null
             VouchWithPerson(
