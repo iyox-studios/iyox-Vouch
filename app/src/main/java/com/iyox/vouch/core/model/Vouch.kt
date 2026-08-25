@@ -38,13 +38,25 @@ data class Vouch(
             onDelete = ForeignKey.CASCADE
         )
     ],
-    indices = [Index("personId"), Index("vouchId")]
+    indices = [
+        Index(value = ["personId", "settled"]),
+        Index(value = ["vouchId", "settled"]),
+        Index("personId"),
+        Index("vouchId")
+    ]
 )
 data class VouchPersonCrossRef(
     val vouchId: Int,
     val personId: Int,
     val amount: Long,
     val settled: Boolean = false
+)
+
+data class VouchPersonRow(
+    val vouchId: Int,
+    @Embedded val person: Person,
+    val amount: Long,
+    val settled: Boolean
 )
 
 data class VouchWithPerson(
@@ -67,6 +79,41 @@ data class VouchPersonSettlement(
 interface VouchDao {
     @Query("SELECT * FROM Vouch")
     suspend fun getAll(): List<Vouch>
+
+    @Query(
+        """
+        SELECT vpc.vouchId AS vouchId, p.id AS id, p.name AS name, vpc.amount AS amount, vpc.settled AS settled
+        FROM Person p
+        INNER JOIN vouch_person_cross_ref vpc ON p.id = vpc.personId
+        """
+    )
+    suspend fun getAllPersonRows(): List<VouchPersonRow>
+
+    @Query(
+        """
+        SELECT v.*
+        FROM Vouch v
+        INNER JOIN vouch_person_cross_ref vpc ON v.id = vpc.vouchId
+        INNER JOIN Person p ON vpc.personId = p.id
+        WHERE p.name = :name
+        ORDER BY v.timestamp DESC
+        """
+    )
+    suspend fun getVouchesByPersonName(name: String): List<Vouch>
+
+    @Query(
+        """
+        SELECT vpc.vouchId AS vouchId, p.id AS id, p.name AS name, vpc.amount AS amount, vpc.settled AS settled
+        FROM Person p
+        INNER JOIN vouch_person_cross_ref vpc ON p.id = vpc.personId
+        WHERE vpc.vouchId IN (
+            SELECT vpc2.vouchId FROM vouch_person_cross_ref vpc2
+            INNER JOIN Person p2 ON vpc2.personId = p2.id
+            WHERE p2.name = :name
+        )
+        """
+    )
+    suspend fun getPersonRowsForVouchesOfPerson(name: String): List<VouchPersonRow>
 
     @Query("SELECT * FROM Vouch WHERE id = :id")
     suspend fun getById(id: Int): Vouch?
@@ -119,6 +166,24 @@ interface VouchDao {
         """
     )
     suspend fun updateCrossRefSettlement(vouchId: Int, personId: Int, settled: Boolean)
+
+    @Query(
+        """
+        UPDATE vouch_person_cross_ref
+        SET settled = :settled
+        WHERE personId = :personId
+        """
+    )
+    suspend fun updateCrossRefsSettledByPersonId(personId: Int, settled: Boolean)
+
+    @Query(
+        """
+        UPDATE vouch_person_cross_ref
+        SET settled = :settled
+        WHERE personId = :personId AND vouchId IN (:vouchIds)
+        """
+    )
+    suspend fun updateCrossRefsSettledForPerson(personId: Int, vouchIds: List<Int>, settled: Boolean)
 
     @Query(
         """

@@ -30,8 +30,14 @@ interface PersonDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(person: Person): Long
 
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertAll(persons: List<Person>): List<Long>
+
     @Query("SELECT * FROM Person WHERE name = :name LIMIT 1")
     suspend fun getByName(name: String): Person?
+
+    @Query("SELECT * FROM Person WHERE name IN (:names)")
+    suspend fun getByNames(names: List<String>): List<Person>
 
     @Query("DELETE FROM Person")
     suspend fun deleteAll()
@@ -39,10 +45,37 @@ interface PersonDao {
     @Query(
         """
         DELETE FROM Person
-        WHERE id NOT IN (SELECT DISTINCT personId FROM vouch_person_cross_ref)
+        WHERE NOT EXISTS (
+            SELECT 1 FROM vouch_person_cross_ref WHERE personId = Person.id
+        )
         """
     )
     suspend fun deletePersonsWithoutVouches()
+
+    @Query(
+        """
+        SELECT p.*,
+               COALESCE(
+                   SUM(
+                       CASE
+                           WHEN vpc.settled = 1 THEN 0
+                           WHEN v.id IS NULL THEN 0
+                           WHEN v.given = 0 THEN -vpc.amount
+                           ELSE vpc.amount
+                       END
+                   ),
+                   0
+               ) AS amount,
+               COUNT(DISTINCT CASE WHEN vpc.settled = 0 THEN vpc.vouchId END) AS vouchCount
+        FROM Person p
+        LEFT JOIN vouch_person_cross_ref vpc ON p.id = vpc.personId
+        LEFT JOIN Vouch v ON vpc.vouchId = v.id
+        WHERE p.name = :name
+        GROUP BY p.id
+        LIMIT 1
+        """
+    )
+    suspend fun getPersonTotalByName(name: String): PersonTotal?
 
     @Query(
         """

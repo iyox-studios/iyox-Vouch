@@ -59,11 +59,7 @@ class PersonViewModel(application: Application) : AndroidViewModel(application) 
     fun loadPerson(name: String, shouldShowLoading: Boolean = true) {
         _uiState.update { it.copy(isLoading = shouldShowLoading) }
         viewModelScope.launch {
-            val allVouches = vouchRepository.getAll()
-            val personVouches = allVouches.mapNotNull { vouch ->
-                vouch.persons.firstOrNull { it.person.name == name } ?: return@mapNotNull null
-                vouch
-            }.sortedByDescending { it.vouch.timestamp }
+            val personVouches = vouchRepository.getVouchesByPersonName(name)
 
             // Calculate amounts from unsettled vouches
             var given = 0L
@@ -79,10 +75,8 @@ class PersonViewModel(application: Application) : AndroidViewModel(application) 
                 }
             }
 
-            // Load person total from db
-            val pwtList = personRepository.getPersonTotal()
-            val pwt = pwtList.find { it.person.name == name }
-            //TODO: use id instead of query and then maybe remove query altogether
+            // Load person total directly from db
+            val pwt = personRepository.getPersonTotalByName(name)
 
             val updatedPersonData = pwt ?: if (personVouches.isNotEmpty()) {
                 // fallback if not found in db from query somehow
@@ -108,13 +102,15 @@ class PersonViewModel(application: Application) : AndroidViewModel(application) 
     suspend fun settlePerson(): List<PersonSettlementChange> {
         val personName = _uiState.value.personData?.person?.name ?: return emptyList()
         val unsettledEntries = _uiState.value.vouches.mapNotNull { vouch ->
-            val personEntry = vouch.persons.firstOrNull { it.person.name == personName } //TODO
+            val personEntry = vouch.persons.firstOrNull { it.person.name == personName }
                 ?: return@mapNotNull null
             if (personEntry.settled) return@mapNotNull null
             PersonSettlementChange(vouchId = vouch.vouch.id, personId = personEntry.person.id)
         }
-        for (entry in unsettledEntries) {
-            vouchRepository.setPersonSettlement(entry.vouchId, entry.personId, true)
+        if (unsettledEntries.isEmpty()) return emptyList()
+
+        unsettledEntries.groupBy { it.personId }.forEach { (personId, changes) ->
+            vouchRepository.setPersonSettlements(personId, changes.map { it.vouchId }, true)
         }
         loadPerson(personName, false)
         return unsettledEntries
@@ -152,8 +148,10 @@ class PersonViewModel(application: Application) : AndroidViewModel(application) 
 
     fun undoSettlePerson(previouslySettled: List<PersonSettlementChange>) {
         viewModelScope.launch {
-            for (entry in previouslySettled) {
-                vouchRepository.setPersonSettlement(entry.vouchId, entry.personId, false)
+            if (previouslySettled.isNotEmpty()) {
+                previouslySettled.groupBy { it.personId }.forEach { (personId, changes) ->
+                    vouchRepository.setPersonSettlements(personId, changes.map { it.vouchId }, false)
+                }
             }
             _uiState.value.personData?.person?.name?.let { loadPerson(it, false) }
         }
@@ -167,8 +165,10 @@ class PersonViewModel(application: Application) : AndroidViewModel(application) 
             if (nettingVouch != null) {
                 vouchRepository.delete(nettingVouch.vouch.id)
             }
-            for (entry in previouslySettled) {
-                vouchRepository.setPersonSettlement(entry.vouchId, entry.personId, false)
+            if (previouslySettled.isNotEmpty()) {
+                previouslySettled.groupBy { it.personId }.forEach { (personId, changes) ->
+                    vouchRepository.setPersonSettlements(personId, changes.map { it.vouchId }, false)
+                }
             }
             _uiState.value.personData?.person?.name?.let { loadPerson(it, false) }
         }

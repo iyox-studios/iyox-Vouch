@@ -25,10 +25,40 @@ class VouchRepository private constructor(context: Context) {
 
     suspend fun getAll(): List<VouchWithPerson> {
         return database.withTransaction {
-            vouchDataDao.getAll().map { vouch ->
+            val vouches = vouchDataDao.getAll()
+            val personRows = vouchDataDao.getAllPersonRows()
+            val personsByVouchId = personRows.groupBy { it.vouchId }
+            vouches.map { vouch ->
                 VouchWithPerson(
                     vouch = vouch,
-                    persons = vouchDataDao.getPersonsForVouch(vouch.id)
+                    persons = personsByVouchId[vouch.id]?.map {
+                        PersonWithAmount(
+                            person = it.person,
+                            amount = it.amount,
+                            settled = it.settled
+                        )
+                    } ?: emptyList()
+                )
+            }
+        }
+    }
+
+    suspend fun getVouchesByPersonName(name: String): List<VouchWithPerson> {
+        return database.withTransaction {
+            val vouches = vouchDataDao.getVouchesByPersonName(name)
+            if (vouches.isEmpty()) return@withTransaction emptyList()
+            val personRows = vouchDataDao.getPersonRowsForVouchesOfPerson(name)
+            val personsByVouchId = personRows.groupBy { it.vouchId }
+            vouches.map { vouch ->
+                VouchWithPerson(
+                    vouch = vouch,
+                    persons = personsByVouchId[vouch.id]?.map {
+                        PersonWithAmount(
+                            person = it.person,
+                            amount = it.amount,
+                            settled = it.settled
+                        )
+                    } ?: emptyList()
                 )
             }
         }
@@ -131,6 +161,21 @@ class VouchRepository private constructor(context: Context) {
         notifyDataChanged()
     }
 
+    suspend fun setPersonSettled(personId: Int, settled: Boolean) {
+        database.withTransaction {
+            vouchDataDao.updateCrossRefsSettledByPersonId(personId, settled)
+        }
+        notifyDataChanged()
+    }
+
+    suspend fun setPersonSettlements(personId: Int, vouchIds: List<Int>, settled: Boolean) {
+        if (vouchIds.isEmpty()) return
+        database.withTransaction {
+            vouchDataDao.updateCrossRefsSettledForPerson(personId, vouchIds, settled)
+        }
+        notifyDataChanged()
+    }
+
     private suspend fun upsertCrossRefs(
         vouchId: Int,
         persons: List<PersonWithAmount>,
@@ -149,14 +194,21 @@ class VouchRepository private constructor(context: Context) {
             vouchDataDao.deleteCrossRefsByVouchId(vouchId)
         }
 
-        val resolvedPersons = persons.mapNotNull { personWithAmount ->
-            val normalizedName = personWithAmount.person.name.trim()
-            if (normalizedName.isBlank()) {
-                return@mapNotNull null
-            }
-            personDataDao.insert(Person(name = normalizedName))
-            val storedPerson = personDataDao.getByName(normalizedName)
-                ?: error("Failed to resolve person: $normalizedName")
+        val normalizedPersons = persons.mapNotNull {
+            val normalizedName = it.person.name.trim()
+            if (normalizedName.isBlank()) null else it to normalizedName
+        }
+
+        if (normalizedPersons.isEmpty()) {
+            return
+        }
+
+        val uniqueNames = normalizedPersons.map { it.second }.distinct()
+        personDataDao.insertAll(uniqueNames.map { Person(name = it) })
+        val storedPersonsByName = personDataDao.getByNames(uniqueNames).associateBy { it.name }
+
+        val resolvedPersons = normalizedPersons.mapNotNull { (personWithAmount, normalizedName) ->
+            val storedPerson = storedPersonsByName[normalizedName] ?: return@mapNotNull null
             PersonWithAmount(
                 person = storedPerson,
                 amount = personWithAmount.amount,

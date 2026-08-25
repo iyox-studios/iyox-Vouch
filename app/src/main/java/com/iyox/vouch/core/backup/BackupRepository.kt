@@ -128,16 +128,18 @@ class BackupRepository private constructor(private val context: Context) {
 
     suspend fun exportData(uri: Uri): Result<Unit> = withContext(Dispatchers.IO) {
         try {
-            val exportVouches = database.vouchDataDao().getAll().map { vouch ->
-                val persons = database.vouchDataDao().getPersonsForVouch(vouch.id)
-                    .map { personWithAmount ->
+            val allVouchesWithPersons = vouchRepository.getAll()
+            val exportVouches = allVouchesWithPersons.map { vouchWithPerson ->
+                ExportVouch(
+                    vouch = vouchWithPerson.vouch,
+                    persons = vouchWithPerson.persons.map { personWithAmount ->
                         ExportPersonAmount(
                             name = personWithAmount.person.name,
                             amount = personWithAmount.amount,
                             settled = personWithAmount.settled
                         )
                     }
-                ExportVouch(vouch = vouch, persons = persons)
+                )
             }
 
             // 1. Convert the list to a Gson JsonElement
@@ -197,6 +199,17 @@ class BackupRepository private constructor(private val context: Context) {
                                 database.vouchDataDao().deleteAll()
                                 database.personDao().deleteAll()
 
+                                val allNames = vouches.flatMap { it.persons }
+                                    .map { it.name.trim() }
+                                    .filter { it.isNotBlank() }
+                                    .distinct()
+
+                                if (allNames.isNotEmpty()) {
+                                    database.personDao().insertAll(allNames.map { Person(name = it) })
+                                }
+                                val personMap = database.personDao().getByNames(allNames).associateBy { it.name }
+
+                                val allCrossRefs = mutableListOf<VouchPersonCrossRef>()
                                 vouches.forEach { export ->
                                     val newVouchId = database.vouchDataDao()
                                         .insert(export.vouch.copy(id = 0))
@@ -204,10 +217,7 @@ class BackupRepository private constructor(private val context: Context) {
 
                                     val crossRefs = export.persons.mapNotNull { personAmount ->
                                         val normalizedName = personAmount.name.trim()
-                                        if (normalizedName.isBlank()) return@mapNotNull null
-                                        database.personDao().insert(Person(name = normalizedName))
-                                        val storedPerson = database.personDao().getByName(normalizedName)
-                                            ?: return@mapNotNull null
+                                        val storedPerson = personMap[normalizedName] ?: return@mapNotNull null
                                         VouchPersonCrossRef(
                                             vouchId = newVouchId,
                                             personId = storedPerson.id,
@@ -215,10 +225,11 @@ class BackupRepository private constructor(private val context: Context) {
                                             settled = personAmount.settled
                                         )
                                     }
+                                    allCrossRefs.addAll(crossRefs)
+                                }
 
-                                    if (crossRefs.isNotEmpty()) {
-                                        database.vouchDataDao().insertCrossRefs(crossRefs)
-                                    }
+                                if (allCrossRefs.isNotEmpty()) {
+                                    database.vouchDataDao().insertCrossRefs(allCrossRefs)
                                 }
                             }
 
