@@ -101,8 +101,18 @@
     <string name="toast_export_failed">Export fehlgeschlagen</string>
     <string name="toast_import_success">Import erfolgreich</string>
     <string name="toast_import_failed">Import fehlgeschlagen</string>
+    <string name="toast_import_invalid_file">Ungültige .iyxv-Datei</string>
     <string name="toast_biometric_not_available">Biometrische Authentifizierung wird auf diesem Gerät nicht unterstützt</string>
     <string name="toast_biometric_none_enrolled">Keine biometrischen Daten auf diesem Gerät hinterlegt</string>
+
+    <string name="import_dialog_title">Daten importieren?</string>
+    <string name="import_dialog_message">Du bist dabei, Daten aus einer Backup-Datei wiederherzustellen. Alle vorhandenen Vouches und Kontakte auf diesem Gerät werden ersetzt.</string>
+    <string name="import_dialog_overview_title">Backup-Übersicht</string>
+    <string name="import_dialog_vouches_count">Vouches</string>
+    <string name="import_dialog_people_count">Personen</string>
+    <string name="import_dialog_version">Format-Version</string>
+    <string name="import_dialog_confirm_checkbox">Ich verstehe, dass vorhandene Daten überschrieben werden</string>
+    <string name="import_dialog_action_import">Importieren &amp; Wiederherstellen</string>
 
     <string name="cd_back">Zurück</string>
     <string name="cd_add_vouch">Vouch hinzufügen</string>
