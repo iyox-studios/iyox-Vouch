@@ -17,15 +17,14 @@ import androidx.compose.material3.ShortNavigationBar
 import androidx.compose.material3.ShortNavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -36,9 +35,9 @@ import androidx.navigation.navArgument
 import com.iyox.vouch.feature.person.PersonScreen
 import com.iyox.vouch.feature.persons.PersonsScreen
 import com.iyox.vouch.feature.persons.PersonsViewModel
-import com.iyox.vouch.feature.settled.SettledSpaceScreen
 import com.iyox.vouch.feature.settings.SettingsScreen
 import com.iyox.vouch.feature.settings.SettingsViewModel
+import com.iyox.vouch.feature.settled.SettledSpaceScreen
 import com.iyox.vouch.feature.vouch.GroupVouchScreen
 import com.iyox.vouch.feature.vouch.SingleVouchScreen
 import com.iyox.vouch.feature.vouches.VouchesScreen
@@ -67,19 +66,12 @@ fun AppNavigation(
     Scaffold(
         snackbarHost = snackbarHost,
         bottomBar = {
-            ShortNavigationBar {
-                val navBackStackEntry by navController.currentBackStackEntryAsState()
-                val currentBackStack by navController.currentBackStack.collectAsState()
-                val topLevelRoutes = remember {
-                    setOf(Screen.Vouches.route, Screen.Persons.route, Screen.Settings.route)
-                }
-                val activeTopLevelRoute = remember(navBackStackEntry, currentBackStack) {
-                    currentBackStack.mapNotNull { it.destination.route }
-                        .lastOrNull { it in topLevelRoutes } ?: Screen.Vouches.route
-                }
+            val navBackStackEntry by navController.currentBackStackEntryAsState()
+            val currentDestination = navBackStackEntry?.destination
 
+            ShortNavigationBar {
                 navigationItems.forEach { item ->
-                    val isSelected = item.screen.route == activeTopLevelRoute
+                    val isSelected = currentDestination?.hierarchy?.any { it.route == item.screen.route } == true
                     val icon = if (isSelected) item.iconSelected else item.icon
                     ShortNavigationBarItem(
                         icon = {
@@ -93,7 +85,7 @@ fun AppNavigation(
                         onClick = {
                             haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
                             if (isSelected) {
-                                if (navBackStackEntry?.destination?.route != item.screen.route) {
+                                if (currentDestination?.route != item.screen.route) {
                                     navController.popBackStack(
                                         route = item.screen.route,
                                         inclusive = false
@@ -109,7 +101,8 @@ fun AppNavigation(
                                     restoreState = true
                                 }
                             }
-                        })
+                        }
+                    )
                 }
             }
         }) { innerPadding ->
@@ -156,7 +149,7 @@ fun AppNavigation(
             composable(
                 route = Screen.AddVouch.route,
                 arguments = listOf(
-                    navArgument(Screen.AddVouch.personNameArg) {
+                    navArgument(Screen.AddVouch.PERSON_NAME_ARG) {
                         type = NavType.StringType
                         nullable = true
                         defaultValue = null
@@ -164,7 +157,7 @@ fun AppNavigation(
                 )
             ) { backStackEntry ->
                 val prefilledPersonName =
-                    backStackEntry.arguments?.getString(Screen.AddVouch.personNameArg)
+                    backStackEntry.arguments?.getString(Screen.AddVouch.PERSON_NAME_ARG)
                 SingleVouchScreen(
                     prefilledPersonName = prefilledPersonName,
                     onNavigateBack = {
@@ -212,7 +205,7 @@ fun AppNavigation(
             composable(
                 route = Screen.SettledSpace.route,
                 arguments = listOf(
-                    navArgument(Screen.SettledSpace.personNameArg) {
+                    navArgument(Screen.SettledSpace.PERSON_NAME_ARG) {
                         type = NavType.StringType
                         nullable = true
                         defaultValue = null
@@ -220,7 +213,7 @@ fun AppNavigation(
                 )
             ) { backStackEntry ->
                 val targetPersonName =
-                    backStackEntry.arguments?.getString(Screen.SettledSpace.personNameArg)
+                    backStackEntry.arguments?.getString(Screen.SettledSpace.PERSON_NAME_ARG)
                 SettledSpaceScreen(
                     initialPersonName = targetPersonName,
                     onNavigateBack = {

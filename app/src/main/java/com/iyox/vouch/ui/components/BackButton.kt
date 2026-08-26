@@ -15,10 +15,10 @@ import com.iyox.vouch.R
 @Composable
 fun VouchBackButton(
     onClick: () -> Unit,
-    modifier: Modifier = Modifier.padding(start = 16.dp)
+    modifier: Modifier = Modifier
 ) {
     Button(
-        modifier = modifier,
+        modifier = modifier.padding(start = 16.dp),
         onClick = onClick,
         contentPadding = PaddingValues(horizontal = 12.dp)
     ) {

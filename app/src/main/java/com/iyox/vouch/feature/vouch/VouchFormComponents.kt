@@ -167,8 +167,8 @@ fun VouchDescriptionField(
 @Composable
 fun PersonAvatar(
     name: String,
-    size: Dp = 32.dp,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    size: Dp = 32.dp
 ) {
     val initial = name.take(1).uppercase()
     val fontSize = (size.value * 0.48f).sp

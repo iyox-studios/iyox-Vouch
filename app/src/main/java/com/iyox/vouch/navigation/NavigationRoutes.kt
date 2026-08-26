@@ -9,7 +9,7 @@ sealed class Screen(val route: String, @StringRes val titleRes: Int) {
     object Persons : Screen("persons", R.string.screen_people)
     object Settings : Screen("settings", R.string.screen_settings)
     object SettledSpace : Screen("settled_space?personName={personName}", R.string.screen_settled_space) {
-        const val personNameArg = "personName"
+        const val PERSON_NAME_ARG = "personName"
 
         fun createRoute(personName: String? = null): String {
             return if (personName.isNullOrBlank()) {
@@ -20,7 +20,7 @@ sealed class Screen(val route: String, @StringRes val titleRes: Int) {
         }
     }
     object AddVouch : Screen("add_vouch?personName={personName}", R.string.title_add_vouch) {
-        const val personNameArg = "personName"
+        const val PERSON_NAME_ARG = "personName"
 
         fun createRoute(personName: String? = null): String {
             return if (personName.isNullOrBlank()) {
