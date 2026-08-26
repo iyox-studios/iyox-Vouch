@@ -2,8 +2,10 @@ package com.iyox.vouch.feature.person
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.iyox.vouch.core.data.PersonRepository
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.iyox.vouch.core.data.VouchRepository
 import com.iyox.vouch.core.domain.SharedVouchActions
 import com.iyox.vouch.core.model.Person
@@ -31,97 +33,116 @@ data class PersonSettlementChange(
     val personId: Int
 )
 
-class PersonViewModel(application: Application) : AndroidViewModel(application) {
-    private val personRepository = PersonRepository.getInstance(application)
+/**
+ * @param personName passed at construction so the ViewModel can pre-populate its state from
+ *   the in-memory cache before the first Compose frame is drawn — eliminating the spinner
+ *   on re-entry. Use [PersonViewModel.factory] to create instances.
+ */
+class PersonViewModel(
+    application: Application,
+    personName: String
+) : AndroidViewModel(application) {
+
     private val vouchRepository = VouchRepository.getInstance(application)
 
-    private val _uiState = MutableStateFlow(PersonUiState())
+    // Initialize from cache synchronously — if cached data exists for this person the
+    // initial state already has isLoading=false and real content, so frame 1 shows
+    // content with no spinner or layout pop.
+    private val _uiState = MutableStateFlow(
+        vouchRepository.getCachedVouchesByPerson(personName)
+            ?.let { cached -> buildState(personName, cached) }
+            ?: PersonUiState()
+    )
     val uiState: StateFlow<PersonUiState> = _uiState.asStateFlow()
 
     init {
         viewModelScope.launch {
             vouchRepository.dataUpdates.collect {
-                val personName = _uiState.value.personData?.person?.name
-                if (personName != null) {
-                    loadPerson(personName, false)
+                val name = _uiState.value.personData?.person?.name
+                if (name != null) {
+                    loadPerson(name, shouldShowLoading = false)
                 }
             }
         }
     }
 
     val sharedActions = SharedVouchActions(vouchRepository) {
-        val personName = _uiState.value.personData?.person?.name
-        if (personName != null) {
-            loadPerson(personName, false)
+        val name = _uiState.value.personData?.person?.name
+        if (name != null) {
+            loadPerson(name, shouldShowLoading = false)
         }
     }
 
     fun loadPerson(name: String, shouldShowLoading: Boolean = true) {
+        // Cache hit — update synchronously, no spinner needed
+        val cached = vouchRepository.getCachedVouchesByPerson(name)
+        if (cached != null) {
+            _uiState.update { buildState(name, cached) }
+            return
+        }
+
+        // Cache miss — show spinner and load from DB
         _uiState.update { it.copy(isLoading = shouldShowLoading) }
         viewModelScope.launch {
-            val allVouches = vouchRepository.getAll()
-            val personVouches = allVouches.mapNotNull { vouch ->
-                vouch.persons.firstOrNull { it.person.name == name } ?: return@mapNotNull null
-                vouch
-            }.sortedByDescending { it.vouch.timestamp }
+            val personVouches = vouchRepository.getVouchesByPersonName(name)
+            _uiState.update { buildState(name, personVouches) }
+        }
+    }
 
-            // Calculate amounts from unsettled vouches
-            var given = 0L
-            var owed = 0L
-            for (vouch in personVouches) {
-                val personEntry = vouch.persons.firstOrNull { it.person.name == name }
-                if (personEntry != null && !personEntry.settled) {
-                    if (vouch.vouch.given) {
-                        given += personEntry.amount
-                    } else {
-                        owed += personEntry.amount
-                    }
+    private fun buildState(name: String, personVouches: List<VouchWithPerson>): PersonUiState {
+        val sortedVouches = personVouches.sortedByDescending { it.vouch.timestamp }
+        var given = 0L
+        var owed = 0L
+        var unsettledCount = 0
+        for (vouch in sortedVouches) {
+            val personEntry = vouch.persons.firstOrNull { it.person.name == name }
+            if (personEntry != null && !personEntry.settled) {
+                unsettledCount++
+                if (vouch.vouch.given) {
+                    given += personEntry.amount
+                } else {
+                    owed += personEntry.amount
                 }
             }
-
-            // Load person total from db
-            val pwtList = personRepository.getPersonTotal()
-            val pwt = pwtList.find { it.person.name == name }
-            //TODO: use id instead of query and then maybe remove query altogether
-
-            val updatedPersonData = pwt ?: if (personVouches.isNotEmpty()) {
-                // fallback if not found in db from query somehow
-                PersonTotal(
-                    person = Person(name = name),
-                    amount = given - owed,
-                    vouchCount = personVouches.size
-                )
-            } else null
-
-            _uiState.update {
-                it.copy(
-                    personData = updatedPersonData,
-                    vouches = personVouches,
-                    amountGiven = given,
-                    amountOwed = owed,
-                    isLoading = false
-                )
-            }
         }
+
+        val updatedPersonData = if (sortedVouches.isNotEmpty()) {
+            PersonTotal(
+                person = sortedVouches
+                    .firstNotNullOfOrNull { v -> v.persons.firstOrNull { it.person.name == name }?.person }
+                    ?: Person(name = name),
+                amount = given - owed,
+                vouchCount = unsettledCount
+            )
+        } else null
+
+        return PersonUiState(
+            personData = updatedPersonData,
+            vouches = sortedVouches,
+            amountGiven = given,
+            amountOwed = owed,
+            isLoading = false
+        )
     }
 
     suspend fun settlePerson(): List<PersonSettlementChange> {
         val personName = _uiState.value.personData?.person?.name ?: return emptyList()
         val unsettledEntries = _uiState.value.vouches.mapNotNull { vouch ->
-            val personEntry = vouch.persons.firstOrNull { it.person.name == personName } //TODO
+            val personEntry = vouch.persons.firstOrNull { it.person.name == personName }
                 ?: return@mapNotNull null
             if (personEntry.settled) return@mapNotNull null
             PersonSettlementChange(vouchId = vouch.vouch.id, personId = personEntry.person.id)
         }
-        for (entry in unsettledEntries) {
-            vouchRepository.setPersonSettlement(entry.vouchId, entry.personId, true)
+        if (unsettledEntries.isEmpty()) return emptyList()
+
+        unsettledEntries.groupBy { it.personId }.forEach { (personId, changes) ->
+            vouchRepository.setPersonSettlements(personId, changes.map { it.vouchId }, true)
         }
-        loadPerson(personName, false)
+        loadPerson(personName, shouldShowLoading = false)
         return unsettledEntries
     }
 
     /**
-     *
      * @return (listOfJustSettledVouches, theNewNettingVouchOrNull)
      */
     suspend fun netVouches(): Pair<List<PersonSettlementChange>, VouchWithPerson?> {
@@ -145,17 +166,19 @@ class PersonViewModel(application: Application) : AndroidViewModel(application) 
                 )
             )
             newNettingVouch = netVouch
-            loadPerson(personName, false)
+            loadPerson(personName, shouldShowLoading = false)
         }
         return Pair(settledVouches, newNettingVouch)
     }
 
     fun undoSettlePerson(previouslySettled: List<PersonSettlementChange>) {
         viewModelScope.launch {
-            for (entry in previouslySettled) {
-                vouchRepository.setPersonSettlement(entry.vouchId, entry.personId, false)
+            if (previouslySettled.isNotEmpty()) {
+                previouslySettled.groupBy { it.personId }.forEach { (personId, changes) ->
+                    vouchRepository.setPersonSettlements(personId, changes.map { it.vouchId }, false)
+                }
             }
-            _uiState.value.personData?.person?.name?.let { loadPerson(it, false) }
+            _uiState.value.personData?.person?.name?.let { loadPerson(it, shouldShowLoading = false) }
         }
     }
 
@@ -167,10 +190,21 @@ class PersonViewModel(application: Application) : AndroidViewModel(application) 
             if (nettingVouch != null) {
                 vouchRepository.delete(nettingVouch.vouch.id)
             }
-            for (entry in previouslySettled) {
-                vouchRepository.setPersonSettlement(entry.vouchId, entry.personId, false)
+            if (previouslySettled.isNotEmpty()) {
+                previouslySettled.groupBy { it.personId }.forEach { (personId, changes) ->
+                    vouchRepository.setPersonSettlements(personId, changes.map { it.vouchId }, false)
+                }
             }
-            _uiState.value.personData?.person?.name?.let { loadPerson(it, false) }
+            _uiState.value.personData?.person?.name?.let { loadPerson(it, shouldShowLoading = false) }
+        }
+    }
+
+    companion object {
+        fun factory(personName: String): ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                val application = this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY]!!
+                PersonViewModel(application, personName)
+            }
         }
     }
 }

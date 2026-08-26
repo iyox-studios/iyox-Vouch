@@ -29,7 +29,7 @@ class VouchesViewModel(application: Application) : AndroidViewModel(application)
 
     val sharedActions = SharedVouchActions(repository) { loadVouches() }
 
-    private val _vouches = MutableStateFlow<List<VouchWithPerson>>(emptyList())
+    private val _vouches = MutableStateFlow(repository.getCachedVouches() ?: emptyList())
     private val _showOnlyUnsettled = MutableStateFlow(true)
     private val _showOnlyGiven = MutableStateFlow(0)
     private val _sortedBy = MutableStateFlow(0)
@@ -68,7 +68,7 @@ class VouchesViewModel(application: Application) : AndroidViewModel(application)
             totalOwed = totalOwed,
             netTotal = totalGiven - totalOwed
         )
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), VouchesUiState())
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, VouchesUiState())
 
 
     init {

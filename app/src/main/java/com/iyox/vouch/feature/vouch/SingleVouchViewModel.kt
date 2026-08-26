@@ -2,7 +2,10 @@ package com.iyox.vouch.feature.vouch
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.iyox.vouch.core.currency.CurrencyManager
 import com.iyox.vouch.core.data.PersonRepository
 import com.iyox.vouch.core.data.VouchRepository
@@ -24,12 +27,16 @@ data class VouchUiState(
     val given: Boolean = true,
     val personName: String = "",
     val description: String = "",
-    val isLoading: Boolean = true,
+    val isLoading: Boolean = false,
     val saveSuccess: Boolean = false,
     val personSearchResults: List<PersonTotal> = emptyList()
 )
 
-class SingleVouchViewModel(application: Application) : AndroidViewModel(application) {
+class SingleVouchViewModel(
+    application: Application,
+    private val initialVouchId: Long? = null,
+    private val initialPersonName: String? = null
+) : AndroidViewModel(application) {
     private val repository = VouchRepository.getInstance(application)
     private val personRepository = PersonRepository.getInstance(application)
 
@@ -39,11 +46,38 @@ class SingleVouchViewModel(application: Application) : AndroidViewModel(applicat
     private var editingVouchId: Int? = null
     private var originalVouch: VouchWithPerson? = null
 
-    private val _uiState = MutableStateFlow(VouchUiState())
+    private val _uiState = MutableStateFlow(createInitialState())
     val uiState: StateFlow<VouchUiState> = _uiState.asStateFlow()
 
+    private fun createInitialState(): VouchUiState {
+        if (initialVouchId != null) {
+            val cached = repository.getCachedVouchById(initialVouchId.toInt())
+            if (cached != null) {
+                editingVouchId = cached.vouch.id
+                originalVouch = cached
+                return VouchUiState(
+                    amount = CurrencyManager.formatAmount(cached.vouch.amount),
+                    given = cached.vouch.given,
+                    personName = cached.persons.firstOrNull()?.person?.name ?: "",
+                    description = cached.vouch.description,
+                    isLoading = false
+                )
+            }
+            return VouchUiState(isLoading = true)
+        }
+        return VouchUiState(
+            personName = initialPersonName ?: "",
+            isLoading = false
+        )
+    }
+
+    init {
+        if (initialVouchId != null && originalVouch == null) {
+            loadVouch(initialVouchId, initialPersonName)
+        }
+    }
+
     fun loadVouch(id: Long?, prefilledPersonName: String?) {
-        _uiState.update { VouchUiState(isLoading = id != null) }
         searchJob?.cancel()
 
         if (id == null) {
@@ -57,6 +91,24 @@ class SingleVouchViewModel(application: Application) : AndroidViewModel(applicat
             }
             return
         }
+
+        val cached = repository.getCachedVouchById(id.toInt())
+        if (cached != null) {
+            editingVouchId = cached.vouch.id
+            originalVouch = cached
+            _uiState.update {
+                it.copy(
+                    amount = CurrencyManager.formatAmount(cached.vouch.amount),
+                    given = cached.vouch.given,
+                    personName = cached.persons.firstOrNull()?.person?.name ?: "",
+                    description = cached.vouch.description,
+                    isLoading = false
+                )
+            }
+            return
+        }
+
+        _uiState.update { it.copy(isLoading = true) }
         val intId = id.toInt()
         viewModelScope.launch {
             val vouch = repository.getById(intId)
@@ -161,5 +213,17 @@ class SingleVouchViewModel(application: Application) : AndroidViewModel(applicat
 
     fun resetSaveSuccess() {
         _uiState.update { it.copy(saveSuccess = false) }
+    }
+
+    companion object {
+        fun factory(
+            vouchId: Long? = null,
+            prefilledPersonName: String? = null
+        ): ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                val application = this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY]!!
+                SingleVouchViewModel(application, vouchId, prefilledPersonName)
+            }
+        }
     }
 }

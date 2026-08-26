@@ -132,7 +132,8 @@ fun VouchBalanceHeroCard(
                         .height(8.dp)
                         .clip(CircleShape),
                     color = MaterialTheme.colorScheme.primary,
-                    trackColor = MaterialTheme.colorScheme.error
+                    trackColor = MaterialTheme.colorScheme.error,
+                    drawStopIndicator = {}
                 )
             }
 

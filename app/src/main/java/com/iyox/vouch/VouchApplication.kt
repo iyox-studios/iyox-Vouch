@@ -7,11 +7,18 @@ import android.os.LocaleList
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.edit
 import com.iyox.vouch.core.currency.CurrencyManager
+import com.iyox.vouch.core.data.AppDatabase
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 class VouchApplication : Application() {
+    @OptIn(DelicateCoroutinesApi::class)
     override fun onCreate() {
         super.onCreate()
         CurrencyManager.init(this)
+        // Pre-warm the Room database so the first screen open has no cold-start penalty
+        GlobalScope.launch { AppDatabase.getDatabase(this@VouchApplication).vouchDataDao().getAll() }
         migrateLegacyLocalesIfNeeded()
     }
 
