@@ -47,8 +47,8 @@
     <string name="action_delete">Delete</string>
     <string name="action_cancel">Cancel</string>
     <string name="action_undo">Undo</string>
-    <string name="action_add_vouch">Add Vouch</string>
-    <string name="action_add_group_vouch">Add Group Vouch</string>
+    <string name="action_add_vouch">Vouch</string>
+    <string name="action_add_group_vouch">Group Vouch</string>
     <string name="action_continue">Continue</string>
     <string name="action_create">Create</string>
     <string name="action_add_person">Add Person</string>
