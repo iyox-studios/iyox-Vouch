@@ -96,6 +96,8 @@ fun PersonScreen(
     val msgVouchesNetted = stringResource(R.string.msg_vouches_netted)
     val msgSettleFailed = stringResource(R.string.msg_settle_failed)
     val actionUndo = stringResource(R.string.action_undo)
+    val vouchSummaryLabel = stringResource(R.string.vouch_summary_label)
+    val shareVouchSummaryTitle = stringResource(R.string.share_vouch_summary_title)
 
     var showSettleDialog by remember { mutableStateOf(false) }
     var capturing by remember { mutableStateOf(false) }
@@ -152,7 +154,13 @@ fun PersonScreen(
                         capturing = true
                         awaitFrame()
                         val bitmap = exportLayer.toImageBitmap().asAndroidBitmap()
-                        shareBitmap(context, bitmap, personName)
+                        shareBitmap(
+                            context = context,
+                            bitmap = bitmap,
+                            personName = personName,
+                            vouchSummaryLabel = vouchSummaryLabel,
+                            shareVouchSummaryTitle = shareVouchSummaryTitle
+                        )
                         capturing = false
                     }
                 })
@@ -407,7 +415,13 @@ fun VouchExportTemplate(
     }
 }
 
-private fun shareBitmap(context: Context, bitmap: Bitmap, personName: String) {
+private fun shareBitmap(
+    context: Context,
+    bitmap: Bitmap,
+    personName: String,
+    vouchSummaryLabel: String,
+    shareVouchSummaryTitle: String
+) {
     val cachePath = File(context.cacheDir, "images")
     cachePath.mkdirs()
 
@@ -427,7 +441,7 @@ private fun shareBitmap(context: Context, bitmap: Bitmap, personName: String) {
         putExtra(Intent.EXTRA_STREAM, uri)
         clipData = ClipData.newUri(
             context.contentResolver,
-            context.getString(R.string.vouch_summary_label),
+            vouchSummaryLabel,
             uri
         )
         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
@@ -436,7 +450,7 @@ private fun shareBitmap(context: Context, bitmap: Bitmap, personName: String) {
     context.startActivity(
         Intent.createChooser(
             shareIntent,
-            context.getString(R.string.share_vouch_summary_title)
+            shareVouchSummaryTitle
         )
     )
 

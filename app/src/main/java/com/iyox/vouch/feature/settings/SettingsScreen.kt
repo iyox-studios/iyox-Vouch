@@ -15,7 +15,6 @@ import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_WEAK
 import androidx.biometric.BiometricPrompt
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -35,17 +34,19 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AttachMoney
 import androidx.compose.material.icons.outlined.Brightness4
+import androidx.compose.material.icons.outlined.BrightnessAuto
+import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Fingerprint
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Language
+import androidx.compose.material.icons.outlined.LightMode
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.material.icons.outlined.Upload
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -74,37 +75,43 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.iyox.vouch.R
 import com.iyox.vouch.core.currency.CurrencyManager
-import com.iyox.vouch.core.utils.rememberToastManager
 import com.iyox.vouch.ui.components.PageHeader
 
 data class SupportedLanguage(
     val tag: String,
-    @field:StringRes val labelRes: Int
+    @field:StringRes val labelRes: Int,
+    val displayCode: String,
+    val icon: ImageVector? = null
 )
 
 private val supportedLanguages = listOf(
-    SupportedLanguage("system", R.string.settings_language_system),
-    SupportedLanguage("en", R.string.settings_lang_en),
-    SupportedLanguage("de", R.string.settings_lang_de),
+    SupportedLanguage("system", R.string.settings_language_system, "AUTO", Icons.Outlined.Language),
+    SupportedLanguage("en", R.string.settings_lang_en, "EN"),
+    SupportedLanguage("de", R.string.settings_lang_de, "DE"),
+)
+
+data class SupportedTheme(
+    val mode: Int,
+    @field:StringRes val labelRes: Int,
+    val icon: ImageVector
+)
+
+private val supportedThemes = listOf(
+    SupportedTheme(UiModeManager.MODE_NIGHT_AUTO, R.string.theme_system, Icons.Outlined.BrightnessAuto),
+    SupportedTheme(UiModeManager.MODE_NIGHT_YES, R.string.theme_dark, Icons.Outlined.DarkMode),
+    SupportedTheme(UiModeManager.MODE_NIGHT_NO, R.string.theme_light, Icons.Outlined.LightMode)
 )
 
 @Composable
 fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
-    val toastManager = rememberToastManager()
+    val biometricTitle = stringResource(R.string.biometric_title)
+    val biometricSubtitle = stringResource(R.string.biometric_subtitle)
+    val biometricCancel = stringResource(R.string.action_cancel)
 
-    LaunchedEffect(viewModel) {
-        viewModel.toastEvents.collect { event ->
-            when (event) {
-                is ToastEvent.Info -> toastManager.showInfo(context.getString(event.messageRes))
-                is ToastEvent.Error -> toastManager.showError(context.getString(event.messageRes))
-            }
-        }
-    }
-
-    var showThemeDropdown by remember { mutableStateOf(false) }
-    var showLanguageDropdown by remember { mutableStateOf(false) }
+    var showThemeDialog by remember { mutableStateOf(false) }
+    var showLanguageDialog by remember { mutableStateOf(false) }
     var showCurrencyDialog by remember { mutableStateOf(false) }
     val isPerAppLanguageSupported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
 
@@ -130,6 +137,17 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
         CurrencyManager.getCurrency()
     }
 
+    if (showLanguageDialog) {
+        LanguageSelectionDialog(
+            currentLanguageTag = uiState.languageTag,
+            onDismiss = { showLanguageDialog = false },
+            onLanguageSelected = { selectedTag ->
+                viewModel.setLanguage(selectedTag)
+                showLanguageDialog = false
+            }
+        )
+    }
+
     if (showCurrencyDialog) {
         CurrencySelectionDialog(
             currentCurrency = currentCurrency,
@@ -137,6 +155,17 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
             onCurrencySelected = { selectedCurrency ->
                 viewModel.setCurrency(selectedCurrency.currencyCode)
                 showCurrencyDialog = false
+            }
+        )
+    }
+
+    if (showThemeDialog) {
+        ThemeSelectionDialog(
+            currentTheme = uiState.theme,
+            onDismiss = { showThemeDialog = false },
+            onThemeSelected = { selectedTheme ->
+                viewModel.setTheme(selectedTheme)
+                showThemeDialog = false
             }
         )
     }
@@ -150,41 +179,23 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
         ) {
             SectionHeader(stringResource(R.string.settings_section_general))
 
-            Box {
-                SettingItem(
-                    icon = Icons.Outlined.Translate,
-                    title = stringResource(R.string.settings_language),
-                    subtitle = if (isPerAppLanguageSupported) {
-                        supportedLanguages
-                            .firstOrNull { it.tag == uiState.languageTag }
-                            ?.let { stringResource(it.labelRes) }
-                            ?: uiState.languageTag
-                    } else {
-                        stringResource(R.string.settings_language_android_13_only)
-                    },
-                    onClick = if (isPerAppLanguageSupported) {
-                        { showLanguageDropdown = true }
-                    } else {
-                        null
-                    }
-                )
-                if (isPerAppLanguageSupported) {
-                    DropdownMenu(
-                        expanded = showLanguageDropdown,
-                        onDismissRequest = { showLanguageDropdown = false }
-                    ) {
-                        supportedLanguages.forEach { language ->
-                            DropdownMenuItem(
-                                text = { Text(stringResource(language.labelRes)) },
-                                onClick = {
-                                    viewModel.setLanguage(language.tag)
-                                    showLanguageDropdown = false
-                                }
-                            )
-                        }
-                    }
+            SettingItem(
+                icon = Icons.Outlined.Translate,
+                title = stringResource(R.string.settings_language),
+                subtitle = if (isPerAppLanguageSupported) {
+                    supportedLanguages
+                        .firstOrNull { it.tag == uiState.languageTag }
+                        ?.let { stringResource(it.labelRes) }
+                        ?: uiState.languageTag
+                } else {
+                    stringResource(R.string.settings_language_android_13_only)
+                },
+                onClick = if (isPerAppLanguageSupported) {
+                    { showLanguageDialog = true }
+                } else {
+                    null
                 }
-            }
+            )
 
             SettingItem(
                 icon = Icons.Outlined.AttachMoney,
@@ -195,42 +206,17 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
 
             SectionHeader(stringResource(R.string.settings_section_appearance))
 
-            Box {
-                SettingItem(
-                    icon = Icons.Outlined.Brightness4,
-                    title = stringResource(R.string.settings_theme),
-                    subtitle = when (uiState.theme) {
-                        UiModeManager.MODE_NIGHT_NO -> stringResource(R.string.theme_light)
-                        UiModeManager.MODE_NIGHT_YES -> stringResource(R.string.theme_dark)
-                        UiModeManager.MODE_NIGHT_AUTO -> stringResource(R.string.theme_system)
-                        else -> stringResource(R.string.theme_error)
-                    },
-                    onClick = { showThemeDropdown = true }
-                )
-                DropdownMenu(
-                    expanded = showThemeDropdown,
-                    onDismissRequest = { showThemeDropdown = false }
-                ) {
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.theme_system)) },
-                        onClick = {
-                            viewModel.setTheme(UiModeManager.MODE_NIGHT_AUTO); showThemeDropdown =
-                            false
-                        })
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.theme_dark)) },
-                        onClick = {
-                            viewModel.setTheme(UiModeManager.MODE_NIGHT_YES); showThemeDropdown =
-                            false
-                        })
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.theme_light)) },
-                        onClick = {
-                            viewModel.setTheme(UiModeManager.MODE_NIGHT_NO); showThemeDropdown =
-                            false
-                        })
-                }
-            }
+            SettingItem(
+                icon = Icons.Outlined.Brightness4,
+                title = stringResource(R.string.settings_theme),
+                subtitle = when (uiState.theme) {
+                    UiModeManager.MODE_NIGHT_NO -> stringResource(R.string.theme_light)
+                    UiModeManager.MODE_NIGHT_YES -> stringResource(R.string.theme_dark)
+                    UiModeManager.MODE_NIGHT_AUTO -> stringResource(R.string.theme_system)
+                    else -> stringResource(R.string.theme_error)
+                },
+                onClick = { showThemeDialog = true }
+            )
 
             SettingItem(
                 icon = Icons.Outlined.Palette,
@@ -256,7 +242,13 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
                         checked = uiState.biometricEnabled,
                         onCheckedChange = { enabled ->
                             if (enabled) {
-                                authenticateAndEnableBiometric(context, viewModel)
+                                authenticateAndEnableBiometric(
+                                    context = context,
+                                    viewModel = viewModel,
+                                    title = biometricTitle,
+                                    subtitle = biometricSubtitle,
+                                    cancelText = biometricCancel
+                                )
                             } else {
                                 viewModel.setBiometricEnabled(false)
                             }
@@ -265,7 +257,13 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
                 },
                 onClick = {
                     if (!uiState.biometricEnabled) {
-                        authenticateAndEnableBiometric(context, viewModel)
+                        authenticateAndEnableBiometric(
+                            context = context,
+                            viewModel = viewModel,
+                            title = biometricTitle,
+                            subtitle = biometricSubtitle,
+                            cancelText = biometricCancel
+                        )
                     } else {
                         viewModel.setBiometricEnabled(false)
                     }
@@ -394,6 +392,80 @@ fun SettingItem(
 }
 
 @Composable
+fun LanguageSelectionDialog(
+    currentLanguageTag: String,
+    onDismiss: () -> Unit,
+    onLanguageSelected: (String) -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.title_select_language)) },
+        text = {
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(3),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                items(supportedLanguages) { language ->
+                    Card(
+                        modifier = Modifier
+                            .aspectRatio(1f)
+                            .clickable { onLanguageSelected(language.tag) },
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (language.tag == currentLanguageTag) {
+                                MaterialTheme.colorScheme.primaryContainer
+                            } else {
+                                MaterialTheme.colorScheme.surface
+                            }
+                        ),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.fillMaxSize(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            if (language.icon != null) {
+                                Icon(
+                                    imageVector = language.icon,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(32.dp),
+                                    tint = if (language.tag == currentLanguageTag) {
+                                        MaterialTheme.colorScheme.primary
+                                    } else {
+                                        MaterialTheme.colorScheme.onSurface
+                                    }
+                                )
+                            } else {
+                                Text(
+                                    text = language.displayCode,
+                                    style = MaterialTheme.typography.headlineMedium,
+                                    textAlign = TextAlign.Center,
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = stringResource(language.labelRes),
+                                style = MaterialTheme.typography.bodySmall,
+                                textAlign = TextAlign.Center,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.action_cancel))
+            }
+        }
+    )
+}
+
+@Composable
 fun CurrencySelectionDialog(
     currentCurrency: Currency,
     onDismiss: () -> Unit,
@@ -452,9 +524,78 @@ fun CurrencySelectionDialog(
     )
 }
 
+@Composable
+fun ThemeSelectionDialog(
+    currentTheme: Int,
+    onDismiss: () -> Unit,
+    onThemeSelected: (Int) -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.title_select_theme)) },
+        text = {
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(3),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                items(supportedThemes) { theme ->
+                    Card(
+                        modifier = Modifier
+                            .aspectRatio(1f)
+                            .clickable { onThemeSelected(theme.mode) },
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (theme.mode == currentTheme) {
+                                MaterialTheme.colorScheme.primaryContainer
+                            } else {
+                                MaterialTheme.colorScheme.surface
+                            }
+                        ),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.fillMaxSize(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                imageVector = theme.icon,
+                                contentDescription = null,
+                                modifier = Modifier.size(32.dp),
+                                tint = if (theme.mode == currentTheme) {
+                                    MaterialTheme.colorScheme.primary
+                                } else {
+                                    MaterialTheme.colorScheme.onSurface
+                                }
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = stringResource(theme.labelRes),
+                                style = MaterialTheme.typography.bodySmall,
+                                textAlign = TextAlign.Center,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.action_cancel))
+            }
+        }
+    )
+}
+
 private fun authenticateAndEnableBiometric(
     context: Context,
-    viewModel: SettingsViewModel
+    viewModel: SettingsViewModel,
+    title: String,
+    subtitle: String,
+    cancelText: String
 ) {
     val biometricManager = BiometricManager.from(context)
     when (biometricManager.canAuthenticate(BIOMETRIC_STRONG or BIOMETRIC_WEAK)) {
@@ -474,9 +615,9 @@ private fun authenticateAndEnableBiometric(
             )
 
             val promptInfo = BiometricPrompt.PromptInfo.Builder()
-                .setTitle(context.getString(R.string.biometric_title))
-                .setSubtitle(context.getString(R.string.biometric_subtitle))
-                .setNegativeButtonText(context.getString(R.string.action_cancel))
+                .setTitle(title)
+                .setSubtitle(subtitle)
+                .setNegativeButtonText(cancelText)
                 .build()
 
             biometricPrompt.authenticate(promptInfo)
