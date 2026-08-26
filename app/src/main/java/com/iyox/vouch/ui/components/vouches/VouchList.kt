@@ -62,13 +62,7 @@ fun VouchList(
         itemsIndexed(
             displayedSorted, { _, item -> item.vouch.id }) { _, vouch ->
             val settled = isSettled(vouch)
-            val boxModifier = if (settled) {
-                Modifier
-                    .animateItem()
-                    .alpha(0.6f)
-            } else {
-                Modifier.animateItem()
-            }
+            val boxModifier = Modifier.animateItem()
             val settleMessage = if (settled) msgVouchUnsettled else msgVouchSettled
             val settleAction: suspend () -> Unit = {
                 val isGroupSingleContext = groupSingleContextPersonId != null

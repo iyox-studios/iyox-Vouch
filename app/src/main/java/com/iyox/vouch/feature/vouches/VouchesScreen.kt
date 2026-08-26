@@ -12,10 +12,10 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.GroupAdd
 import androidx.compose.material.icons.filled.Payments
+import androidx.compose.material.icons.outlined.Archive
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilterChip
@@ -23,8 +23,10 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonMenu
 import androidx.compose.material3.FloatingActionButtonMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -54,27 +56,39 @@ fun VouchesScreen(
     onNavigateToAddVouch: () -> Unit = {},
     onNavigateToAddGroupVouch: () -> Unit = {},
     onNavigateToEditVouch: (Int, Boolean) -> Unit = { _, _ -> },
-    onNavigateToPerson: (String) -> Unit = {}
+    onNavigateToPerson: (String) -> Unit = {},
+    onNavigateToSettledSpace: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
     val fabMenuExpanded = remember { mutableStateOf(false) }
 
-    val listState = remember(uiState.showOnlyUnsettled, uiState.showOnlyGiven, uiState.sortedBy) {
+    val listState = remember(uiState.showOnlyGiven, uiState.sortedBy) {
         LazyListState()
     }
 
-
     Scaffold(
         topBar = {
-            PageHeader(stringResource(R.string.screen_vouches)) {
+            PageHeader(
+                title = stringResource(R.string.screen_vouches),
+                actions = {
+                    IconButton(
+                        onClick = onNavigateToSettledSpace,
+                        modifier = Modifier.padding(end = 8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Archive,
+                            contentDescription = stringResource(R.string.cd_settled_space),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            ) {
                 VouchFilterRow(
                     sortedBy = uiState.sortedBy,
                     showOnlyGiven = uiState.showOnlyGiven,
-                    showOnlyUnsettled = uiState.showOnlyUnsettled,
                     onToggleSort = viewModel::toggleSortedBy,
-                    onToggleGiven = viewModel::toggleShowOnlyGiven,
-                    onToggleUnsettled = viewModel::toggleShowOnlyUnsettled
+                    onToggleGiven = viewModel::toggleShowOnlyGiven
                 )
             }
         },
@@ -134,7 +148,7 @@ fun VouchesScreen(
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 Icon(
-                                    imageVector = Icons.Filled.Payments,
+                                    imageVector = if (uiState.settledCount > 0) Icons.Outlined.Archive else Icons.Filled.Payments,
                                     contentDescription = null,
                                     tint = MaterialTheme.colorScheme.onPrimaryContainer,
                                     modifier = Modifier.size(44.dp)
@@ -142,17 +156,33 @@ fun VouchesScreen(
                             }
                         }
                         Text(
-                            text = stringResource(R.string.empty_vouches_title),
+                            text = if (uiState.settledCount > 0) stringResource(R.string.all_settled_title) else stringResource(R.string.empty_vouches_title),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = stringResource(R.string.empty_vouches_subtitle),
+                            text = if (uiState.settledCount > 0) stringResource(R.string.all_settled_global_subtitle) else stringResource(R.string.empty_vouches_subtitle),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Center
                         )
+                        if (uiState.settledCount > 0) {
+                            OutlinedButton(
+                                onClick = onNavigateToSettledSpace,
+                                modifier = Modifier.padding(top = 8.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Archive,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Text(
+                                    text = stringResource(R.string.action_view_settled_history, uiState.settledCount),
+                                    modifier = Modifier.padding(start = 8.dp)
+                                )
+                            }
+                        }
                     }
                 }
             } else {
@@ -173,10 +203,8 @@ fun VouchesScreen(
 private fun VouchFilterRow(
     sortedBy: Int,
     showOnlyGiven: Int,
-    showOnlyUnsettled: Boolean,
     onToggleSort: () -> Unit,
     onToggleGiven: () -> Unit,
-    onToggleUnsettled: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val haptics = LocalHapticFeedback.current
@@ -227,19 +255,6 @@ private fun VouchFilterRow(
             leadingIcon = {
                 if (showOnlyGiven > 0) {
                     Icon(Icons.Default.FilterList, null, Modifier.size(18.dp))
-                }
-            },
-            modifier = Modifier.padding(end = 8.dp)
-        )
-
-        // Unsettled Filter Chip
-        FilterChip(
-            selected = showOnlyUnsettled,
-            onClick = { handleToggle(showOnlyUnsettled, onToggleUnsettled) },
-            label = { Text(stringResource(R.string.filter_unsettled)) },
-            leadingIcon = {
-                if (showOnlyUnsettled) {
-                    Icon(Icons.Default.Check, null, Modifier.size(18.dp))
                 }
             }
         )
