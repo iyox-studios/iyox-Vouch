@@ -17,14 +17,15 @@ import androidx.compose.material3.ShortNavigationBar
 import androidx.compose.material3.ShortNavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -67,30 +68,45 @@ fun AppNavigation(
         bottomBar = {
             ShortNavigationBar {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
-                val currentDestination = navBackStackEntry?.destination
+                val currentBackStack by navController.currentBackStack.collectAsState()
+                val topLevelRoutes = remember {
+                    setOf(Screen.Vouches.route, Screen.Persons.route, Screen.Settings.route)
+                }
+                val activeTopLevelRoute = remember(navBackStackEntry, currentBackStack) {
+                    currentBackStack.mapNotNull { it.destination.route }
+                        .lastOrNull { it in topLevelRoutes } ?: Screen.Vouches.route
+                }
 
                 navigationItems.forEach { item ->
+                    val isSelected = item.screen.route == activeTopLevelRoute
+                    val icon = if (isSelected) item.iconSelected else item.icon
                     ShortNavigationBarItem(
                         icon = {
-                            val isSelected =
-                                currentDestination?.hierarchy?.any { it.route == item.screen.route } == true
-                            val icon = if (isSelected) item.iconSelected else item.icon
                             Icon(
                                 imageVector = icon,
                                 contentDescription = stringResource(item.screen.titleRes)
                             )
                         },
                         label = { Text(stringResource(item.screen.titleRes)) },
-                        selected = currentDestination?.hierarchy?.any { it.route == item.screen.route } == true,
+                        selected = isSelected,
                         onClick = {
                             haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
-                            navController.navigate(item.screen.route) {
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
-                                    inclusive = false
+                            if (isSelected) {
+                                if (navBackStackEntry?.destination?.route != item.screen.route) {
+                                    navController.popBackStack(
+                                        route = item.screen.route,
+                                        inclusive = false
+                                    )
                                 }
-                                launchSingleTop = true
-                                restoreState = true
+                            } else {
+                                navController.navigate(item.screen.route) {
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                        inclusive = false
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
                             }
                         })
                 }
