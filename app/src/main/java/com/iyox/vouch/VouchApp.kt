@@ -28,21 +28,21 @@ fun VouchApp(
     pendingImportUri: Uri? = null,
     onImportUriConsumed: () -> Unit = {}
 ) {
+    val appContext = LocalContext.current.applicationContext
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
-    val toastManager = remember(snackbarHostState, coroutineScope) {
-        ToastManager(snackbarHostState, coroutineScope)
+    val toastManager = remember(snackbarHostState, coroutineScope, appContext) {
+        ToastManager(snackbarHostState, coroutineScope, appContext)
     }
     val settingsViewModel: SettingsViewModel = viewModel()
     val uiState by settingsViewModel.uiState.collectAsState()
     val pendingImportPreview by settingsViewModel.pendingImportPreview.collectAsState()
-    val context = LocalContext.current
 
     LaunchedEffect(settingsViewModel) {
         settingsViewModel.toastEvents.collect { event ->
             when (event) {
-                is ToastEvent.Info -> toastManager.showInfo(context.getString(event.messageRes))
-                is ToastEvent.Error -> toastManager.showError(context.getString(event.messageRes))
+                is ToastEvent.Info -> toastManager.showInfo(event.messageRes)
+                is ToastEvent.Error -> toastManager.showError(event.messageRes)
             }
         }
     }

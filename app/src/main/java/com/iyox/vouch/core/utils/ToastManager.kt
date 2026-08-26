@@ -1,5 +1,7 @@
 package com.iyox.vouch.core.utils
 
+import android.content.Context
+import androidx.annotation.StringRes
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
@@ -23,7 +25,8 @@ data class VouchSnackbarVisuals(
 
 class ToastManager(
     val snackbarHostState: SnackbarHostState,
-    private val coroutineScope: CoroutineScope
+    private val coroutineScope: CoroutineScope,
+    private val context: Context? = null
 ) {
     fun show(
         message: String,
@@ -40,6 +43,15 @@ class ToastManager(
                 )
             )
         }
+    }
+
+    fun show(
+        @StringRes messageRes: Int,
+        type: ToastType = ToastType.INFO,
+        duration: SnackbarDuration = SnackbarDuration.Short
+    ) {
+        val message = context?.getString(messageRes) ?: return
+        show(message, type, duration)
     }
 
     fun showInfo(
@@ -63,6 +75,16 @@ class ToastManager(
         }
     }
 
+    fun showInfo(
+        @StringRes messageRes: Int,
+        actionLabel: String? = null,
+        duration: SnackbarDuration = SnackbarDuration.Short,
+        onAction: (() -> Unit)? = null
+    ) {
+        val message = context?.getString(messageRes) ?: return
+        showInfo(message, actionLabel, duration, onAction)
+    }
+
     fun showError(
         message: String,
         duration: SnackbarDuration = SnackbarDuration.Short
@@ -79,6 +101,14 @@ class ToastManager(
         }
     }
 
+    fun showError(
+        @StringRes messageRes: Int,
+        duration: SnackbarDuration = SnackbarDuration.Short
+    ) {
+        val message = context?.getString(messageRes) ?: return
+        showError(message, duration)
+    }
+
     fun <T> executeWithUndo(
         message: String,
         actionLabel: String = "Undo",
@@ -88,10 +118,7 @@ class ToastManager(
     ) {
         coroutineScope.launch {
             try {
-                val resultData = performAction()
-                if (resultData == null) {
-                    return@launch
-                }
+                val resultData = performAction() ?: return@launch
                 snackbarHostState.currentSnackbarData?.dismiss()
                 val visuals = VouchSnackbarVisuals(
                     message = message,
