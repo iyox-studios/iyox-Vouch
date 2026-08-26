@@ -27,6 +27,8 @@ data class PersonUiState(
     val settledCount: Int = 0,
     val amountGiven: Long = 0L,
     val amountOwed: Long = 0L,
+    val showOnlyGiven: Int = 0,
+    val sortedBy: Int = 0,
     val isLoading: Boolean = true
 )
 
@@ -42,10 +44,14 @@ data class PersonSettlementChange(
  */
 class PersonViewModel(
     application: Application,
-    personName: String
+    private val personName: String
 ) : AndroidViewModel(application) {
 
     private val vouchRepository = VouchRepository.getInstance(application)
+    private val _showOnlyGiven = MutableStateFlow(0)
+    private val _sortedBy = MutableStateFlow(0)
+    private var currentPersonVouches: List<VouchWithPerson> =
+        vouchRepository.getCachedVouchesByPerson(personName) ?: emptyList()
 
     // Initialize from cache synchronously — if cached data exists for this person the
     // initial state already has isLoading=false and real content, so frame 1 shows
@@ -60,25 +66,22 @@ class PersonViewModel(
     init {
         viewModelScope.launch {
             vouchRepository.dataUpdates.collect {
-                val name = _uiState.value.personData?.person?.name
-                if (name != null) {
-                    loadPerson(name, shouldShowLoading = false)
-                }
+                val name = _uiState.value.personData?.person?.name ?: personName
+                loadPerson(name, shouldShowLoading = false)
             }
         }
     }
 
     val sharedActions = SharedVouchActions(vouchRepository) {
-        val name = _uiState.value.personData?.person?.name
-        if (name != null) {
-            loadPerson(name, shouldShowLoading = false)
-        }
+        val name = _uiState.value.personData?.person?.name ?: personName
+        loadPerson(name, shouldShowLoading = false)
     }
 
     fun loadPerson(name: String, shouldShowLoading: Boolean = true) {
         // Cache hit — update synchronously, no spinner needed
         val cached = vouchRepository.getCachedVouchesByPerson(name)
         if (cached != null) {
+            currentPersonVouches = cached
             _uiState.update { buildState(name, cached) }
             return
         }
@@ -87,8 +90,21 @@ class PersonViewModel(
         _uiState.update { it.copy(isLoading = shouldShowLoading) }
         viewModelScope.launch {
             val personVouches = vouchRepository.getVouchesByPersonName(name)
+            currentPersonVouches = personVouches
             _uiState.update { buildState(name, personVouches) }
         }
+    }
+
+    fun toggleShowOnlyGiven() {
+        _showOnlyGiven.value = (_showOnlyGiven.value + 1) % 3
+        val name = _uiState.value.personData?.person?.name ?: personName
+        _uiState.update { buildState(name, currentPersonVouches) }
+    }
+
+    fun toggleSortedBy() {
+        _sortedBy.value = (_sortedBy.value + 1) % 2
+        val name = _uiState.value.personData?.person?.name ?: personName
+        _uiState.update { buildState(name, currentPersonVouches) }
     }
 
     private fun buildState(name: String, personVouches: List<VouchWithPerson>): PersonUiState {
@@ -113,7 +129,25 @@ class PersonViewModel(
             }
         }
 
-        val sortedActive = activeVouches.sortedByDescending { it.vouch.timestamp }
+        val showOnlyGiven = _showOnlyGiven.value
+        val sortedBy = _sortedBy.value
+
+        val filteredActive = activeVouches.filter {
+            when (showOnlyGiven) {
+                0 -> true
+                1 -> it.vouch.given
+                2 -> !it.vouch.given
+                else -> true
+            }
+        }
+
+        val sortedActive = when (sortedBy) {
+            0 -> filteredActive.sortedBy { it.vouch.timestamp }
+            1 -> filteredActive.sortedBy { it.vouch.amount }
+            2 -> filteredActive.sortedBy { if (it.persons.size == 1) it.persons.first().person.name else "" }
+            else -> filteredActive.sortedBy { it.vouch.timestamp }
+        }.reversed()
+
         val sortedSettled = settledVouches.sortedByDescending { it.vouch.timestamp }
 
         val updatedPersonData = if (personVouches.isNotEmpty()) {
@@ -122,7 +156,7 @@ class PersonViewModel(
                     .firstNotNullOfOrNull { v -> v.persons.firstOrNull { it.person.name == name }?.person }
                     ?: Person(name = name),
                 amount = given - owed,
-                vouchCount = sortedActive.size
+                vouchCount = activeVouches.size
             )
         } else null
 
@@ -133,13 +167,15 @@ class PersonViewModel(
             settledCount = sortedSettled.size,
             amountGiven = given,
             amountOwed = owed,
+            showOnlyGiven = showOnlyGiven,
+            sortedBy = sortedBy,
             isLoading = false
         )
     }
 
     suspend fun settlePerson(): List<PersonSettlementChange> {
         val personName = _uiState.value.personData?.person?.name ?: return emptyList()
-        val unsettledEntries = _uiState.value.vouches.mapNotNull { vouch ->
+        val unsettledEntries = currentPersonVouches.mapNotNull { vouch ->
             val personEntry = vouch.persons.firstOrNull { it.person.name == personName }
                 ?: return@mapNotNull null
             if (personEntry.settled) return@mapNotNull null

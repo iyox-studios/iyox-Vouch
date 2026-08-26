@@ -19,7 +19,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -72,8 +72,10 @@ import com.iyox.vouch.core.model.PersonTotal
 import com.iyox.vouch.core.model.VouchWithPerson
 import com.iyox.vouch.core.model.isSettledForPerson
 import com.iyox.vouch.core.utils.rememberToastManager
+import androidx.compose.foundation.layout.wrapContentHeight
 import com.iyox.vouch.ui.components.VouchBackButton
 import com.iyox.vouch.ui.components.VouchBalanceHeroCard
+import com.iyox.vouch.ui.components.VouchFilterRow
 import com.iyox.vouch.ui.components.vouches.GroupVouchSingleItem
 import com.iyox.vouch.ui.components.vouches.SingleVouchItem
 import com.iyox.vouch.ui.components.vouches.VouchList
@@ -109,6 +111,10 @@ fun PersonScreen(
 
     var showSettleDialog by remember { mutableStateOf(false) }
     var capturing by remember { mutableStateOf(false) }
+
+    val listState = remember(state.showOnlyGiven, state.sortedBy) {
+        LazyListState()
+    }
 
     LaunchedEffect(personName) {
         viewModel.loadPerson(personName)
@@ -178,8 +184,18 @@ fun PersonScreen(
                     }
                 })
 
+                VouchFilterRow(
+                    sortedBy = state.sortedBy,
+                    showOnlyGiven = state.showOnlyGiven,
+                    onToggleSort = viewModel::toggleSortedBy,
+                    onToggleGiven = viewModel::toggleShowOnlyGiven,
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .padding(bottom = 8.dp)
+                )
+
                 if (state.vouches.isEmpty()) {
-                    if (state.settledCount > 0) {
+                    if (state.settledCount > 0 && state.showOnlyGiven == 0) {
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
@@ -245,7 +261,7 @@ fun PersonScreen(
                 } else {
                     VouchList(
                         displayedSorted = state.vouches,
-                        listState = rememberLazyListState(),
+                        listState = listState,
                         innerPadding = PaddingValues(0.dp),
                         sharedVouchActions = viewModel.sharedActions,
                         onEdit = onNavigateToEditVouch,

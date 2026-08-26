@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.iyox.vouch.R
 import com.iyox.vouch.ui.components.PageHeader
+import com.iyox.vouch.ui.components.VouchFilterRow
 import com.iyox.vouch.ui.components.vouches.VouchList
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -196,67 +197,5 @@ fun VouchesScreen(
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun VouchFilterRow(
-    sortedBy: Int,
-    showOnlyGiven: Int,
-    onToggleSort: () -> Unit,
-    onToggleGiven: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val haptics = LocalHapticFeedback.current
-
-    // Helper to handle haptic + callback
-    val handleToggle: (Boolean, () -> Unit) -> Unit = { isTurningOff, callback ->
-        haptics.performHapticFeedback(
-            if (isTurningOff) HapticFeedbackType.ToggleOff else HapticFeedbackType.ToggleOn
-        )
-        callback()
-    }
-
-    Row(modifier = modifier) {
-        // Sort Chip
-        FilterChip(
-            selected = true,
-            onClick = { handleToggle(false, onToggleSort) },
-            label = {
-                Text(
-                    when (sortedBy) {
-                        0 -> stringResource(R.string.filter_date)
-                        1 -> stringResource(R.string.filter_amount)
-                        2 -> stringResource(R.string.filter_person)
-                        else -> stringResource(R.string.filter_date)
-                    }
-                )
-            },
-            leadingIcon = {
-                Icon(Icons.AutoMirrored.Filled.Sort, null, Modifier.size(18.dp))
-            },
-            modifier = Modifier.padding(end = 8.dp)
-        )
-
-        // Given/Received Filter Chip
-        FilterChip(
-            selected = showOnlyGiven > 0,
-            onClick = { handleToggle(showOnlyGiven == 2, onToggleGiven) },
-            label = {
-                Text(
-                    when (showOnlyGiven) {
-                        0 -> stringResource(R.string.filter_given_received_short)
-                        1 -> stringResource(R.string.label_given)
-                        2 -> stringResource(R.string.label_received)
-                        else -> ""
-                    }
-                )
-            },
-            leadingIcon = {
-                if (showOnlyGiven > 0) {
-                    Icon(Icons.Default.FilterList, null, Modifier.size(18.dp))
-                }
-            }
-        )
     }
 }
