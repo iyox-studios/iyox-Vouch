@@ -33,11 +33,14 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SingleVouchScreen(
-    viewModel: SingleVouchViewModel = viewModel(),
     vouchId: Long? = null,
     prefilledPersonName: String? = null,
     onNavigateBack: () -> Unit,
-    edit: Boolean = false
+    edit: Boolean = false,
+    viewModel: SingleVouchViewModel = viewModel(
+        factory = SingleVouchViewModel.factory(vouchId, prefilledPersonName),
+        key = "SingleVouch_${vouchId}_$prefilledPersonName"
+    )
 ) {
     val uiState by viewModel.uiState.collectAsState()
 

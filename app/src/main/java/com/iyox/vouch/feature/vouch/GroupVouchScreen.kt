@@ -99,10 +99,13 @@ private const val STEP_MEMBERS = 2
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun GroupVouchScreen(
-    viewModel: GroupVouchViewModel = viewModel(),
     vouchId: Long? = null,
     edit: Boolean = false,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    viewModel: GroupVouchViewModel = viewModel(
+        factory = GroupVouchViewModel.factory(vouchId),
+        key = "GroupVouch_$vouchId"
+    )
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val coroutineScope = rememberCoroutineScope()

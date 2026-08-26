@@ -2,7 +2,10 @@ package com.iyox.vouch.feature.vouch
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.iyox.vouch.core.currency.CurrencyManager
 import com.iyox.vouch.core.data.PersonRepository
 import com.iyox.vouch.core.data.VouchRepository
@@ -42,7 +45,10 @@ data class GroupVouchUiState(
     val isLoading: Boolean = false
 )
 
-class GroupVouchViewModel(application: Application) : AndroidViewModel(application) {
+class GroupVouchViewModel(
+    application: Application,
+    private val initialVouchId: Long? = null
+) : AndroidViewModel(application) {
     private val repository = VouchRepository.getInstance(application)
     private val personRepository = PersonRepository.getInstance(application)
 
@@ -52,11 +58,46 @@ class GroupVouchViewModel(application: Application) : AndroidViewModel(applicati
     private var editingVouchId: Int? = null
     private var originalVouch: VouchWithPerson? = null
 
-    private val _uiState = MutableStateFlow(GroupVouchUiState())
+    private val _uiState = MutableStateFlow(createInitialState())
     val uiState: StateFlow<GroupVouchUiState> = _uiState.asStateFlow()
+
+    private fun createInitialState(): GroupVouchUiState {
+        if (initialVouchId != null) {
+            val cached = repository.getCachedVouchById(initialVouchId.toInt())
+            if (cached != null) {
+                editingVouchId = cached.vouch.id
+                originalVouch = cached
+                val memberCount = cached.persons.size
+                val totalAmount = cached.vouch.amount
+                val defaultSplit = if (memberCount > 0) totalAmount / memberCount else 0L
+                val members = cached.persons.map { p ->
+                    val isCustom = p.amount != defaultSplit
+                    GroupMemberInput(
+                        personName = p.person.name,
+                        amount = CurrencyManager.formatAmount(p.amount),
+                        isCustom = isCustom,
+                        isSelf = false
+                    )
+                }
+                return GroupVouchUiState(
+                    amount = CurrencyManager.formatAmount(totalAmount),
+                    given = cached.vouch.given,
+                    description = cached.vouch.description,
+                    members = members,
+                    step = STEP_DETAILS,
+                    isLoading = false
+                )
+            }
+            return GroupVouchUiState(isLoading = true)
+        }
+        return GroupVouchUiState(isLoading = false)
+    }
 
     init {
         loadSuggestedPersons()
+        if (initialVouchId != null && originalVouch == null) {
+            loadVouch(initialVouchId)
+        }
     }
 
     fun loadVouch(id: Long?) {
@@ -65,6 +106,35 @@ class GroupVouchViewModel(application: Application) : AndroidViewModel(applicati
             editingVouchId = null
             originalVouch = null
             _uiState.update { it.copy(isLoading = false) }
+            return
+        }
+
+        val cached = repository.getCachedVouchById(id.toInt())
+        if (cached != null) {
+            editingVouchId = cached.vouch.id
+            originalVouch = cached
+            val memberCount = cached.persons.size
+            val totalAmount = cached.vouch.amount
+            val defaultSplit = if (memberCount > 0) totalAmount / memberCount else 0L
+            val members = cached.persons.map { p ->
+                val isCustom = p.amount != defaultSplit
+                GroupMemberInput(
+                    personName = p.person.name,
+                    amount = CurrencyManager.formatAmount(p.amount),
+                    isCustom = isCustom,
+                    isSelf = false
+                )
+            }
+            _uiState.update { state ->
+                state.copy(
+                    amount = CurrencyManager.formatAmount(totalAmount),
+                    given = cached.vouch.given,
+                    description = cached.vouch.description,
+                    members = members,
+                    step = STEP_DETAILS,
+                    isLoading = false
+                )
+            }
             return
         }
 
@@ -394,5 +464,14 @@ class GroupVouchViewModel(application: Application) : AndroidViewModel(applicati
     ): Long {
         if (memberCount == 0) return 0L
         return total / memberCount
+    }
+
+    companion object {
+        fun factory(vouchId: Long? = null): ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                val application = this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY]!!
+                GroupVouchViewModel(application, vouchId)
+            }
+        }
     }
 }

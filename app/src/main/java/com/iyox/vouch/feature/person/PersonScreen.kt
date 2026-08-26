@@ -40,7 +40,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -58,9 +58,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.iyox.vouch.R
 import com.iyox.vouch.core.currency.CurrencyManager
@@ -87,8 +84,7 @@ fun PersonScreen(
     onNavigateToEditVouch: (Int, Boolean) -> Unit = { _, _ -> },
     onNavigateToPerson: (String) -> Unit = {}
 ) {
-    val lifecycleOwner = LocalLifecycleOwner.current
-    val viewModel: PersonViewModel = viewModel()
+    val viewModel: PersonViewModel = viewModel(factory = PersonViewModel.factory(personName))
     val personUiState by viewModel.uiState.collectAsState()
     val state by viewModel.uiState.collectAsState()
     val exportLayer = rememberGraphicsLayer()
@@ -104,17 +100,8 @@ fun PersonScreen(
     var showSettleDialog by remember { mutableStateOf(false) }
     var capturing by remember { mutableStateOf(false) }
 
-    DisposableEffect(lifecycleOwner, personName) {
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) {
-                viewModel.loadPerson(personName)
-            }
-        }
-        lifecycleOwner.lifecycle.addObserver(observer)
+    LaunchedEffect(personName) {
         viewModel.loadPerson(personName)
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(observer)
-        }
     }
 
     Scaffold(

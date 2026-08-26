@@ -68,7 +68,10 @@ fun VouchApp(
             LocalSnackbarHostState provides snackbarHostState,
             LocalToastManager provides toastManager
         ) {
-            AppNavigation({ VouchSnackbarHost(snackbarHostState) })
+            AppNavigation(
+                snackbarHost = { VouchSnackbarHost(snackbarHostState) },
+                settingsViewModel = settingsViewModel
+            )
 
             pendingImportPreview?.let { preview ->
                 ImportConfirmationDialog(

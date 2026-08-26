@@ -47,7 +47,12 @@ data class NavigationItem(
 )
 
 @Composable
-fun AppNavigation(snackbarHost: @Composable (() -> Unit) = {}) {
+fun AppNavigation(
+    snackbarHost: @Composable (() -> Unit) = {},
+    settingsViewModel: SettingsViewModel = viewModel(),
+    vouchesViewModel: VouchesViewModel = viewModel(),
+    personsViewModel: PersonsViewModel = viewModel()
+) {
     val navController = rememberNavController()
     val haptic = LocalHapticFeedback.current
 
@@ -82,7 +87,7 @@ fun AppNavigation(snackbarHost: @Composable (() -> Unit) = {}) {
                             navController.navigate(item.screen.route) {
                                 popUpTo(navController.graph.findStartDestination().id) {
                                     saveState = true
-                                    inclusive = true
+                                    inclusive = false
                                 }
                                 launchSingleTop = true
                                 restoreState = true
@@ -99,9 +104,7 @@ fun AppNavigation(snackbarHost: @Composable (() -> Unit) = {}) {
             exitTransition = { ExitTransition.None },
             popEnterTransition = { EnterTransition.None },
             popExitTransition = { ExitTransition.None }) {
-            composable(Screen.Vouches.route) { backStackEntry ->
-                val vouchesViewModel: VouchesViewModel =
-                    viewModel(viewModelStoreOwner = backStackEntry)
+            composable(Screen.Vouches.route) {
                 VouchesScreen(
                     viewModel = vouchesViewModel,
                     onNavigateToAddVouch = {
@@ -122,16 +125,12 @@ fun AppNavigation(snackbarHost: @Composable (() -> Unit) = {}) {
                     }
                 )
             }
-            composable(Screen.Persons.route) { backStackEntry ->
-                val personsViewModel: PersonsViewModel =
-                    viewModel(viewModelStoreOwner = backStackEntry)
+            composable(Screen.Persons.route) {
                 PersonsScreen(viewModel = personsViewModel, onNavigateToViewPerson = { personName ->
                     navController.navigate(Screen.ViewPerson.createRoute(personName))
                 })
             }
-            composable(Screen.Settings.route) { backStackEntry ->
-                val settingsViewModel: SettingsViewModel =
-                    viewModel(viewModelStoreOwner = backStackEntry)
+            composable(Screen.Settings.route) {
                 SettingsScreen(viewModel = settingsViewModel)
             }
             composable(

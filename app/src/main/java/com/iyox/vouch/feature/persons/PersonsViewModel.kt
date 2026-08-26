@@ -38,7 +38,7 @@ class PersonsViewModel(application: Application) : AndroidViewModel(application)
         )
     }.stateIn(
         scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
+        started = SharingStarted.Eagerly,
         initialValue = PersonsUiState()
     )
 
