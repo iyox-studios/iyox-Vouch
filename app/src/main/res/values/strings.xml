@@ -4,6 +4,8 @@
     <string name="screen_vouches">Vouches</string>
     <string name="screen_people">People</string>
     <string name="screen_settings">Settings</string>
+    <string name="screen_settled_space">Settled Space</string>
+    <string name="title_person_settled_space">Settled • %1$s</string>
     <string name="title_add_vouch">Add Vouch</string>
     <string name="title_edit_vouch">Edit Vouch</string>
     <string name="title_view_person">View Person</string>
@@ -78,6 +80,18 @@
     <string name="empty_people_title">No people yet</string>
     <string name="empty_people_subtitle">People will appear here once you add vouches with them</string>
     <string name="empty_group_members">Add people to split the amount</string>
+    <string name="empty_settled_vouches_title">No settled vouches</string>
+    <string name="empty_settled_vouches_subtitle">Vouches that are marked as settled will appear here.</string>
+    <string name="empty_person_settled_vouches">No settled vouches for %1$s</string>
+    <string name="settled_space_hero_title">Settled History</string>
+    <string name="settled_space_total_resolved">Total Resolved</string>
+    <string name="action_view_settled_space">Settled Space</string>
+    <string name="action_view_settled_history">Settled History (%1$d)</string>
+    <string name="action_show_all_settled">Show all settled</string>
+    <string name="all_settled_title">All settled up!</string>
+    <string name="all_settled_subtitle">No active vouches with %1$s</string>
+    <string name="all_settled_global_subtitle">You have no active vouches right now</string>
+    <string name="cd_settled_space">Settled Space</string>
 
     <plurals name="vouch_count">
         <item quantity="one">%1$d Vouch</item>

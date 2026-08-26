@@ -16,7 +16,7 @@ import kotlinx.coroutines.launch
 
 data class VouchesUiState(
     val vouches: List<VouchWithPerson> = emptyList(),
-    val showOnlyUnsettled: Boolean = true,
+    val settledCount: Int = 0,
     val showOnlyGiven: Int = 0,
     val sortedBy: Int = 0,
     val totalGiven: Long = 0L,
@@ -30,14 +30,16 @@ class VouchesViewModel(application: Application) : AndroidViewModel(application)
     val sharedActions = SharedVouchActions(repository) { loadVouches() }
 
     private val _vouches = MutableStateFlow(repository.getCachedVouches() ?: emptyList())
-    private val _showOnlyUnsettled = MutableStateFlow(true)
     private val _showOnlyGiven = MutableStateFlow(0)
     private val _sortedBy = MutableStateFlow(0)
 
     val uiState: StateFlow<VouchesUiState> = combine(
-        _vouches, _showOnlyUnsettled, _showOnlyGiven, _sortedBy
-    ) { vouches, showOnlyUnsettled, showOnlyGiven, sortedBy ->
-        val displayed = getDisplayedVouches(showOnlyUnsettled, showOnlyGiven, vouches)
+        _vouches, _showOnlyGiven, _sortedBy
+    ) { allVouches, showOnlyGiven, sortedBy ->
+        val activeVouches = allVouches.filter { !it.isSettled() }
+        val settledCount = allVouches.count { it.isSettled() }
+
+        val displayed = getDisplayedVouches(showOnlyGiven, activeVouches)
         val sorted = when (sortedBy) {
             0 -> displayed.sortedBy { it.vouch.timestamp }
             1 -> displayed.sortedBy { it.vouch.amount }
@@ -47,7 +49,7 @@ class VouchesViewModel(application: Application) : AndroidViewModel(application)
 
         var totalGiven = 0L
         var totalOwed = 0L
-        for (vouch in vouches) {
+        for (vouch in activeVouches) {
             for (personEntry in vouch.persons) {
                 if (!personEntry.settled) {
                     if (vouch.vouch.given) {
@@ -61,7 +63,7 @@ class VouchesViewModel(application: Application) : AndroidViewModel(application)
 
         VouchesUiState(
             vouches = sorted,
-            showOnlyUnsettled = showOnlyUnsettled,
+            settledCount = settledCount,
             showOnlyGiven = showOnlyGiven,
             sortedBy = sortedBy,
             totalGiven = totalGiven,
@@ -86,11 +88,6 @@ class VouchesViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-
-    fun toggleShowOnlyUnsettled() {
-        _showOnlyUnsettled.value = !_showOnlyUnsettled.value
-    }
-
     fun toggleShowOnlyGiven() {
         _showOnlyGiven.value = (_showOnlyGiven.value + 1) % 3
     }
@@ -99,22 +96,17 @@ class VouchesViewModel(application: Application) : AndroidViewModel(application)
         _sortedBy.value = (_sortedBy.value + 1) % 3
     }
 
-
     fun getDisplayedVouches(
-        showOnlyUnsettled: Boolean,
         showOnlyGiven: Int,
-        vouches: List<VouchWithPerson>
+        activeVouches: List<VouchWithPerson>
     ): List<VouchWithPerson> {
-        return vouches.filter {
-            when (showOnlyUnsettled) {
-                true -> !it.isSettled()
-                else -> true
-            } && when (showOnlyGiven) {
+        return activeVouches.filter {
+            when (showOnlyGiven) {
                 0 -> true
                 1 -> it.vouch.given
                 2 -> !it.vouch.given
                 else -> true
             }
-        }.reversed()
+        }
     }
 }

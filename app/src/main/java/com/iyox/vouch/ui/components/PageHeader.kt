@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun PageHeader(
     title: String,
+    actions: (@Composable RowScope.() -> Unit)? = null,
     filterChips: (@Composable (RowScope.() -> Unit))? = null
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -29,7 +30,13 @@ fun PageHeader(
                 Text(
                     title, style = MaterialTheme.typography.displayMedium
                 )
-            }, windowInsets = WindowInsets(top = 20.dp)
+            },
+            actions = {
+                if (actions != null) {
+                    actions()
+                }
+            },
+            windowInsets = WindowInsets(top = 20.dp)
         )
         if (filterChips != null) {
             Spacer(modifier = Modifier.height(20.dp))

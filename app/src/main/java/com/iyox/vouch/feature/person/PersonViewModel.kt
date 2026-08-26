@@ -23,6 +23,8 @@ import kotlin.math.abs
 data class PersonUiState(
     val personData: PersonTotal? = null,
     val vouches: List<VouchWithPerson> = emptyList(),
+    val settledVouches: List<VouchWithPerson> = emptyList(),
+    val settledCount: Int = 0,
     val amountGiven: Long = 0L,
     val amountOwed: Long = 0L,
     val isLoading: Boolean = true
@@ -90,35 +92,45 @@ class PersonViewModel(
     }
 
     private fun buildState(name: String, personVouches: List<VouchWithPerson>): PersonUiState {
-        val sortedVouches = personVouches.sortedByDescending { it.vouch.timestamp }
+        val activeVouches = mutableListOf<VouchWithPerson>()
+        val settledVouches = mutableListOf<VouchWithPerson>()
         var given = 0L
         var owed = 0L
-        var unsettledCount = 0
-        for (vouch in sortedVouches) {
+
+        for (vouch in personVouches) {
             val personEntry = vouch.persons.firstOrNull { it.person.name == name }
-            if (personEntry != null && !personEntry.settled) {
-                unsettledCount++
-                if (vouch.vouch.given) {
-                    given += personEntry.amount
+            if (personEntry != null) {
+                if (personEntry.settled) {
+                    settledVouches.add(vouch)
                 } else {
-                    owed += personEntry.amount
+                    activeVouches.add(vouch)
+                    if (vouch.vouch.given) {
+                        given += personEntry.amount
+                    } else {
+                        owed += personEntry.amount
+                    }
                 }
             }
         }
 
-        val updatedPersonData = if (sortedVouches.isNotEmpty()) {
+        val sortedActive = activeVouches.sortedByDescending { it.vouch.timestamp }
+        val sortedSettled = settledVouches.sortedByDescending { it.vouch.timestamp }
+
+        val updatedPersonData = if (personVouches.isNotEmpty()) {
             PersonTotal(
-                person = sortedVouches
+                person = personVouches
                     .firstNotNullOfOrNull { v -> v.persons.firstOrNull { it.person.name == name }?.person }
                     ?: Person(name = name),
                 amount = given - owed,
-                vouchCount = unsettledCount
+                vouchCount = sortedActive.size
             )
         } else null
 
         return PersonUiState(
             personData = updatedPersonData,
-            vouches = sortedVouches,
+            vouches = sortedActive,
+            settledVouches = sortedSettled,
+            settledCount = sortedSettled.size,
             amountGiven = given,
             amountOwed = owed,
             isLoading = false

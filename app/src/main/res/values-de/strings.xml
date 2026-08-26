@@ -3,6 +3,8 @@
     <string name="screen_vouches">Vouches</string>
     <string name="screen_people">Personen</string>
     <string name="screen_settings">Einstellungen</string>
+    <string name="screen_settled_space">Erledigte Vouches</string>
+    <string name="title_person_settled_space">Erledigt • %1$s</string>
     <string name="title_add_vouch">Vouch hinzufügen</string>
     <string name="title_edit_vouch">Vouch bearbeiten</string>
     <string name="title_view_person">Person ansehen</string>
@@ -69,6 +71,18 @@
     <string name="empty_person_vouches">Keine Vouch für diese Person</string>
     <string name="empty_people_title">Noch keine Personen</string>
     <string name="empty_people_subtitle">Personen erscheinen hier, sobald du Vouches mit ihnen erstellst</string>
+    <string name="empty_settled_vouches_title">Keine erledigten Vouches</string>
+    <string name="empty_settled_vouches_subtitle">Vouches, die beglichen wurden, erscheinen hier im Archiv.</string>
+    <string name="empty_person_settled_vouches">Keine beglichenen Vouches für %1$s</string>
+    <string name="settled_space_hero_title">Erledigter Verlauf</string>
+    <string name="settled_space_total_resolved">Gesamt beglichen</string>
+    <string name="action_view_settled_space">Erledigte Vouches</string>
+    <string name="action_view_settled_history">Beglichene Vouches (%1$d)</string>
+    <string name="action_show_all_settled">Alle erledigten anzeigen</string>
+    <string name="all_settled_title">Alles beglichen!</string>
+    <string name="all_settled_subtitle">Keine offenen Vouches mit %1$s</string>
+    <string name="all_settled_global_subtitle">Du hast aktuell keine offenen Vouches</string>
+    <string name="cd_settled_space">Erledigte Vouches öffnen</string>
 
     <plurals name="vouch_count">
         <item quantity="one">%1$d Vouch</item>

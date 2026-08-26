@@ -36,6 +36,7 @@ import androidx.navigation.navArgument
 import com.iyox.vouch.feature.person.PersonScreen
 import com.iyox.vouch.feature.persons.PersonsScreen
 import com.iyox.vouch.feature.persons.PersonsViewModel
+import com.iyox.vouch.feature.settled.SettledSpaceScreen
 import com.iyox.vouch.feature.settings.SettingsScreen
 import com.iyox.vouch.feature.settings.SettingsViewModel
 import com.iyox.vouch.feature.vouch.GroupVouchScreen
@@ -138,6 +139,9 @@ fun AppNavigation(
                     },
                     onNavigateToPerson = { personName ->
                         navController.navigate(Screen.ViewPerson.createRoute(personName))
+                    },
+                    onNavigateToSettledSpace = {
+                        navController.navigate(Screen.SettledSpace.createRoute())
                     }
                 )
             }
@@ -199,6 +203,38 @@ fun AppNavigation(
                         if (selectedPersonName != personName) {
                             navController.navigate(Screen.ViewPerson.createRoute(selectedPersonName))
                         }
+                    },
+                    onNavigateToSettledSpace = { targetPersonName ->
+                        navController.navigate(Screen.SettledSpace.createRoute(targetPersonName))
+                    }
+                )
+            }
+            composable(
+                route = Screen.SettledSpace.route,
+                arguments = listOf(
+                    navArgument(Screen.SettledSpace.personNameArg) {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = null
+                    }
+                )
+            ) { backStackEntry ->
+                val targetPersonName =
+                    backStackEntry.arguments?.getString(Screen.SettledSpace.personNameArg)
+                SettledSpaceScreen(
+                    initialPersonName = targetPersonName,
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    },
+                    onNavigateToEditVouch = { vouchId, isGroup ->
+                        if (isGroup) {
+                            navController.navigate(Screen.EditGroupVouch.createRoute(vouchId))
+                        } else {
+                            navController.navigate(Screen.EditVouch.createRoute(vouchId))
+                        }
+                    },
+                    onNavigateToPerson = { selectedPersonName ->
+                        navController.navigate(Screen.ViewPerson.createRoute(selectedPersonName))
                     }
                 )
             }
