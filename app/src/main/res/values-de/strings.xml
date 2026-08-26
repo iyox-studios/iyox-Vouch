@@ -127,7 +127,7 @@
     <string name="share_vouch_summary_title">Vouchübersicht teilen</string>
     <string name="vouch_summary_label">Vouchübersicht</string>
     <string name="title_add_group_vouch">Gruppen-Vouch hinzufügen</string>
-    <string name="action_add_group_vouch">Gruppen-Vouch hinzufügen</string>
+    <string name="action_add_group_vouch">Gruppen-Vouch</string>
     <string name="action_continue">Weiter</string>
     <string name="action_create">Erstellen</string>
     <string name="action_add_person">Person hinzufügen</string>
@@ -156,5 +156,5 @@
     <string name="amount_euro">%1$s€</string>
     <string name="settings_lang_en">English</string>
     <string name="settings_lang_de">Deutsch</string>
-    <string name="action_add_vouch">Vouch hinzufügen</string>
+    <string name="action_add_vouch">Vouch</string>
 </resources>
