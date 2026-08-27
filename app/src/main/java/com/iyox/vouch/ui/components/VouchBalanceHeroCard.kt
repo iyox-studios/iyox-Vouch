@@ -47,10 +47,7 @@ fun VouchBalanceHeroCard(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainer
         ),
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .padding(bottom = 12.dp)
+        modifier = modifier.fillMaxWidth()
     ) {
         Column(
             modifier = Modifier

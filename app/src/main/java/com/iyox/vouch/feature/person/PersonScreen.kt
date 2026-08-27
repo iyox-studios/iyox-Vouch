@@ -165,23 +165,30 @@ fun PersonScreen(
                     amountOwed = state.amountOwed
                 )
 
-                QuickActionsCard(onSettleClick = { showSettleDialog = true }, onAddVouch = {
-                    onNavigateToAddVouch(personName)
-                }, onShareClick = {
-                    coroutineScope.launch {
-                        capturing = true
-                        awaitFrame()
-                        val bitmap = exportLayer.toImageBitmap().asAndroidBitmap()
-                        shareBitmap(
-                            context = context,
-                            bitmap = bitmap,
-                            personName = personName,
-                            vouchSummaryLabel = vouchSummaryLabel,
-                            shareVouchSummaryTitle = shareVouchSummaryTitle
-                        )
-                        capturing = false
-                    }
-                })
+                QuickActionsCard(
+                    onSettleClick = { showSettleDialog = true },
+                    onAddVouch = {
+                        onNavigateToAddVouch(personName)
+                    },
+                    onShareClick = {
+                        coroutineScope.launch {
+                            capturing = true
+                            awaitFrame()
+                            val bitmap = exportLayer.toImageBitmap().asAndroidBitmap()
+                            shareBitmap(
+                                context = context,
+                                bitmap = bitmap,
+                                personName = personName,
+                                vouchSummaryLabel = vouchSummaryLabel,
+                                shareVouchSummaryTitle = shareVouchSummaryTitle
+                            )
+                            capturing = false
+                        }
+                    },
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .padding(bottom = 16.dp)
+                )
 
                 VouchFilterRow(
                     sortedBy = state.sortedBy,
@@ -339,6 +346,8 @@ fun PersonInfoCard(
         amountOwed = amountOwed,
         total = personData?.amount ?: (amountGiven - amountOwed),
         modifier = modifier
+            .padding(horizontal = 16.dp)
+            .padding(bottom = 12.dp)
     )
 }
 
@@ -354,10 +363,7 @@ fun QuickActionsCard(
             containerColor = MaterialTheme.colorScheme.surfaceContainer
         ),
         shape = MaterialTheme.shapes.large,
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .padding(bottom = 16.dp)
+        modifier = modifier.fillMaxWidth()
     ) {
         Row(
             modifier = Modifier

@@ -172,4 +172,57 @@
     <string name="amount_euro">%1$s€</string>
     <string name="settings_lang_en">English</string>
     <string name="settings_lang_de">Deutsch</string>
+    <string name="action_share">Share</string>
+
+    <!-- Onboarding / App Guide -->
+    <string name="screen_onboarding">App Guide</string>
+    <string name="onboarding_skip">Skip</string>
+    <string name="onboarding_next">Next</string>
+    <string name="onboarding_back">Back</string>
+    <string name="onboarding_get_started">Go</string>
+    <string name="onboarding_select_currency">Select Currency</string>
+    <string name="onboarding_currency_description">Choose your default currency. You can change this anytime in Settings.</string>
+
+    <string name="onboarding_welcome_badge">Welcome</string>
+    <string name="onboarding_welcome_title">Welcome to\niyox Vouch</string>
+    <string name="onboarding_welcome_subtitle">Keep track of shared expenses, IOUs, and debts simply and privately.</string>
+    <string name="onboarding_welcome_feature1_title">Fast &amp; Simple</string>
+    <string name="onboarding_welcome_feature1_desc">Record single and group expenses with custom splits in seconds.</string>
+    <string name="onboarding_welcome_feature2_title">People &amp; Balances</string>
+    <string name="onboarding_welcome_feature2_desc">See who owes what at a glance and settle balances with one tap.</string>
+    <string name="onboarding_welcome_feature3_title">100% Offline &amp; Private</string>
+    <string name="onboarding_welcome_feature3_desc">No cloud and no account, all data stays secure on your device.</string>
+    <string name="onboarding_welcome_hint">Swipe through to explore the key features and customize your setup.</string>
+
+    <string name="onboarding_slide1_title">This is a Vouch</string>
+    <string name="onboarding_slide1_subtitle">A single vouch represents money lent or borrowed with a specific person.</string>
+    <string name="onboarding_slide1_sample_name">Alex Miller</string>
+    <string name="onboarding_slide1_sample_desc">Dinner &amp; drinks</string>
+    <string name="onboarding_slide1_hint">Swipe right to settle a vouch, or left to delete. Tap anytime to view or edit details.</string>
+
+    <string name="onboarding_slide2_title">This is a Group Vouch</string>
+    <string name="onboarding_slide2_subtitle">A group vouch splits a shared expense across multiple people, equally or with custom amounts.</string>
+    <string name="onboarding_slide2_sample_desc">Weekend road trip</string>
+    <string name="onboarding_slide2_sample_status">3 People</string>
+    <string name="onboarding_slide2_hint">An individual entry is automatically created for each person, making it easy to track and settle.</string>
+
+    <string name="onboarding_slide3_title">Person Detail &amp; Quick Actions</string>
+    <string name="onboarding_slide3_subtitle">Here you see the total balance for a person and can quickly add vouches, settle up, or share a summary.</string>
+    <string name="onboarding_slide3_sample_name">Sarah Connor</string>
+    <string name="onboarding_slide3_sample_status">3 Vouches</string>
+    <string name="onboarding_slide3_hint">Open any person to view their full history, calculate net balances, or share a summary.</string>
+    <string name="onboarding_action_add_title">Add Vouch</string>
+    <string name="onboarding_action_add_desc">Quickly create a new vouch for this person, whether lent or borrowed.</string>
+    <string name="onboarding_action_settle_title">Settle Balances</string>
+    <string name="onboarding_action_settle_desc">Settle all open balances with this person or net out mutual debts with one tap.</string>
+    <string name="onboarding_action_share_title">Share Summary</string>
+    <string name="onboarding_action_share_desc">Generate a clean summary image of all open vouches to share directly with the person.</string>
+    <string name="onboarding_action_dialog_dismiss">Got it</string>
+
+    <string name="onboarding_slide4_title">Choose your Default Currency</string>
+    <string name="onboarding_slide4_subtitle">Select your preferred currency for the app. You can change this anytime in Settings.</string>
+    <string name="onboarding_slide4_security_note">Biometric Lock and Dark Theme are available anytime in Settings.</string>
+
+    <string name="settings_onboarding_guide">App Guide &amp; Tour</string>
+    <string name="settings_onboarding_guide_subtitle">Replay the feature walkthrough and guide</string>
 </resources>

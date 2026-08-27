@@ -163,7 +163,7 @@
     <string name="group_vouch_add_member_placeholder">Name suchen oder eingeben…</string>
     <string name="group_vouch_create_cta">Gruppen-Vouch erstellen (%1$d)</string>
     <string name="group_vouch_empty_members_title">Personen zum Aufteilen hinzufügen</string>
-    <string name="group_vouch_empty_members_subtitle">Suche vorhandene Kontakte oder tippe einen neuen Namen ein, um den Betrag aufzuteilen.</string>
+    <string name="group_vouch_empty_members_subtitle">Suche vorhandene Personen oder tippe einen neuen Namen ein, um den Betrag aufzuteilen.</string>
     <string name="group_vouch_self_member">Ich</string>
 
     <string name="format_vouch_date">dd. MMM yyyy</string>
@@ -171,4 +171,57 @@
     <string name="settings_lang_en">English</string>
     <string name="settings_lang_de">Deutsch</string>
     <string name="action_add_vouch">Vouch</string>
+    <string name="action_share">Teilen</string>
+
+    <!-- Onboarding / App Guide -->
+    <string name="screen_onboarding">Einführung</string>
+    <string name="onboarding_skip">Überspringen</string>
+    <string name="onboarding_next">Weiter</string>
+    <string name="onboarding_back">Zurück</string>
+    <string name="onboarding_get_started">Los</string>
+    <string name="onboarding_select_currency">Währung auswählen</string>
+    <string name="onboarding_currency_description">Wähle deine Standardwährung. Du kannst sie jederzeit in den Einstellungen ändern.</string>
+
+    <string name="onboarding_welcome_badge">Willkommen</string>
+    <string name="onboarding_welcome_title">Willkommen bei\niyox Vouch</string>
+    <string name="onboarding_welcome_subtitle">Behalte gemeinsame Ausgaben, Schulden und Ausleihen einfach und privat im Blick.</string>
+    <string name="onboarding_welcome_feature1_title">Schnell &amp; Einfach</string>
+    <string name="onboarding_welcome_feature1_desc">Einzel- und Gruppenausgaben in Sekunden erfassen und aufteilen.</string>
+    <string name="onboarding_welcome_feature2_title">Personen &amp; Salden</string>
+    <string name="onboarding_welcome_feature2_desc">Auf einen Blick sehen, wer wem was schuldet, und Salden direkt begleichen.</string>
+    <string name="onboarding_welcome_feature3_title">100% Offline &amp; Privat</string>
+    <string name="onboarding_welcome_feature3_desc">Keine Cloud und kein Konto, alle Finanzdaten bleiben sicher auf deinem Gerät.</string>
+    <string name="onboarding_welcome_hint">Wische weiter, um die wichtigsten Funktionen kennenzulernen.</string>
+
+    <string name="onboarding_slide1_title">Das ist ein Vouch</string>
+    <string name="onboarding_slide1_subtitle">Ein Vouch repräsentiert eine einzelne Ausgabe oder geliehenes Geld mit einer bestimmten Person.</string>
+    <string name="onboarding_slide1_sample_name">Alex Miller</string>
+    <string name="onboarding_slide1_sample_desc">Abendessen &amp; Drinks</string>
+    <string name="onboarding_slide1_hint">Nach rechts wischen zum Begleichen, links zum Löschen. Antippen zum Bearbeiten aller Details.</string>
+
+    <string name="onboarding_slide2_title">Das ist ein Gruppen-Vouch</string>
+    <string name="onboarding_slide2_subtitle">Ein Gruppen-Vouch teilt eine Gesamtausgabe auf mehrere Personen auf, wahlweise gleichmäßig oder mit individuellen Beträgen.</string>
+    <string name="onboarding_slide2_sample_desc">Wochenendausflug</string>
+    <string name="onboarding_slide2_sample_status">3 Personen</string>
+    <string name="onboarding_slide2_hint">Für jede Person wird automatisch ein eigener Eintrag erstellt, damit du jeden Anteil einzeln im Blick behältst.</string>
+
+    <string name="onboarding_slide3_title">Personen-Detail &amp; Aktionen</string>
+    <string name="onboarding_slide3_subtitle">Hier siehst du den Gesamtsaldo einer Person und kannst schnell neue Vouches anlegen, Salden begleichen oder eine Übersicht teilen.</string>
+    <string name="onboarding_slide3_sample_name">Sarah Connor</string>
+    <string name="onboarding_slide3_sample_status">3 Vouches</string>
+    <string name="onboarding_slide3_hint">Öffne eine Person für den gesamten Verlauf, Netto-Verrechnungen oder zum Teilen von Übersichten.</string>
+    <string name="onboarding_action_add_title">Eintrag hinzufügen</string>
+    <string name="onboarding_action_add_desc">Erstelle direkt einen neuen Vouch für diese Person, egal ob geliehen oder verliehen.</string>
+    <string name="onboarding_action_settle_title">Salden ausgleichen</string>
+    <string name="onboarding_action_settle_desc">Gleicht alle offenen Beträge mit dieser Person aus oder verrechnet gegenseitige Schulden miteinander.</string>
+    <string name="onboarding_action_share_title">Übersicht teilen</string>
+    <string name="onboarding_action_share_desc">Erstelle eine übersichtliche Zusammenfassung aller offenen Beträge und teile sie direkt als Bild.</string>
+    <string name="onboarding_action_dialog_dismiss">Verstanden</string>
+
+    <string name="onboarding_slide4_title">Wähle deine Standardwährung</string>
+    <string name="onboarding_slide4_subtitle">Wähle deine bevorzugte Währung für die App aus. Du kannst sie jederzeit in den Einstellungen ändern.</string>
+    <string name="onboarding_slide4_security_note">Biometrische Sperre und Dark Mode sind jederzeit in den Einstellungen verfügbar.</string>
+
+    <string name="settings_onboarding_guide">App-Einführung &amp; Tour</string>
+    <string name="settings_onboarding_guide_subtitle">Die Einführung und Funktionsübersicht erneut anzeigen</string>
 </resources>

@@ -273,7 +273,7 @@ fun GroupVouchScreen(
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun GroupVouchSummaryCard(
+fun GroupVouchSummaryCard(
     amount: String,
     isGiven: Boolean,
     description: String,

@@ -36,6 +36,7 @@ import androidx.compose.material.icons.outlined.Brightness4
 import androidx.compose.material.icons.outlined.BrightnessAuto
 import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.Download
+import androidx.compose.material.icons.outlined.Explore
 import androidx.compose.material.icons.outlined.Fingerprint
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Language
@@ -102,7 +103,10 @@ private val supportedThemes = listOf(
 )
 
 @Composable
-fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
+fun SettingsScreen(
+    viewModel: SettingsViewModel = viewModel(),
+    onNavigateToOnboarding: () -> Unit = {}
+) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     val biometricTitle = stringResource(R.string.biometric_title)
@@ -201,6 +205,13 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
                 title = stringResource(R.string.settings_currency),
                 subtitle = "${currentCurrency.symbol} (${currentCurrency.currencyCode})",
                 onClick = { showCurrencyDialog = true }
+            )
+
+            SettingItem(
+                icon = Icons.Outlined.Explore,
+                title = stringResource(R.string.settings_onboarding_guide),
+                subtitle = stringResource(R.string.settings_onboarding_guide_subtitle),
+                onClick = onNavigateToOnboarding
             )
 
             SectionHeader(stringResource(R.string.settings_section_appearance))

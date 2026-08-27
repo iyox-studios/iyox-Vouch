@@ -20,16 +20,17 @@ import androidx.compose.ui.unit.dp
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun PageHeader(
-    title: String,
+    title: String? = null,
     actions: (@Composable RowScope.() -> Unit)? = null,
     filterChips: (@Composable (RowScope.() -> Unit))? = null
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         TopAppBar(
             title = {
-                Text(
-                    title, style = MaterialTheme.typography.displayMedium
-                )
+                if (title != null)
+                    Text(
+                        title, style = MaterialTheme.typography.displayMedium
+                    )
             },
             actions = {
                 if (actions != null) {
