@@ -23,6 +23,7 @@ import com.iyox.vouch.core.utils.VibrationManager
 class MainActivity : FragmentActivity() {
 
     private var isAuthenticated = false
+    private var isIntentConsumed = false
     private val pendingImportUri = mutableStateOf<Uri?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,9 +34,12 @@ class MainActivity : FragmentActivity() {
 
         if (savedInstanceState != null) {
             isAuthenticated = savedInstanceState.getBoolean(KEY_IS_AUTHENTICATED, false)
+            isIntentConsumed = savedInstanceState.getBoolean(KEY_IS_INTENT_CONSUMED, false)
         }
 
-        handleIntentData(intent)
+        if (!isIntentConsumed) {
+            handleIntentData(intent)
+        }
 
         val prefs = getSharedPreferences("settings", MODE_PRIVATE)
         val biometricEnabled = prefs.getBoolean("biometric_enabled", false)
@@ -50,6 +54,7 @@ class MainActivity : FragmentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
+        isIntentConsumed = false
         val prefs = getSharedPreferences("settings", MODE_PRIVATE)
         val biometricEnabled = prefs.getBoolean("biometric_enabled", false)
 
@@ -63,13 +68,39 @@ class MainActivity : FragmentActivity() {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putBoolean(KEY_IS_AUTHENTICATED, isAuthenticated)
+        outState.putBoolean(KEY_IS_INTENT_CONSUMED, isIntentConsumed)
+    }
+
+    private fun extractUriFromIntent(intent: Intent?): Uri? {
+        if (intent == null) return null
+        return when (intent.action) {
+            Intent.ACTION_VIEW -> intent.data
+            Intent.ACTION_SEND -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    intent.getParcelableExtra(Intent.EXTRA_STREAM, Uri::class.java)
+                } else {
+                    @Suppress("DEPRECATION")
+                    intent.getParcelableExtra(Intent.EXTRA_STREAM)
+                } ?: intent.clipData?.takeIf { it.itemCount > 0 }?.getItemAt(0)?.uri ?: intent.data
+            }
+            else -> null
+        }
     }
 
     private fun handleIntentData(intent: Intent?) {
-        val uri = intent?.data ?: return
-        if (intent.action == Intent.ACTION_VIEW || intent.action == Intent.ACTION_SEND) {
+        if (isIntentConsumed) return
+        val uri = extractUriFromIntent(intent) ?: return
+        if (intent?.action == Intent.ACTION_VIEW || intent?.action == Intent.ACTION_SEND) {
             pendingImportUri.value = uri
         }
+    }
+
+    private fun consumePendingImport() {
+        pendingImportUri.value = null
+        isIntentConsumed = true
+        intent?.action = null
+        intent?.data = null
+        intent?.removeExtra(Intent.EXTRA_STREAM)
     }
 
     private fun showApp() {
@@ -78,7 +109,7 @@ class MainActivity : FragmentActivity() {
             CompositionLocalProvider(LocalVibrationManager provides vibrationManager) {
                 VouchApp(
                     pendingImportUri = pendingImportUri.value,
-                    onImportUriConsumed = { pendingImportUri.value = null }
+                    onImportUriConsumed = { consumePendingImport() }
                 )
             }
         }
@@ -130,5 +161,6 @@ class MainActivity : FragmentActivity() {
 
     companion object {
         private const val KEY_IS_AUTHENTICATED = "is_authenticated"
+        private const val KEY_IS_INTENT_CONSUMED = "is_intent_consumed"
     }
 }
