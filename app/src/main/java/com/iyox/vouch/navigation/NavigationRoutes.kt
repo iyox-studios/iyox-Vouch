@@ -5,6 +5,7 @@ import androidx.annotation.StringRes
 import com.iyox.vouch.R
 
 sealed class Screen(val route: String, @StringRes val titleRes: Int) {
+    object Onboarding : Screen("onboarding", R.string.screen_onboarding)
     object Vouches : Screen("vouches", R.string.screen_vouches)
     object Persons : Screen("persons", R.string.screen_people)
     object Settings : Screen("settings", R.string.screen_settings)
@@ -15,7 +16,7 @@ sealed class Screen(val route: String, @StringRes val titleRes: Int) {
             return if (personName.isNullOrBlank()) {
                 "settled_space"
             } else {
-                "settled_space?personName=${encode(personName)}"
+                "settled_space?${PERSON_NAME_ARG}=${encode(personName)}"
             }
         }
     }
@@ -26,7 +27,7 @@ sealed class Screen(val route: String, @StringRes val titleRes: Int) {
             return if (personName.isNullOrBlank()) {
                 "add_vouch"
             } else {
-                "add_vouch?personName=${encode(personName)}"
+                "add_vouch?${PERSON_NAME_ARG}=${encode(personName)}"
             }
         }
     }

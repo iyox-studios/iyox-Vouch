@@ -38,7 +38,8 @@ data class SettingsUiState(
     val dynamicColors: Boolean,
     val languageTag: String,
     val currencyCode: String,
-    val biometricEnabled: Boolean
+    val biometricEnabled: Boolean,
+    val onboardingCompleted: Boolean = false
 )
 
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
@@ -83,6 +84,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     private val _dynamicColors = MutableStateFlow(prefs.getBoolean("dynamic_colors", true))
     private val _languageTag = MutableStateFlow(currentLanguageTag())
     private val _biometricEnabled = MutableStateFlow(prefs.getBoolean("biometric_enabled", false))
+    private val _onboardingCompleted = MutableStateFlow(prefs.getBoolean("onboarding_completed", false))
 
     val uiState: StateFlow<SettingsUiState> = combine(
         _theme, _dynamicColors, _languageTag, CurrencyManager.currencyFlow(), _biometricEnabled
@@ -92,8 +94,11 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             dynamicColors = dynamicColors,
             languageTag = languageTag,
             currencyCode = currency.currencyCode,
-            biometricEnabled = biometricEnabled
+            biometricEnabled = biometricEnabled,
+            onboardingCompleted = _onboardingCompleted.value
         )
+    }.combine(_onboardingCompleted) { state, onboardingCompleted ->
+        state.copy(onboardingCompleted = onboardingCompleted)
     }.stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(5000),
@@ -102,9 +107,19 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             prefs.getBoolean("dynamic_colors", true),
             currentLanguageTag(),
             CurrencyManager.getCurrency().currencyCode,
-            prefs.getBoolean("biometric_enabled", false)
+            prefs.getBoolean("biometric_enabled", false),
+            prefs.getBoolean("onboarding_completed", false)
         )
     )
+
+    fun isOnboardingCompleted(): Boolean {
+        return prefs.getBoolean("onboarding_completed", false)
+    }
+
+    fun setOnboardingCompleted(completed: Boolean = true) {
+        _onboardingCompleted.value = completed
+        prefs.edit { putBoolean("onboarding_completed", completed) }
+    }
 
     fun setTheme(theme: Int) {
         _theme.value = theme

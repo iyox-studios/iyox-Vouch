@@ -28,6 +28,8 @@ object CurrencyManager {
     private val _currencyFlow = MutableStateFlow<Currency>(Currency.getInstance("EUR"))
     val currencyFlow: StateFlow<Currency> = _currencyFlow.asStateFlow()
 
+    fun getDefaultCurrency(): Currency = resolveDefaultCurrency()
+
     private fun resolveDefaultCurrency(): Currency {
         return try {
             val localeCurrency = Currency.getInstance(Locale.getDefault())
