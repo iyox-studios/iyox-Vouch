@@ -119,7 +119,8 @@ fun VouchList(
                                     undoAction = { _: Unit -> sharedVouchActions.restoreVouch(vouch) }
                                 )
                             },
-                            onEdit = { onEdit(vouch.vouch.id, true) }
+                            onEdit = { onEdit(vouch.vouch.id, true) },
+                            onPersonClick = onNavigateToPerson
                         )
                     } else {
                         GroupVouchFullItem(
@@ -143,7 +144,8 @@ fun VouchList(
                                     undoAction = { _: Unit -> sharedVouchActions.restoreVouch(vouch) }
                                 )
                             },
-                            onEdit = { onEdit(vouch.vouch.id, true) }
+                            onEdit = { onEdit(vouch.vouch.id, true) },
+                            onPersonClick = onNavigateToPerson
                         )
                     }
                 } else { // TODO: maybe interface

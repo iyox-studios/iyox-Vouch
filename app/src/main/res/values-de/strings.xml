@@ -69,6 +69,8 @@
     <string name="action_continue">Weiter</string>
     <string name="action_create">Erstellen</string>
     <string name="action_add_person">Person hinzufügen</string>
+    <string name="title_group_participants">Beteiligte Personen</string>
+    <string name="cd_view_participants">Beteiligte Personen anzeigen</string>
     <string name="action_rename">Umbenennen</string>
 
     <string name="placeholder_amount">0,00</string>
