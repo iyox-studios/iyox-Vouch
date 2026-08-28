@@ -19,6 +19,7 @@
     <string name="title_select_theme">Design auswählen</string>
     <string name="title_select_color_theme">Farbe auswählen</string>
     <string name="title_settle_person">Person begleichen?</string>
+    <string name="title_rename_person">Person umbenennen</string>
     <string name="title_add_group_vouch">&group_vouch; hinzufügen</string>
 
     <string name="biometric_title">Biometrische Authentifizierung</string>
@@ -68,6 +69,7 @@
     <string name="action_continue">Weiter</string>
     <string name="action_create">Erstellen</string>
     <string name="action_add_person">Person hinzufügen</string>
+    <string name="action_rename">Umbenennen</string>
 
     <string name="placeholder_amount">0,00</string>
     <string name="label_person">Person</string>
@@ -123,10 +125,13 @@
     <string name="msg_vouch_unsettled">Begleichung aufgehoben</string>
     <string name="msg_vouch_deleted">&vouch; gelöscht</string>
     <string name="msg_person_settled">Person beglichen</string>
+    <string name="msg_person_renamed">Person umbenannt</string>
+    <string name="msg_rename_failed">Person konnte nicht umbenannt werden</string>
     <string name="msg_vouches_netted">&vouches; verrechnet</string>
     <string name="msg_save_failed">&vouch; konnte nicht gespeichert werden</string>
     <string name="msg_delete_failed">&vouch; konnte nicht gelöscht werden</string>
     <string name="msg_settle_failed">&vouch; konnte nicht aktualisiert werden</string>
+    <string name="error_person_already_exists">Eine Person mit diesem Namen existiert bereits</string>
     <string name="msg_all_data_deleted">Alle Daten gelöscht</string>
     <string name="msg_delete_data_failed">Daten konnten nicht gelöscht werden</string>
 
@@ -159,6 +164,7 @@
     <string name="cd_home">Start</string>
     <string name="cd_auto_settle_vouches">&vouches; automatisch begleichen</string>
     <string name="cd_settle_person">Person begleichen</string>
+    <string name="cd_rename_person">Person umbenennen</string>
     <string name="cd_export_vouch_list">&vouch;-Übersicht exportieren</string>
 
     <string name="share_vouch_summary_title">&vouch;-Übersicht teilen</string>

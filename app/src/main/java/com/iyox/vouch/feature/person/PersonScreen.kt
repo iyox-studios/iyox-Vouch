@@ -26,6 +26,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DoneAll
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.Archive
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -72,6 +73,7 @@ import com.iyox.vouch.core.model.PersonTotal
 import com.iyox.vouch.core.model.VouchWithPerson
 import com.iyox.vouch.core.model.isSettledForPerson
 import com.iyox.vouch.core.utils.rememberToastManager
+import com.iyox.vouch.ui.components.RenamePersonDialog
 import com.iyox.vouch.ui.components.VouchBackButton
 import com.iyox.vouch.ui.components.VouchBalanceHeroCard
 import com.iyox.vouch.ui.components.VouchFilterRow
@@ -98,10 +100,15 @@ fun PersonScreen(
     val state by viewModel.uiState.collectAsState()
     val exportLayer = rememberGraphicsLayer()
 
+    val currentPersonName = state.personData?.person?.name ?: personName
+
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val toastManager = rememberToastManager()
     val msgPersonSettled = stringResource(R.string.msg_person_settled)
+    val msgPersonRenamed = stringResource(R.string.msg_person_renamed)
+    val msgRenameFailed = stringResource(R.string.msg_rename_failed)
+    val msgPersonAlreadyExists = stringResource(R.string.error_person_already_exists)
     val msgVouchesNetted = stringResource(R.string.msg_vouches_netted)
     val msgSettleFailed = stringResource(R.string.msg_settle_failed)
     val actionUndo = stringResource(R.string.action_undo)
@@ -109,6 +116,7 @@ fun PersonScreen(
     val shareVouchSummaryTitle = stringResource(R.string.share_vouch_summary_title)
 
     var showSettleDialog by remember { mutableStateOf(false) }
+    var showRenameDialog by remember { mutableStateOf(false) }
     var capturing by remember { mutableStateOf(false) }
 
     val listState = remember(state.showOnlyGiven, state.sortedBy) {
@@ -124,7 +132,7 @@ fun PersonScreen(
             CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        text = personName,
+                        text = currentPersonName,
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         maxLines = 1,
@@ -135,7 +143,13 @@ fun PersonScreen(
                     VouchBackButton(onClick = onNavigateBack)
                 },
                 actions = {
-                    IconButton(onClick = { onNavigateToSettledSpace(personName) }) {
+                    IconButton(onClick = { showRenameDialog = true }) {
+                        Icon(
+                            imageVector = Icons.Outlined.Edit,
+                            contentDescription = stringResource(R.string.cd_rename_person)
+                        )
+                    }
+                    IconButton(onClick = { onNavigateToSettledSpace(currentPersonName) }) {
                         Icon(
                             imageVector = Icons.Outlined.Archive,
                             contentDescription = stringResource(R.string.cd_settled_space)
@@ -168,7 +182,7 @@ fun PersonScreen(
                 QuickActionsCard(
                     onSettleClick = { showSettleDialog = true },
                     onAddVouch = {
-                        onNavigateToAddVouch(personName)
+                        onNavigateToAddVouch(currentPersonName)
                     },
                     onShareClick = {
                         coroutineScope.launch {
@@ -178,7 +192,7 @@ fun PersonScreen(
                             shareBitmap(
                                 context = context,
                                 bitmap = bitmap,
-                                personName = personName,
+                                personName = currentPersonName,
                                 vouchSummaryLabel = vouchSummaryLabel,
                                 shareVouchSummaryTitle = shareVouchSummaryTitle
                             )
@@ -233,13 +247,13 @@ fun PersonScreen(
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
-                                    text = stringResource(R.string.all_settled_subtitle, personName),
+                                    text = stringResource(R.string.all_settled_subtitle, currentPersonName),
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     textAlign = TextAlign.Center
                                 )
                                 OutlinedButton(
-                                    onClick = { onNavigateToSettledSpace(personName) },
+                                    onClick = { onNavigateToSettledSpace(currentPersonName) },
                                     modifier = Modifier.padding(top = 8.dp)
                                 ) {
                                     Icon(
@@ -272,7 +286,7 @@ fun PersonScreen(
                         sharedVouchActions = viewModel.sharedActions,
                         onEdit = onNavigateToEditVouch,
                         onNavigateToPerson = onNavigateToPerson,
-                        isSettled = { vouch -> vouch.isSettledForPerson(personName) },
+                        isSettled = { vouch -> vouch.isSettledForPerson(currentPersonName) },
                         groupSingleContextPersonId = personUiState.personData?.person?.id
                     )
                 }
@@ -291,7 +305,7 @@ fun PersonScreen(
                             }
                         }) {
                     VouchExportTemplate(
-                        personName,
+                        currentPersonName,
                         state.personData,
                         state.amountGiven,
                         state.amountOwed,
@@ -301,9 +315,33 @@ fun PersonScreen(
             }
         }
 
+        if (showRenameDialog) {
+            RenamePersonDialog(
+                currentName = currentPersonName,
+                onDismiss = { showRenameDialog = false },
+                onConfirm = { newName ->
+                    coroutineScope.launch {
+                        val result = viewModel.renamePerson(newName)
+                        if (result.isSuccess) {
+                            showRenameDialog = false
+                            toastManager.show(msgPersonRenamed)
+                        } else {
+                            val error = result.exceptionOrNull()
+                            val msg = if (error is IllegalStateException) {
+                                msgPersonAlreadyExists
+                            } else {
+                                msgRenameFailed
+                            }
+                            toastManager.showError(msg)
+                        }
+                    }
+                }
+            )
+        }
+
         if (showSettleDialog) {
             SettlePersonDialog(
-                personName = personName,
+                personName = currentPersonName,
                 personData = state.personData,
                 onDismiss = { showSettleDialog = false },
                 onConfirm = { fullySettle ->
