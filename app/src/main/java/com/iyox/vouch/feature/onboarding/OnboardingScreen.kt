@@ -49,10 +49,12 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.toShape
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -334,6 +336,7 @@ private fun WelcomeSlide() {
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun WelcomeFeatureRow(
     icon: ImageVector,
@@ -347,7 +350,7 @@ private fun WelcomeFeatureRow(
         horizontalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         Surface(
-            shape = CircleShape,
+            shape = MaterialShapes.Cookie9Sided.toShape(),
             color = MaterialTheme.colorScheme.primaryContainer,
             modifier = Modifier.size(40.dp)
         ) {
