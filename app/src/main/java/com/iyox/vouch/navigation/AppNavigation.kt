@@ -39,9 +39,9 @@ import com.iyox.vouch.feature.onboarding.OnboardingScreen
 import com.iyox.vouch.feature.person.PersonScreen
 import com.iyox.vouch.feature.persons.PersonsScreen
 import com.iyox.vouch.feature.persons.PersonsViewModel
-import com.iyox.vouch.feature.settled.SettledSpaceScreen
 import com.iyox.vouch.feature.settings.SettingsScreen
 import com.iyox.vouch.feature.settings.SettingsViewModel
+import com.iyox.vouch.feature.settled.SettledSpaceScreen
 import com.iyox.vouch.feature.vouch.GroupVouchScreen
 import com.iyox.vouch.feature.vouch.SingleVouchScreen
 import com.iyox.vouch.feature.vouches.VouchesScreen

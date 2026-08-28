@@ -2,6 +2,7 @@ package com.iyox.vouch.feature.onboarding
 
 import android.icu.util.Currency
 import androidx.activity.compose.BackHandler
+import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
@@ -27,7 +28,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
@@ -35,8 +35,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Diversity3
 import androidx.compose.material.icons.filled.DoneAll
-import androidx.compose.material.icons.filled.Group
-import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material.icons.outlined.Lightbulb
@@ -54,8 +52,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.toShape
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -66,7 +64,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -81,9 +78,9 @@ import com.iyox.vouch.core.model.Person
 import com.iyox.vouch.core.model.PersonWithAmount
 import com.iyox.vouch.core.model.Vouch
 import com.iyox.vouch.core.model.VouchWithPerson
+import com.iyox.vouch.feature.person.QuickActionsCard
 import com.iyox.vouch.feature.vouch.GroupMemberInput
 import com.iyox.vouch.feature.vouch.GroupVouchSummaryCard
-import com.iyox.vouch.feature.person.QuickActionsCard
 import com.iyox.vouch.ui.components.PageHeader
 import com.iyox.vouch.ui.components.VouchBalanceHeroCard
 import com.iyox.vouch.ui.components.vouches.SingleVouchItem
