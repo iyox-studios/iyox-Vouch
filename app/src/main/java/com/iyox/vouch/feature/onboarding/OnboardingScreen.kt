@@ -87,6 +87,7 @@ import com.iyox.vouch.ui.components.VouchBalanceHeroCard
 import com.iyox.vouch.ui.components.vouches.SingleVouchItem
 import kotlinx.coroutines.launch
 import java.sql.Timestamp
+import java.util.Locale
 
 private const val PAGE_COUNT = 5
 
@@ -710,7 +711,7 @@ private fun CurrencyCard(
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = currency.symbol,
+                text = currency.getSymbol(Locale.getDefault()),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = contentColor

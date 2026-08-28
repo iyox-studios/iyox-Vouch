@@ -76,6 +76,7 @@ import com.iyox.vouch.R
 import com.iyox.vouch.core.backup.IyoxEnvelope
 import com.iyox.vouch.core.currency.CurrencyManager
 import com.iyox.vouch.ui.components.PageHeader
+import java.util.Locale
 
 data class SupportedLanguage(
     val tag: String,
@@ -89,6 +90,19 @@ private val supportedLanguages = listOf(
     SupportedLanguage("en", R.string.settings_lang_en, "EN"),
     SupportedLanguage("de", R.string.settings_lang_de, "DE"),
 )
+private fun matchesLanguageTag(supportedTag: String, currentTag: String): Boolean {
+    if (supportedTag == currentTag) return true
+    if (supportedTag == "system" || currentTag == "system") return false
+    val currentLang = Locale.forLanguageTag(currentTag).language
+    val supportedLang = Locale.forLanguageTag(supportedTag).language
+    return currentLang.isNotEmpty() && currentLang.equals(supportedLang, ignoreCase = true)
+}
+
+private fun findSupportedLanguage(tag: String): SupportedLanguage? {
+    return supportedLanguages.firstOrNull { it.tag == tag }
+        ?: supportedLanguages.firstOrNull { matchesLanguageTag(it.tag, tag) }
+}
+
 
 data class SupportedTheme(
     val mode: Int,
@@ -117,6 +131,10 @@ fun SettingsScreen(
     var showLanguageDialog by remember { mutableStateOf(false) }
     var showCurrencyDialog by remember { mutableStateOf(false) }
     val isPerAppLanguageSupported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+    LaunchedEffect(Unit) {
+        viewModel.refreshLanguage()
+    }
+
 
     val exportLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument(IyoxEnvelope.MIME_TYPE)
@@ -186,8 +204,7 @@ fun SettingsScreen(
                 icon = Icons.Outlined.Translate,
                 title = stringResource(R.string.settings_language),
                 subtitle = if (isPerAppLanguageSupported) {
-                    supportedLanguages
-                        .firstOrNull { it.tag == uiState.languageTag }
+                    findSupportedLanguage(uiState.languageTag)
                         ?.let { stringResource(it.labelRes) }
                         ?: uiState.languageTag
                 } else {
@@ -203,7 +220,7 @@ fun SettingsScreen(
             SettingItem(
                 icon = Icons.Outlined.AttachMoney,
                 title = stringResource(R.string.settings_currency),
-                subtitle = "${currentCurrency.symbol} (${currentCurrency.currencyCode})",
+                subtitle = "${currentCurrency.getSymbol(Locale.getDefault())} (${currentCurrency.currencyCode})",
                 onClick = { showCurrencyDialog = true }
             )
 
@@ -418,12 +435,13 @@ fun LanguageSelectionDialog(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 items(supportedLanguages) { language ->
+                    val isSelected = matchesLanguageTag(language.tag, currentLanguageTag)
                     Card(
                         modifier = Modifier
                             .aspectRatio(1f)
                             .clickable { onLanguageSelected(language.tag) },
                         colors = CardDefaults.cardColors(
-                            containerColor = if (language.tag == currentLanguageTag) {
+                            containerColor = if (isSelected) {
                                 MaterialTheme.colorScheme.primaryContainer
                             } else {
                                 MaterialTheme.colorScheme.surface
@@ -441,7 +459,7 @@ fun LanguageSelectionDialog(
                                     imageVector = language.icon,
                                     contentDescription = null,
                                     modifier = Modifier.size(32.dp),
-                                    tint = if (language.tag == currentLanguageTag) {
+                                    tint = if (isSelected) {
                                         MaterialTheme.colorScheme.primary
                                     } else {
                                         MaterialTheme.colorScheme.onSurface
@@ -492,12 +510,13 @@ fun CurrencySelectionDialog(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 items(CurrencyManager.supportedCurrencies) { currency ->
+                    val isSelected = currency.currencyCode == currentCurrency.currencyCode
                     Card(
                         modifier = Modifier
                             .aspectRatio(1f)
                             .clickable { onCurrencySelected(currency) },
                         colors = CardDefaults.cardColors(
-                            containerColor = if (currency.currencyCode == currentCurrency.currencyCode) {
+                            containerColor = if (isSelected) {
                                 MaterialTheme.colorScheme.primaryContainer
                             } else {
                                 MaterialTheme.colorScheme.surface
@@ -511,7 +530,7 @@ fun CurrencySelectionDialog(
                             verticalArrangement = Arrangement.Center
                         ) {
                             Text(
-                                text = currency.symbol,
+                                text = currency.getSymbol(Locale.getDefault()),
                                 style = MaterialTheme.typography.headlineMedium,
                                 textAlign = TextAlign.Center
                             )

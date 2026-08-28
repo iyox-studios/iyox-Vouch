@@ -32,7 +32,25 @@ object CurrencyManager {
 
     private fun resolveDefaultCurrency(): Currency {
         return try {
-            val localeCurrency = Currency.getInstance(Locale.getDefault())
+            val systemLocale = try {
+                val locales = android.content.res.Resources.getSystem().configuration.locales
+                if (!locales.isEmpty) locales.get(0) else Locale.getDefault()
+            } catch (_: Exception) {
+                Locale.getDefault()
+            }
+
+            val candidateLocale = if (systemLocale.country.isNotBlank()) {
+                systemLocale
+            } else if (Locale.getDefault().country.isNotBlank()) {
+                Locale.getDefault()
+            } else {
+                null
+            }
+
+            val localeCurrency = candidateLocale?.let {
+                try { Currency.getInstance(it) } catch (_: Exception) { null }
+            }
+
             if (localeCurrency != null && supportedCurrencies.any { it.currencyCode == localeCurrency.currencyCode }) {
                 localeCurrency
             } else {
@@ -52,7 +70,9 @@ object CurrencyManager {
                 resolveDefaultCurrency()
             }
         }
-        return resolveDefaultCurrency()
+        val defaultCurrency = resolveDefaultCurrency()
+        prefs?.edit { putString("currency_code", defaultCurrency.currencyCode) }
+        return defaultCurrency
     }
 
     fun init(context: Context) {
@@ -114,7 +134,17 @@ object CurrencyManager {
         locale: Locale = Locale.getDefault()
     ): String {
         val formatted = formatAmount(minorUnits, currency, locale)
-        return "$formatted ${currency.symbol}"
+        val symbol = currency.getSymbol(locale)
+        val isSymbolPrefix = locale.language.equals("en", ignoreCase = true)
+        return if (isSymbolPrefix) {
+            if (formatted.startsWith("-")) {
+                "-$symbol${formatted.removePrefix("-")}"
+            } else {
+                "$symbol$formatted"
+            }
+        } else {
+            "$formatted $symbol"
+        }
     }
 
     fun parseToMinorUnits(
