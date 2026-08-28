@@ -65,6 +65,10 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         return current.ifBlank { "system" }
     }
 
+    fun refreshLanguage() {
+        _languageTag.value = currentLanguageTag()
+    }
+
     private fun resolveInitialTheme(): Int {
         val storedTheme = prefs.getInt("theme", Int.MIN_VALUE)
         if (storedTheme != Int.MIN_VALUE) return storedTheme
