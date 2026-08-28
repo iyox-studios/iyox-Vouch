@@ -54,6 +54,30 @@ in [Material You Expressive](https://m3.material.io/) style.
 * [Core SplashScreen](https://developer.android.com/jetpack/androidx/releases/core)(Apache-2.0) -
   Splash screen compatibility library
 
+## Contributing
+
+Contributions are always very welcome.
+
+You can contribute by:
+- **Reporting Issues**: If you find a bug or have an idea: Open an issue on GitHub.
+- **Submitting Pull Requests**: Just open a PR on GitHub with you changes.
+- **Translating**: Help us reach everyone! See the [Translating](#translating) section below for instructions.
+
+## Translating
+
+Adding or updating translations is relatively straightforward and requires no coding, just some git knowledge:
+
+1. **Locate the base strings**:
+   The default (English) strings are located at:
+   `app/src/main/res/values/strings.xml`
+2. **Add or update your language**:
+   - To update an existing translation (e.g. German), edit `app/src/main/res/values-de/strings.xml`.
+   - To add a new language, create a new folder under `app/src/main/res/values-<language_code>/` (for example, `values-es` for Spanish or `values-fr` for French) and copy `strings.xml` into it.
+3. **Translate the strings**:
+   Translate the text content inside `<string name="...">...</string>` tags while keeping placeholders (like `%s`, `%d`) intact.
+4. **Submit a PR**:
+   Open a Pull Request on GitHub with your new or updated `strings.xml` file.
+
 ## License
 
 iyox Vouch is licensed under the **[GPL v3.0 only](https://spdx.org/licenses/GPL-3.0-only.html)**.
