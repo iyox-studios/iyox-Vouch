@@ -222,4 +222,25 @@ class PersonDaoTest {
         assertEquals("Charlie", ordered[2].person.name)
         assertEquals(0, ordered[2].vouchCount)
     }
+
+    @Test
+    fun getById_and_update() = runTest {
+        val id = personDao.insert(Person(name = "Alice")).toInt()
+        val person = personDao.getById(id)
+        assertNotNull(person)
+        assertEquals("Alice", person?.name)
+
+        // Update name
+        personDao.update(person!!.copy(name = "Alicia"))
+        val updated = personDao.getById(id)
+        assertNotNull(updated)
+        assertEquals("Alicia", updated?.name)
+        assertNull(personDao.getByName("Alice"))
+        assertNotNull(personDao.getByName("Alicia"))
+
+        // Update via updateName query
+        personDao.updateName(id, "Alice Smith")
+        val updated2 = personDao.getById(id)
+        assertEquals("Alice Smith", updated2?.name)
+    }
 }

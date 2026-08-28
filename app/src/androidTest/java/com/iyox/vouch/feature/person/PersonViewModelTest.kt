@@ -194,4 +194,41 @@ class PersonViewModelTest {
         assertEquals(0, undoneState.settledCount)
         assertNull(repository.getById(nettingVouch!!.vouch.id))
     }
+
+    @Test
+    fun testRenamePerson() = runTest {
+        repository.insert(
+            VouchWithPerson(
+                vouch = Vouch(amount = 1500L, given = true),
+                persons = listOf(PersonWithAmount(Person(name = "Alice"), 1500L))
+            )
+        )
+
+        val viewModel = PersonViewModel(application, "Alice")
+        viewModel.loadPerson("Alice")
+        viewModel.uiState.first { !it.isLoading && it.vouches.isNotEmpty() }
+
+        // Rename Alice to Alicia
+        val renameResult = viewModel.renamePerson("Alicia")
+        assertTrue(renameResult.isSuccess)
+
+        val renamedState = viewModel.uiState.first { !it.isLoading && it.personData?.person?.name == "Alicia" }
+        assertEquals("Alicia", renamedState.personData?.person?.name)
+        assertEquals(1, renamedState.vouches.size)
+        assertEquals(1500L, renamedState.amountGiven)
+
+        // Renaming to empty should fail
+        val blankResult = viewModel.renamePerson("   ")
+        assertTrue(blankResult.isFailure)
+
+        // Renaming to an existing other person should fail
+        repository.insert(
+            VouchWithPerson(
+                vouch = Vouch(amount = 2000L, given = true),
+                persons = listOf(PersonWithAmount(Person(name = "Bob"), 2000L))
+            )
+        )
+        val duplicateResult = viewModel.renamePerson("Bob")
+        assertTrue(duplicateResult.isFailure)
+    }
 }

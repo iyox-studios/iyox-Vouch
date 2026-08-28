@@ -8,6 +8,8 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.PrimaryKey
 import androidx.room.Query
+import androidx.room.Update
+
 @Entity(indices = [Index(value = ["name"], unique = true)])
 data class Person(
     @PrimaryKey(autoGenerate = true) val id: Int = 0, val name: String
@@ -32,6 +34,15 @@ interface PersonDao {
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertAll(persons: List<Person>): List<Long>
+
+    @Update
+    suspend fun update(person: Person)
+
+    @Query("UPDATE Person SET name = :newName WHERE id = :personId")
+    suspend fun updateName(personId: Int, newName: String)
+
+    @Query("SELECT * FROM Person WHERE id = :id LIMIT 1")
+    suspend fun getById(id: Int): Person?
 
     @Query("SELECT * FROM Person WHERE name = :name LIMIT 1")
     suspend fun getByName(name: String): Person?

@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import com.iyox.vouch.core.data.PersonRepository
 import com.iyox.vouch.core.data.VouchRepository
 import com.iyox.vouch.core.domain.SharedVouchActions
 import com.iyox.vouch.core.model.Person
@@ -48,6 +49,8 @@ class PersonViewModel(
 ) : AndroidViewModel(application) {
 
     private val vouchRepository = VouchRepository.getInstance(application)
+    private val personRepository = PersonRepository.getInstance(application)
+    private var currentPersonName: String = personName
     private val _showOnlyGiven = MutableStateFlow(0)
     private val _sortedBy = MutableStateFlow(0)
     private var currentPersonVouches: List<VouchWithPerson> =
@@ -66,18 +69,17 @@ class PersonViewModel(
     init {
         viewModelScope.launch {
             vouchRepository.dataUpdates.collect {
-                val name = _uiState.value.personData?.person?.name ?: personName
-                loadPerson(name, shouldShowLoading = false)
+                loadPerson(currentPersonName, shouldShowLoading = false)
             }
         }
     }
 
     val sharedActions = SharedVouchActions(vouchRepository) {
-        val name = _uiState.value.personData?.person?.name ?: personName
-        loadPerson(name, shouldShowLoading = false)
+        loadPerson(currentPersonName, shouldShowLoading = false)
     }
 
     fun loadPerson(name: String, shouldShowLoading: Boolean = true) {
+        currentPersonName = name
         // Cache hit — update synchronously, no spinner needed
         val cached = vouchRepository.getCachedVouchesByPerson(name)
         if (cached != null) {
@@ -97,14 +99,12 @@ class PersonViewModel(
 
     fun toggleShowOnlyGiven() {
         _showOnlyGiven.value = (_showOnlyGiven.value + 1) % 3
-        val name = _uiState.value.personData?.person?.name ?: personName
-        _uiState.update { buildState(name, currentPersonVouches) }
+        _uiState.update { buildState(currentPersonName, currentPersonVouches) }
     }
 
     fun toggleSortedBy() {
         _sortedBy.value = (_sortedBy.value + 1) % 2
-        val name = _uiState.value.personData?.person?.name ?: personName
-        _uiState.update { buildState(name, currentPersonVouches) }
+        _uiState.update { buildState(currentPersonName, currentPersonVouches) }
     }
 
     private fun buildState(name: String, personVouches: List<VouchWithPerson>): PersonUiState {
@@ -173,8 +173,25 @@ class PersonViewModel(
         )
     }
 
+    suspend fun renamePerson(newName: String): Result<Unit> {
+        val trimmed = newName.trim()
+        if (trimmed.isEmpty()) {
+            return Result.failure(IllegalArgumentException("Name cannot be empty"))
+        }
+        val person = _uiState.value.personData?.person
+            ?: personRepository.getPersonByName(currentPersonName)
+            ?: return Result.failure(NoSuchElementException("Person not found"))
+
+        val result = personRepository.renamePerson(person.id, trimmed)
+        if (result.isSuccess) {
+            currentPersonName = trimmed
+            loadPerson(trimmed, shouldShowLoading = false)
+        }
+        return result
+    }
+
     suspend fun settlePerson(): List<PersonSettlementChange> {
-        val personName = _uiState.value.personData?.person?.name ?: return emptyList()
+        val personName = currentPersonName
         val unsettledEntries = currentPersonVouches.mapNotNull { vouch ->
             val personEntry = vouch.persons.firstOrNull { it.person.name == personName }
                 ?: return@mapNotNull null
@@ -198,8 +215,8 @@ class PersonViewModel(
         val settledVouches = settlePerson()
         var newNettingVouch: VouchWithPerson? = null
 
-        val personName = _uiState.value.personData?.person?.name
-        if (diff != 0L && personName != null) {
+        val personName = currentPersonName
+        if (diff != 0L) {
             val netVouch = vouchRepository.insert(
                 VouchWithPerson(
                     vouch = Vouch(
@@ -226,7 +243,7 @@ class PersonViewModel(
                     vouchRepository.setPersonSettlements(personId, changes.map { it.vouchId }, false)
                 }
             }
-            _uiState.value.personData?.person?.name?.let { loadPerson(it, shouldShowLoading = false) }
+            loadPerson(currentPersonName, shouldShowLoading = false)
         }
     }
 
@@ -243,7 +260,7 @@ class PersonViewModel(
                     vouchRepository.setPersonSettlements(personId, changes.map { it.vouchId }, false)
                 }
             }
-            _uiState.value.personData?.person?.name?.let { loadPerson(it, shouldShowLoading = false) }
+            loadPerson(currentPersonName, shouldShowLoading = false)
         }
     }
 
