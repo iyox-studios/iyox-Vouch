@@ -71,6 +71,8 @@
     <string name="action_continue">Continue</string>
     <string name="action_create">Create</string>
     <string name="action_add_person">Add Person</string>
+    <string name="title_group_participants">Participants</string>
+    <string name="cd_view_participants">View group participants</string>
     <string name="action_rename">Rename</string>
 
     <string name="placeholder_amount">0.00</string>
