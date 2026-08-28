@@ -12,8 +12,10 @@ import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
 import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_WEAK
 import androidx.biometric.BiometricPrompt
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -29,9 +31,11 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AttachMoney
+import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Brightness4
 import androidx.compose.material.icons.outlined.BrightnessAuto
 import androidx.compose.material.icons.outlined.DarkMode
@@ -60,6 +64,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -76,6 +81,7 @@ import com.iyox.vouch.R
 import com.iyox.vouch.core.backup.IyoxEnvelope
 import com.iyox.vouch.core.currency.CurrencyManager
 import com.iyox.vouch.ui.components.PageHeader
+import com.iyox.vouch.ui.theme.AppColorTheme
 import java.util.Locale
 
 data class SupportedLanguage(
@@ -90,6 +96,7 @@ private val supportedLanguages = listOf(
     SupportedLanguage("en", R.string.settings_lang_en, "EN"),
     SupportedLanguage("de", R.string.settings_lang_de, "DE"),
 )
+
 private fun matchesLanguageTag(supportedTag: String, currentTag: String): Boolean {
     if (supportedTag == currentTag) return true
     if (supportedTag == "system" || currentTag == "system") return false
@@ -102,7 +109,6 @@ private fun findSupportedLanguage(tag: String): SupportedLanguage? {
     return supportedLanguages.firstOrNull { it.tag == tag }
         ?: supportedLanguages.firstOrNull { matchesLanguageTag(it.tag, tag) }
 }
-
 
 data class SupportedTheme(
     val mode: Int,
@@ -128,13 +134,14 @@ fun SettingsScreen(
     val biometricCancel = stringResource(R.string.action_cancel)
 
     var showThemeDialog by remember { mutableStateOf(false) }
+    var showColorDialog by remember { mutableStateOf(false) }
     var showLanguageDialog by remember { mutableStateOf(false) }
     var showCurrencyDialog by remember { mutableStateOf(false) }
     val isPerAppLanguageSupported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+
     LaunchedEffect(Unit) {
         viewModel.refreshLanguage()
     }
-
 
     val exportLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument(IyoxEnvelope.MIME_TYPE)
@@ -187,6 +194,17 @@ fun SettingsScreen(
             onThemeSelected = { selectedTheme ->
                 viewModel.setTheme(selectedTheme)
                 showThemeDialog = false
+            }
+        )
+    }
+
+    if (showColorDialog) {
+        ColorThemeSelectionDialog(
+            currentColorTheme = uiState.colorTheme,
+            onDismiss = { showColorDialog = false },
+            onColorThemeSelected = { selectedColorTheme ->
+                viewModel.setColorTheme(selectedColorTheme)
+                showColorDialog = false
             }
         )
     }
@@ -247,15 +265,9 @@ fun SettingsScreen(
 
             SettingItem(
                 icon = Icons.Outlined.Palette,
-                title = stringResource(R.string.settings_dynamic_colors),
-                subtitle = stringResource(R.string.settings_dynamic_colors_subtitle),
-                trailing = {
-                    Switch(
-                        checked = uiState.dynamicColors,
-                        onCheckedChange = { viewModel.setDynamicColors(it) }
-                    )
-                },
-                onClick = { viewModel.setDynamicColors(!uiState.dynamicColors) }
+                title = stringResource(R.string.settings_color_theme),
+                subtitle = stringResource(uiState.colorTheme.labelRes),
+                onClick = { showColorDialog = true }
             )
 
             SectionHeader(stringResource(R.string.settings_section_security))
@@ -601,6 +613,80 @@ fun ThemeSelectionDialog(
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
                                 text = stringResource(theme.labelRes),
+                                style = MaterialTheme.typography.bodySmall,
+                                textAlign = TextAlign.Center,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.action_cancel))
+            }
+        }
+    )
+}
+
+@Composable
+fun ColorThemeSelectionDialog(
+    currentColorTheme: AppColorTheme,
+    onDismiss: () -> Unit,
+    onColorThemeSelected: (AppColorTheme) -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.title_select_color_theme)) },
+        text = {
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(3),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                items(AppColorTheme.entries) { colorTheme ->
+                    Card(
+                        modifier = Modifier
+                            .aspectRatio(1f)
+                            .clickable { onColorThemeSelected(colorTheme) },
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (colorTheme == currentColorTheme) {
+                                MaterialTheme.colorScheme.primaryContainer
+                            } else {
+                                MaterialTheme.colorScheme.surface
+                            }
+                        ),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.fillMaxSize(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            if (colorTheme.previewColor == null) {
+                                Icon(
+                                    imageVector = Icons.Outlined.AutoAwesome,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(32.dp),
+                                    tint = if (colorTheme == currentColorTheme) {
+                                        MaterialTheme.colorScheme.primary
+                                    } else {
+                                        MaterialTheme.colorScheme.onSurface
+                                    }
+                                )
+                            } else {
+                                Box(
+                                    modifier = Modifier
+                                        .size(32.dp)
+                                        .background(color = colorTheme.previewColor, shape = CircleShape)
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = stringResource(colorTheme.labelRes),
                                 style = MaterialTheme.typography.bodySmall,
                                 textAlign = TextAlign.Center,
                                 maxLines = 1,
