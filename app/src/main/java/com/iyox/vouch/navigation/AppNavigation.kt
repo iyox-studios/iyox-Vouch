@@ -81,13 +81,20 @@ fun AppNavigation(
         bottomBar = {
             if (isNotOnboarding) {
                 ShortNavigationBar {
-                    val currentBackStack by navController.currentBackStack.collectAsState()
-                    val topLevelRoutes = remember {
-                        setOf(Screen.Vouches.route, Screen.Persons.route, Screen.Settings.route)
-                    }
-                    val activeTopLevelRoute = remember(navBackStackEntry, currentBackStack) {
-                        currentBackStack.mapNotNull { it.destination.route }
-                            .lastOrNull { it in topLevelRoutes } ?: Screen.Vouches.route
+                    val activeTopLevelRoute = when (currentRoute) {
+                        Screen.Persons.route,
+                        Screen.ViewPerson.route -> Screen.Persons.route
+
+                        Screen.Settings.route -> Screen.Settings.route
+
+                        Screen.Vouches.route,
+                        Screen.AddVouch.route,
+                        Screen.AddGroupVouch.route,
+                        Screen.EditVouch.route,
+                        Screen.EditGroupVouch.route,
+                        Screen.SettledSpace.route -> Screen.Vouches.route
+
+                        else -> Screen.Vouches.route
                     }
 
                     navigationItems.forEach { item ->
