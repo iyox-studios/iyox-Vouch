@@ -520,12 +520,11 @@ fun VouchExportTemplate(
             .background(MaterialTheme.colorScheme.surface)
             .padding(16.dp)
     ) {
-        Text(personName, style = MaterialTheme.typography.headlineMedium)
         PersonInfoCard(personData, amountGiven, amountOwed)
         Spacer(Modifier.height(16.dp))
         Column(modifier = Modifier.padding(16.dp)) {
             vouches.filter { vouch -> !vouch.isSettledForPerson(personName) }.forEach { vouch ->
-                if (vouch.persons.size <= 1) //TODO: add extension function + fix
+                if (vouch.persons.size <= 1)
                     SingleVouchItem(
                         vouch,
                         canSettle = false,
@@ -535,7 +534,7 @@ fun VouchExportTemplate(
                 else GroupVouchSingleItem(
                     vouch,
                     personData?.person,
-                    canSettle = true,
+                    canSettle = false,
                     onSettle = {},
                     onDelete = {},
                     onEdit = {})
