@@ -62,7 +62,7 @@ fun VouchApp(
 
     IyoxVouchTheme(
         darkTheme = darkTheme,
-        dynamicColor = uiState.dynamicColors
+        colorTheme = uiState.colorTheme
     ) {
         CompositionLocalProvider(
             LocalSnackbarHostState provides snackbarHostState,

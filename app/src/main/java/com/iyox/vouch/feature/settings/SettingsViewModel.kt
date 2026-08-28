@@ -17,6 +17,7 @@ import com.iyox.vouch.core.backup.BackupPreview
 import com.iyox.vouch.core.backup.BackupRepository
 import com.iyox.vouch.core.backup.InvalidSignatureException
 import com.iyox.vouch.core.currency.CurrencyManager
+import com.iyox.vouch.ui.theme.AppColorTheme
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -35,7 +36,7 @@ sealed interface ToastEvent {
 
 data class SettingsUiState(
     val theme: Int,
-    val dynamicColors: Boolean,
+    val colorTheme: AppColorTheme,
     val languageTag: String,
     val currencyCode: String,
     val biometricEnabled: Boolean,
@@ -84,18 +85,30 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
+    private fun resolveInitialColorTheme(): AppColorTheme {
+        val stored = prefs.getString("color_theme", null)
+        if (stored != null) {
+            return AppColorTheme.fromKey(stored)
+        }
+        if (prefs.contains("dynamic_colors")) {
+            val isDynamic = prefs.getBoolean("dynamic_colors", true)
+            return if (isDynamic) AppColorTheme.DYNAMIC else AppColorTheme.PURPLE
+        }
+        return AppColorTheme.DYNAMIC
+    }
+
     private val _theme = MutableStateFlow(resolveInitialTheme())
-    private val _dynamicColors = MutableStateFlow(prefs.getBoolean("dynamic_colors", true))
+    private val _colorTheme = MutableStateFlow(resolveInitialColorTheme())
     private val _languageTag = MutableStateFlow(currentLanguageTag())
     private val _biometricEnabled = MutableStateFlow(prefs.getBoolean("biometric_enabled", false))
     private val _onboardingCompleted = MutableStateFlow(prefs.getBoolean("onboarding_completed", false))
 
     val uiState: StateFlow<SettingsUiState> = combine(
-        _theme, _dynamicColors, _languageTag, CurrencyManager.currencyFlow(), _biometricEnabled
-    ) { theme, dynamicColors, languageTag, currency, biometricEnabled ->
+        _theme, _colorTheme, _languageTag, CurrencyManager.currencyFlow(), _biometricEnabled
+    ) { theme, colorTheme, languageTag, currency, biometricEnabled ->
         SettingsUiState(
             theme = theme,
-            dynamicColors = dynamicColors,
+            colorTheme = colorTheme,
             languageTag = languageTag,
             currencyCode = currency.currencyCode,
             biometricEnabled = biometricEnabled,
@@ -108,7 +121,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         SharingStarted.WhileSubscribed(5000),
         SettingsUiState(
             resolveInitialTheme(),
-            prefs.getBoolean("dynamic_colors", true),
+            resolveInitialColorTheme(),
             currentLanguageTag(),
             CurrencyManager.getCurrency().currencyCode,
             prefs.getBoolean("biometric_enabled", false),
@@ -135,8 +148,12 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    fun setDynamicColors(enabled: Boolean) {
-        _dynamicColors.value = enabled
+    fun setColorTheme(colorTheme: AppColorTheme) {
+        _colorTheme.value = colorTheme
+        prefs.edit {
+            putString("color_theme", colorTheme.key)
+            putBoolean("dynamic_colors", colorTheme == AppColorTheme.DYNAMIC)
+        }
     }
 
     fun setBiometricEnabled(enabled: Boolean) {
