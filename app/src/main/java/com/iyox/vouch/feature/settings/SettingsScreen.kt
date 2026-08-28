@@ -31,7 +31,6 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AttachMoney
@@ -51,11 +50,14 @@ import androidx.compose.material.icons.outlined.Upload
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.toShape
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -631,6 +633,7 @@ fun ThemeSelectionDialog(
     )
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ColorThemeSelectionDialog(
     currentColorTheme: AppColorTheme,
@@ -681,7 +684,7 @@ fun ColorThemeSelectionDialog(
                                 Box(
                                     modifier = Modifier
                                         .size(32.dp)
-                                        .background(color = colorTheme.previewColor, shape = CircleShape)
+                                        .background(color = colorTheme.previewColor, shape = MaterialShapes.Cookie6Sided.toShape())
                                 )
                             }
                             Spacer(modifier = Modifier.height(4.dp))

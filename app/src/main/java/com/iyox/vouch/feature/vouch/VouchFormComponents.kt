@@ -43,6 +43,7 @@ import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
@@ -168,12 +169,13 @@ fun VouchDescriptionField(
 fun PersonAvatar(
     name: String,
     modifier: Modifier = Modifier,
-    size: Dp = 32.dp
+    size: Dp = 32.dp,
+    shape: Shape = CircleShape
 ) {
     val initial = name.take(1).uppercase()
     val fontSize = (size.value * 0.48f).sp
     Surface(
-        shape = CircleShape,
+        shape = shape,
         color = MaterialTheme.colorScheme.primaryContainer,
         modifier = modifier.size(size)
     ) {
