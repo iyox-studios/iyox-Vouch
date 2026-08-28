@@ -1,0 +1,112 @@
+package com.iyox.vouch.ui.components
+
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.iyox.vouch.core.currency.CurrencyManager
+import com.iyox.vouch.core.model.Person
+import com.iyox.vouch.core.model.PersonWithAmount
+import com.iyox.vouch.core.model.Vouch
+import com.iyox.vouch.core.model.VouchWithPerson
+import com.iyox.vouch.ui.components.vouches.GroupVouchFullItem
+import com.iyox.vouch.ui.components.vouches.GroupVouchSingleItem
+import com.iyox.vouch.ui.theme.IyoxVouchTheme
+import org.junit.Assert.assertEquals
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import java.sql.Timestamp
+
+@RunWith(AndroidJUnit4::class)
+class GroupVouchItemsTest {
+
+    @get:Rule
+    val composeTestRule = createComposeRule()
+
+    @Test
+    fun testGroupVouchFullItem_rendersAndHandlesClick() {
+        CurrencyManager.setCurrency("EUR")
+
+        val vouch = VouchWithPerson(
+            vouch = Vouch(
+                id = 99,
+                amount = 6000L,
+                description = "Airbnb weekend",
+                given = true,
+                timestamp = Timestamp(1700000000000L)
+            ),
+            persons = listOf(
+                PersonWithAmount(Person(name = "Alice"), 3000L, settled = true),
+                PersonWithAmount(Person(name = "Bob"), 3000L, settled = false)
+            )
+        )
+
+        var edited = false
+
+        composeTestRule.setContent {
+            IyoxVouchTheme {
+                GroupVouchFullItem(
+                    vouch = vouch,
+                    canSettle = true,
+                    onSettle = {},
+                    onDelete = {},
+                    onEdit = { edited = true }
+                )
+            }
+        }
+
+        val expectedAmount = CurrencyManager.formatAmountWithSymbol(6000L)
+        composeTestRule.onNodeWithText(expectedAmount).assertIsDisplayed()
+        composeTestRule.onNodeWithText("Airbnb weekend").assertIsDisplayed()
+
+        composeTestRule.onNodeWithText(expectedAmount).performClick()
+        assertEquals(true, edited)
+    }
+
+    @Test
+    fun testGroupVouchSingleItem_rendersAndHandlesClick() {
+        CurrencyManager.setCurrency("EUR")
+
+        val alice = Person(id = 1, name = "Alice")
+        val vouch = VouchWithPerson(
+            vouch = Vouch(
+                id = 100,
+                amount = 6000L,
+                description = "Airbnb weekend",
+                given = true,
+                timestamp = Timestamp(1700000000000L)
+            ),
+            persons = listOf(
+                PersonWithAmount(alice, 3000L, settled = false),
+                PersonWithAmount(Person(id = 2, name = "Bob"), 3000L, settled = false)
+            )
+        )
+
+        var edited = false
+
+        composeTestRule.setContent {
+            IyoxVouchTheme {
+                GroupVouchSingleItem(
+                    vouch = vouch,
+                    person = alice,
+                    canSettle = true,
+                    onSettle = {},
+                    onDelete = {},
+                    onEdit = { edited = true }
+                )
+            }
+        }
+
+        val expectedPersonAmount = CurrencyManager.formatAmountWithSymbol(3000L)
+        val expectedTotalAmount = CurrencyManager.formatAmountWithSymbol(6000L)
+
+        composeTestRule.onNodeWithText(expectedPersonAmount).assertIsDisplayed()
+        composeTestRule.onNodeWithText("/ $expectedTotalAmount").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Airbnb weekend").assertIsDisplayed()
+
+        composeTestRule.onNodeWithText(expectedPersonAmount).performClick()
+        assertEquals(true, edited)
+    }
+}
