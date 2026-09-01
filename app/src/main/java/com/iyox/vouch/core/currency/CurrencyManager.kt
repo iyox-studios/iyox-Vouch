@@ -2,6 +2,7 @@ package com.iyox.vouch.core.currency
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.icu.text.NumberFormat
 import android.icu.util.Currency
 import androidx.core.content.edit
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -178,18 +179,14 @@ class CurrencyManager @Inject constructor(
             currency: Currency = getCurrency(),
             locale: Locale = Locale.getDefault()
         ): String {
-            val formatted = formatAmount(minorUnits, currency, locale)
-            val symbol = currency.getSymbol(locale)
-            val isSymbolPrefix = locale.language.equals("en", ignoreCase = true)
-            return if (isSymbolPrefix) {
-                if (formatted.startsWith("-")) {
-                    "-$symbol${formatted.removePrefix("-")}"
-                } else {
-                    "$symbol$formatted"
-                }
-            } else {
-                "$formatted $symbol"
+            val factor = getMinorUnitFactor(currency)
+            val doubleValue = minorUnits.toDouble() / factor
+            val formatter = NumberFormat.getCurrencyInstance(locale).apply {
+                this.currency = currency
+                minimumFractionDigits = currency.defaultFractionDigits
+                maximumFractionDigits = currency.defaultFractionDigits
             }
+            return formatter.format(doubleValue)
         }
 
         fun parseToMinorUnits(
