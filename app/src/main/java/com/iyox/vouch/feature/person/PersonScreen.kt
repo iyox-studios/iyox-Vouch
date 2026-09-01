@@ -90,7 +90,7 @@ fun PersonScreen(
     personName: String,
     onNavigateBack: () -> Unit,
     onNavigateToAddVouch: (String) -> Unit = {},
-    onNavigateToEditVouch: (Int, Boolean) -> Unit = { _, _ -> },
+    onNavigateToEditVouch: (Long, Boolean) -> Unit = { _, _ -> },
     onNavigateToPerson: (String) -> Unit = {},
     onNavigateToSettledSpace: (String) -> Unit = {}
 ) {

@@ -43,7 +43,7 @@ import com.iyox.vouch.ui.components.vouches.VouchList
 fun SettledSpaceScreen(
     initialPersonName: String? = null,
     onNavigateBack: () -> Unit = {},
-    onNavigateToEditVouch: (Int, Boolean) -> Unit = { _, _ -> },
+    onNavigateToEditVouch: (Long, Boolean) -> Unit = { _, _ -> },
     onNavigateToPerson: (String) -> Unit = {},
     viewModel: SettledSpaceViewModel = hiltViewModel()
 ) {

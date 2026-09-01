@@ -37,10 +37,10 @@ fun VouchList(
     listState: LazyListState,
     innerPadding: PaddingValues,
     sharedVouchActions: SharedVouchActions,
-    onEdit: (Int, Boolean) -> Unit,
+    onEdit: (Long, Boolean) -> Unit,
     onNavigateToPerson: (String) -> Unit = {},
     isSettled: (VouchWithPerson) -> Boolean = { it.isSettled() },
-    groupSingleContextPersonId: Int? = null,
+    groupSingleContextPersonId: Long? = null,
     contentPadding: PaddingValues = PaddingValues(16.dp)
 ) {
     val toastManager = rememberToastManager()

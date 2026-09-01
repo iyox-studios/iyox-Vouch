@@ -50,7 +50,7 @@ fun VouchesScreen(
     viewModel: VouchesViewModel = viewModel(),
     onNavigateToAddVouch: () -> Unit = {},
     onNavigateToAddGroupVouch: () -> Unit = {},
-    onNavigateToEditVouch: (Int, Boolean) -> Unit = { _, _ -> },
+    onNavigateToEditVouch: (Long, Boolean) -> Unit = { _, _ -> },
     onNavigateToPerson: (String) -> Unit = {},
     onNavigateToSettledSpace: () -> Unit = {}
 ) {
