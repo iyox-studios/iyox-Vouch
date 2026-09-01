@@ -34,8 +34,8 @@ class BackupRepositoryTest {
     fun setUp() = runTest {
         context = ApplicationProvider.getApplicationContext()
         database = AppDatabase.getDatabase(context)
-        vouchRepository = VouchRepository.getInstance(context)
-        backupRepository = BackupRepository.getInstance(context)
+        vouchRepository = VouchRepository(database, database.vouchDataDao(), database.personDao())
+        backupRepository = BackupRepository(context, database, vouchRepository)
         tempDir = File(context.cacheDir, "backup_test").apply { mkdirs() }
 
         database.vouchDataDao().deleteAll()
