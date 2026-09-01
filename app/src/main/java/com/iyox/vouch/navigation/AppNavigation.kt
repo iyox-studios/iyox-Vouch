@@ -27,7 +27,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -54,9 +54,7 @@ data class NavigationItem(
 @Composable
 fun AppNavigation(
     snackbarHost: @Composable (() -> Unit) = {},
-    settingsViewModel: SettingsViewModel = viewModel(),
-    vouchesViewModel: VouchesViewModel = viewModel(),
-    personsViewModel: PersonsViewModel = viewModel()
+    settingsViewModel: SettingsViewModel = hiltViewModel()
 ) {
     val navController = rememberNavController()
     val haptic = LocalHapticFeedback.current
@@ -162,6 +160,7 @@ fun AppNavigation(
                 )
             }
             composable(Screen.Vouches.route) {
+                val vouchesViewModel: VouchesViewModel = hiltViewModel()
                 Box(modifier = Modifier.fillMaxSize().padding(bottom = innerPadding.calculateBottomPadding())) {
                     VouchesScreen(
                         viewModel = vouchesViewModel,
@@ -188,6 +187,7 @@ fun AppNavigation(
                 }
             }
             composable(Screen.Persons.route) {
+                val personsViewModel: PersonsViewModel = hiltViewModel()
                 Box(modifier = Modifier.fillMaxSize().padding(bottom = innerPadding.calculateBottomPadding())) {
                     PersonsScreen(viewModel = personsViewModel, onNavigateToViewPerson = { personName ->
                         navController.navigate(Screen.ViewPerson.createRoute(personName))

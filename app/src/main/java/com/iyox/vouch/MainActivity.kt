@@ -19,7 +19,9 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.fragment.app.FragmentActivity
 import com.iyox.vouch.core.utils.LocalVibrationManager
 import com.iyox.vouch.core.utils.VibrationManager
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : FragmentActivity() {
 
     private var isAuthenticated = false

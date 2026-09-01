@@ -83,7 +83,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.iyox.vouch.R
 import com.iyox.vouch.core.currency.CurrencyManager
 import com.iyox.vouch.core.model.Person
@@ -102,10 +102,7 @@ fun GroupVouchScreen(
     vouchId: Long? = null,
     edit: Boolean = false,
     onNavigateBack: () -> Unit,
-    viewModel: GroupVouchViewModel = viewModel(
-        factory = GroupVouchViewModel.factory(vouchId),
-        key = "GroupVouch_$vouchId"
-    )
+    viewModel: GroupVouchViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val coroutineScope = rememberCoroutineScope()

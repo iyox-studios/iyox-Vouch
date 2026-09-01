@@ -27,6 +27,9 @@ testRunner = "1.6.2"
 testRules = "1.6.1"
 robolectric = "4.14.1"
 
+hilt = "2.51.1"
+hiltNavigationCompose = "1.2.0"
+
 [libraries]
 androidx-biometric = { module = "androidx.biometric:biometric", version.ref = "biometric" }
 androidx-compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended" }
@@ -63,10 +66,15 @@ androidx-test-core = { module = "androidx.test:core", version.ref = "testCore" }
 androidx-test-runner = { module = "androidx.test:runner", version.ref = "testRunner" }
 androidx-test-rules = { module = "androidx.test:rules", version.ref = "testRules" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
+hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hilt" }
+hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hilt" }
+androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
+hilt-android-testing = { module = "com.google.dagger:hilt-android-testing", version.ref = "hilt" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 

@@ -5,7 +5,10 @@ import android.app.UiModeManager
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.iyox.vouch.core.backup.BackupRepository
 import com.iyox.vouch.core.currency.CurrencyManager
+import com.iyox.vouch.core.data.AppDatabase
+import com.iyox.vouch.core.data.VouchRepository
 import com.iyox.vouch.ui.theme.AppColorTheme
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -21,14 +24,18 @@ class SettingsViewModelTest {
 
     private lateinit var application: Application
     private lateinit var viewModel: SettingsViewModel
+    private lateinit var currencyManager: CurrencyManager
 
     @Before
     fun setUp() {
         application = ApplicationProvider.getApplicationContext()
         val prefs = application.getSharedPreferences("settings", Context.MODE_PRIVATE)
         prefs.edit().clear().commit()
-        CurrencyManager.init(application)
-        viewModel = SettingsViewModel(application)
+        val database = AppDatabase.getDatabase(application)
+        val vouchRepository = VouchRepository(database, database.vouchDataDao(), database.personDao())
+        val backupRepository = BackupRepository(application, database, vouchRepository)
+        currencyManager = CurrencyManager(application)
+        viewModel = SettingsViewModel(application, backupRepository, currencyManager)
     }
 
     @Test
@@ -77,10 +84,10 @@ class SettingsViewModelTest {
     @Test
     fun testCurrencySetting() {
         viewModel.setCurrency("USD")
-        assertEquals("USD", CurrencyManager.getCurrency().currencyCode)
+        assertEquals("USD", currencyManager.getCurrency().currencyCode)
 
         viewModel.setCurrency("EUR")
-        assertEquals("EUR", CurrencyManager.getCurrency().currencyCode)
+        assertEquals("EUR", currencyManager.getCurrency().currencyCode)
     }
 
     @Test

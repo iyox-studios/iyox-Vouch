@@ -159,11 +159,11 @@ class CurrencyManagerTest {
     fun testSetCurrencyAndFlow() {
         CurrencyManager.setCurrency("USD")
         assertEquals("USD", CurrencyManager.getCurrency().currencyCode)
-        assertEquals("USD", CurrencyManager.currencyFlow().value.currencyCode)
+        assertEquals("USD", CurrencyManager.currencyFlow.value.currencyCode)
 
         CurrencyManager.setCurrency("JPY")
         assertEquals("JPY", CurrencyManager.getCurrency().currencyCode)
-        assertEquals("JPY", CurrencyManager.currencyFlow().value.currencyCode)
+        assertEquals("JPY", CurrencyManager.currencyFlow.value.currencyCode)
 
         // Invalid currency code fallback to EUR
         CurrencyManager.setCurrency("INVALID_CODE")

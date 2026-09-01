@@ -24,7 +24,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.iyox.vouch.R
 import com.iyox.vouch.core.utils.rememberToastManager
 import com.iyox.vouch.ui.components.VouchBackButton
@@ -37,10 +37,7 @@ fun SingleVouchScreen(
     prefilledPersonName: String? = null,
     onNavigateBack: () -> Unit,
     edit: Boolean = false,
-    viewModel: SingleVouchViewModel = viewModel(
-        factory = SingleVouchViewModel.factory(vouchId, prefilledPersonName),
-        key = "SingleVouch_${vouchId}_$prefilledPersonName"
-    )
+    viewModel: SingleVouchViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
 

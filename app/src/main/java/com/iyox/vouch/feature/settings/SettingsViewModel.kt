@@ -1,16 +1,16 @@
 package com.iyox.vouch.feature.settings
 
-import android.app.Application
 import android.app.LocaleManager
 import android.app.UiModeManager
 import android.content.Context
+import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Build
 import android.os.LocaleList
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.edit
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.iyox.vouch.R
 import com.iyox.vouch.core.backup.BackupPreview
@@ -18,6 +18,8 @@ import com.iyox.vouch.core.backup.BackupRepository
 import com.iyox.vouch.core.backup.InvalidSignatureException
 import com.iyox.vouch.core.currency.CurrencyManager
 import com.iyox.vouch.ui.theme.AppColorTheme
+import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -28,6 +30,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 sealed interface ToastEvent {
     data class Info(@field:StringRes val messageRes: Int) : ToastEvent
@@ -43,7 +46,12 @@ data class SettingsUiState(
     val onboardingCompleted: Boolean = false
 )
 
-class SettingsViewModel(application: Application) : AndroidViewModel(application) {
+@HiltViewModel
+class SettingsViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
+    private val backupRepository: BackupRepository,
+    private val currencyManager: CurrencyManager
+) : ViewModel() {
 
     private val _toastEvents = MutableSharedFlow<ToastEvent>()
     val toastEvents: SharedFlow<ToastEvent> = _toastEvents.asSharedFlow()
@@ -51,17 +59,15 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     private val _pendingImportPreview = MutableStateFlow<BackupPreview?>(null)
     val pendingImportPreview: StateFlow<BackupPreview?> = _pendingImportPreview.asStateFlow()
 
-    val uiModeManager = application.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
-    private val prefs = application.getSharedPreferences("settings", Context.MODE_PRIVATE)
-    private val backupRepository = BackupRepository.getInstance(application)
+    private val uiModeManager = context.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
+    private val prefs: SharedPreferences = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
 
     private fun currentLanguageTag(): String {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
             return "system"
         }
 
-        val localeManager =
-            getApplication<Application>().getSystemService(LocaleManager::class.java)
+        val localeManager = context.getSystemService(LocaleManager::class.java)
         val current = localeManager.applicationLocales.toLanguageTags()
         return current.ifBlank { "system" }
     }
@@ -104,7 +110,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     private val _onboardingCompleted = MutableStateFlow(prefs.getBoolean("onboarding_completed", false))
 
     val uiState: StateFlow<SettingsUiState> = combine(
-        _theme, _colorTheme, _languageTag, CurrencyManager.currencyFlow(), _biometricEnabled
+        _theme, _colorTheme, _languageTag, currencyManager.currencyFlow, _biometricEnabled
     ) { theme, colorTheme, languageTag, currency, biometricEnabled ->
         SettingsUiState(
             theme = theme,
@@ -120,12 +126,12 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         viewModelScope,
         SharingStarted.WhileSubscribed(5000),
         SettingsUiState(
-            resolveInitialTheme(),
-            resolveInitialColorTheme(),
-            currentLanguageTag(),
-            CurrencyManager.getCurrency().currencyCode,
-            prefs.getBoolean("biometric_enabled", false),
-            prefs.getBoolean("onboarding_completed", false)
+            theme = _theme.value,
+            colorTheme = _colorTheme.value,
+            languageTag = _languageTag.value,
+            currencyCode = currencyManager.getCurrency().currencyCode,
+            biometricEnabled = _biometricEnabled.value,
+            onboardingCompleted = _onboardingCompleted.value
         )
     )
 
@@ -180,13 +186,12 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             LocaleList.forLanguageTags(tag)
         }
 
-        val localeManager =
-            getApplication<Application>().getSystemService(LocaleManager::class.java)
+        val localeManager = context.getSystemService(LocaleManager::class.java)
         localeManager.applicationLocales = appLocale
     }
 
     fun setCurrency(currencyCode: String) {
-        CurrencyManager.setCurrency(currencyCode)
+        currencyManager.setCurrency(currencyCode)
     }
 
     fun exportData(uri: Uri) {
@@ -258,11 +263,9 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
     val appVersion: String
         get() = try {
-            val pInfo = getApplication<Application>().packageManager.getPackageInfo(
-                getApplication<Application>().packageName, 0
-            )
-            pInfo.versionName ?: getApplication<Application>().getString(R.string.label_unknown)
+            val pInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+            pInfo.versionName ?: context.getString(R.string.label_unknown)
         } catch (_: Exception) {
-            getApplication<Application>().getString(R.string.label_unknown)
+            context.getString(R.string.label_unknown)
         }
 }
