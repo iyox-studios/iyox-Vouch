@@ -16,13 +16,11 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
@@ -36,7 +34,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -48,7 +45,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.iyox.vouch.R
 import com.iyox.vouch.core.currency.CurrencyManager
 import com.iyox.vouch.feature.vouch.PersonAvatar
+import com.iyox.vouch.ui.components.EmptySearchContent
 import com.iyox.vouch.ui.components.PageHeader
+import com.iyox.vouch.ui.components.PersonsFilterRow
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -59,65 +58,64 @@ fun PersonsScreen(
     val uiState by viewModel.uiState.collectAsState()
     val haptics = LocalHapticFeedback.current
 
-
     Scaffold(
         topBar = {
             PageHeader(stringResource(R.string.screen_people)) {
-                FilterChip(
-                    selected = uiState.showOnlyNonZero, onClick = {
-                        haptics.performHapticFeedback(HapticFeedbackType.ToggleOn)
-                        viewModel.toggleShowOnlyNonZero()
-                    }, label = {
-                        Text(stringResource(R.string.filter_unsettled))
-                    }, leadingIcon = {
-                        if (uiState.showOnlyNonZero) Icon(
-                            imageVector = Icons.Default.Check,
-                            contentDescription = stringResource(R.string.cd_selected),
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }, modifier = Modifier.padding(end = 16.dp)
+                PersonsFilterRow(
+                    showOnlyNonZero = uiState.showOnlyNonZero,
+                    onToggleNonZero = viewModel::toggleShowOnlyNonZero,
+                    searchQuery = uiState.searchQuery,
+                    onSearchQueryChange = viewModel::setSearchQuery
                 )
             }
-
-        }) { innerPadding ->
+        }
+    ) { innerPadding ->
         if (uiState.persons.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(top = innerPadding.calculateTopPadding())
-                    .padding(24.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+            if (uiState.searchQuery.isNotBlank()) {
+                EmptySearchContent(
+                    searchQuery = uiState.searchQuery,
+                    onClearSearch = { viewModel.setSearchQuery("") },
+                    modifier = Modifier.padding(top = innerPadding.calculateTopPadding())
+                )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(top = innerPadding.calculateTopPadding())
+                        .padding(24.dp),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Surface(
-                        shape = MaterialShapes.Cookie9Sided.toShape(),
-                        color = MaterialTheme.colorScheme.primaryContainer,
-                        modifier = Modifier.size(88.dp)
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(
-                                imageVector = Icons.Filled.Group,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                                modifier = Modifier.size(44.dp)
-                            )
+                        Surface(
+                            shape = MaterialShapes.Cookie9Sided.toShape(),
+                            color = MaterialTheme.colorScheme.primaryContainer,
+                            modifier = Modifier.size(88.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = Icons.Filled.Group,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    modifier = Modifier.size(44.dp)
+                                )
+                            }
                         }
+                        Text(
+                            text = stringResource(R.string.empty_people_title),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = stringResource(R.string.empty_people_subtitle),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center
+                        )
                     }
-                    Text(
-                        text = stringResource(R.string.empty_people_title),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = stringResource(R.string.empty_people_subtitle),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center
-                    )
                 }
             }
         } else {

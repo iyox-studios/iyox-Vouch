@@ -93,6 +93,15 @@
     <string name="filter_person">Person</string>
     <string name="filter_given_received_short">Giv. &amp; Rec.</string>
 
+    <string name="search_vouches_placeholder">Search &vouches;&#8230;</string>
+    <string name="search_people_placeholder">Search people&#8230;</string>
+    <string name="search_person_vouches_placeholder">Search in &vouches;&#8230;</string>
+    <string name="search_settled_placeholder">Search settled&#8230;</string>
+    <string name="action_clear">Clear</string>
+    <string name="cd_search">Search</string>
+    <string name="empty_search_title">No results found</string>
+    <string name="empty_search_subtitle">No items matching \"%1$s\"</string>
+
     <string name="empty_vouches_prompt">Tap + to add a new &vouch;</string>
     <string name="empty_vouches_title">No &vouches; yet</string>
     <string name="empty_vouches_subtitle">Tap + to add a single or &group_vouch;</string>
@@ -186,7 +195,7 @@
     <string name="group_vouch_custom_split">Custom</string>
     <string name="group_vouch_equal_split">Equal</string>
     <string name="group_vouch_reset_equal">Redistribute</string>
-    <string name="group_vouch_add_member_placeholder">Search or enter name…</string>
+    <string name="group_vouch_add_member_placeholder">Search or enter name&#8230;</string>
     <string name="group_vouch_create_cta">Create &group_vouch; (%1$d)</string>
     <string name="group_vouch_empty_members_title">Add people to split with</string>
     <string name="group_vouch_empty_members_subtitle">Search existing contacts or type a new name to split the amount.</string>

@@ -7,6 +7,8 @@ import com.iyox.vouch.core.data.VouchRepository
 import com.iyox.vouch.core.domain.SharedVouchActions
 import com.iyox.vouch.core.model.VouchWithPerson
 import com.iyox.vouch.core.model.isSettled
+import com.iyox.vouch.core.utils.VouchFilterUtils.filterByGiven
+import com.iyox.vouch.core.utils.VouchFilterUtils.filterSearchAndSort
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -19,6 +21,7 @@ data class VouchesUiState(
     val settledCount: Int = 0,
     val showOnlyGiven: Int = 0,
     val sortedBy: Int = 0,
+    val searchQuery: String = "",
     val totalGiven: Long = 0L,
     val totalOwed: Long = 0L,
     val netTotal: Long = 0L
@@ -32,20 +35,19 @@ class VouchesViewModel(application: Application) : AndroidViewModel(application)
     private val _vouches = MutableStateFlow(repository.getCachedVouches() ?: emptyList())
     private val _showOnlyGiven = MutableStateFlow(0)
     private val _sortedBy = MutableStateFlow(0)
+    private val _searchQuery = MutableStateFlow("")
 
     val uiState: StateFlow<VouchesUiState> = combine(
-        _vouches, _showOnlyGiven, _sortedBy
-    ) { allVouches, showOnlyGiven, sortedBy ->
+        _vouches, _showOnlyGiven, _sortedBy, _searchQuery
+    ) { allVouches, showOnlyGiven, sortedBy, searchQuery ->
         val activeVouches = allVouches.filter { !it.isSettled() }
         val settledCount = allVouches.count { it.isSettled() }
 
-        val displayed = getDisplayedVouches(showOnlyGiven, activeVouches)
-        val sorted = when (sortedBy) {
-            0 -> displayed.sortedBy { it.vouch.timestamp }
-            1 -> displayed.sortedBy { it.vouch.amount }
-            2 -> displayed.sortedBy { if (it.persons.size == 1) it.persons.first().person.name else "" }
-            else -> displayed.sortedBy { it.vouch.timestamp }
-        }.reversed()
+        val displayed = activeVouches.filterSearchAndSort(
+            showOnlyGiven = showOnlyGiven,
+            searchQuery = searchQuery,
+            sortedBy = sortedBy
+        )
 
         var totalGiven = 0L
         var totalOwed = 0L
@@ -62,10 +64,11 @@ class VouchesViewModel(application: Application) : AndroidViewModel(application)
         }
 
         VouchesUiState(
-            vouches = sorted,
+            vouches = displayed,
             settledCount = settledCount,
             showOnlyGiven = showOnlyGiven,
             sortedBy = sortedBy,
+            searchQuery = searchQuery,
             totalGiven = totalGiven,
             totalOwed = totalOwed,
             netTotal = totalGiven - totalOwed
@@ -88,6 +91,10 @@ class VouchesViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
+    fun setSearchQuery(query: String) {
+        _searchQuery.value = query
+    }
+
     fun toggleShowOnlyGiven() {
         _showOnlyGiven.value = (_showOnlyGiven.value + 1) % 3
     }
@@ -99,14 +106,5 @@ class VouchesViewModel(application: Application) : AndroidViewModel(application)
     fun getDisplayedVouches(
         showOnlyGiven: Int,
         activeVouches: List<VouchWithPerson>
-    ): List<VouchWithPerson> {
-        return activeVouches.filter {
-            when (showOnlyGiven) {
-                0 -> true
-                1 -> it.vouch.given
-                2 -> !it.vouch.given
-                else -> true
-            }
-        }
-    }
+    ): List<VouchWithPerson> = activeVouches.filterByGiven(showOnlyGiven)
 }

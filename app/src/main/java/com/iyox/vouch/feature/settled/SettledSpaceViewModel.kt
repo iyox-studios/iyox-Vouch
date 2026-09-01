@@ -11,6 +11,7 @@ import com.iyox.vouch.core.domain.SharedVouchActions
 import com.iyox.vouch.core.model.VouchWithPerson
 import com.iyox.vouch.core.model.isSettled
 import com.iyox.vouch.core.model.isSettledForPerson
+import com.iyox.vouch.core.utils.VouchFilterUtils.filterSearchAndSort
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -23,6 +24,7 @@ data class SettledSpaceUiState(
     val selectedPersonName: String? = null,
     val showOnlyGiven: Int = 0, // 0 = all, 1 = given, 2 = received
     val sortedBy: Int = 0, // 0 = date, 1 = amount, 2 = person
+    val searchQuery: String = "",
     val totalSettledGiven: Long = 0L,
     val totalSettledReceived: Long = 0L,
     val totalSettledVolume: Long = 0L,
@@ -42,10 +44,11 @@ class SettledSpaceViewModel(
     private val _selectedPersonName = MutableStateFlow(initialPersonName)
     private val _showOnlyGiven = MutableStateFlow(0)
     private val _sortedBy = MutableStateFlow(0)
+    private val _searchQuery = MutableStateFlow("")
 
     val uiState: StateFlow<SettledSpaceUiState> = combine(
-        _allVouches, _selectedPersonName, _showOnlyGiven, _sortedBy
-    ) { allVouches, selectedPerson, showOnlyGiven, sortedBy ->
+        _allVouches, _selectedPersonName, _showOnlyGiven, _sortedBy, _searchQuery
+    ) { allVouches, selectedPerson, showOnlyGiven, sortedBy, searchQuery ->
         // Filter to settled vouches
         val settledVouches = allVouches.filter { vouch ->
             if (selectedPerson != null) {
@@ -55,23 +58,11 @@ class SettledSpaceViewModel(
             }
         }
 
-        // Apply given/received filter
-        val filtered = settledVouches.filter { vouch ->
-            when (showOnlyGiven) {
-                0 -> true
-                1 -> vouch.vouch.given
-                2 -> !vouch.vouch.given
-                else -> true
-            }
-        }
-
-        // Apply sorting
-        val sorted = when (sortedBy) {
-            0 -> filtered.sortedBy { it.vouch.timestamp }
-            1 -> filtered.sortedBy { it.vouch.amount }
-            2 -> filtered.sortedBy { if (it.persons.size == 1) it.persons.first().person.name else "" }
-            else -> filtered.sortedBy { it.vouch.timestamp }
-        }.reversed()
+        val displayed = settledVouches.filterSearchAndSort(
+            showOnlyGiven = showOnlyGiven,
+            searchQuery = searchQuery,
+            sortedBy = sortedBy
+        )
 
         var totalGiven = 0L
         var totalReceived = 0L
@@ -93,10 +84,11 @@ class SettledSpaceViewModel(
         }
 
         SettledSpaceUiState(
-            vouches = sorted,
+            vouches = displayed,
             selectedPersonName = selectedPerson,
             showOnlyGiven = showOnlyGiven,
             sortedBy = sortedBy,
+            searchQuery = searchQuery,
             totalSettledGiven = totalGiven,
             totalSettledReceived = totalReceived,
             totalSettledVolume = totalGiven + totalReceived,
@@ -117,6 +109,10 @@ class SettledSpaceViewModel(
         viewModelScope.launch {
             _allVouches.value = repository.getAll()
         }
+    }
+
+    fun setSearchQuery(query: String) {
+        _searchQuery.value = query
     }
 
     fun setSelectedPerson(personName: String?) {

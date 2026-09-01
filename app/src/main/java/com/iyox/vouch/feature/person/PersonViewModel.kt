@@ -14,6 +14,7 @@ import com.iyox.vouch.core.model.PersonTotal
 import com.iyox.vouch.core.model.PersonWithAmount
 import com.iyox.vouch.core.model.Vouch
 import com.iyox.vouch.core.model.VouchWithPerson
+import com.iyox.vouch.core.utils.VouchFilterUtils.filterSearchAndSort
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -30,6 +31,7 @@ data class PersonUiState(
     val amountOwed: Long = 0L,
     val showOnlyGiven: Int = 0,
     val sortedBy: Int = 0,
+    val searchQuery: String = "",
     val isLoading: Boolean = true
 )
 
@@ -53,6 +55,7 @@ class PersonViewModel(
     private var currentPersonName: String = personName
     private val _showOnlyGiven = MutableStateFlow(0)
     private val _sortedBy = MutableStateFlow(0)
+    private val _searchQuery = MutableStateFlow("")
     private var currentPersonVouches: List<VouchWithPerson> =
         vouchRepository.getCachedVouchesByPerson(personName) ?: emptyList()
 
@@ -97,6 +100,11 @@ class PersonViewModel(
         }
     }
 
+    fun setSearchQuery(query: String) {
+        _searchQuery.value = query
+        _uiState.update { buildState(currentPersonName, currentPersonVouches) }
+    }
+
     fun toggleShowOnlyGiven() {
         _showOnlyGiven.value = (_showOnlyGiven.value + 1) % 3
         _uiState.update { buildState(currentPersonName, currentPersonVouches) }
@@ -131,22 +139,13 @@ class PersonViewModel(
 
         val showOnlyGiven = _showOnlyGiven.value
         val sortedBy = _sortedBy.value
+        val searchQuery = _searchQuery.value
 
-        val filteredActive = activeVouches.filter {
-            when (showOnlyGiven) {
-                0 -> true
-                1 -> it.vouch.given
-                2 -> !it.vouch.given
-                else -> true
-            }
-        }
-
-        val sortedActive = when (sortedBy) {
-            0 -> filteredActive.sortedBy { it.vouch.timestamp }
-            1 -> filteredActive.sortedBy { it.vouch.amount }
-            2 -> filteredActive.sortedBy { if (it.persons.size == 1) it.persons.first().person.name else "" }
-            else -> filteredActive.sortedBy { it.vouch.timestamp }
-        }.reversed()
+        val sortedActive = activeVouches.filterSearchAndSort(
+            showOnlyGiven = showOnlyGiven,
+            searchQuery = searchQuery,
+            sortedBy = sortedBy
+        )
 
         val sortedSettled = settledVouches.sortedByDescending { it.vouch.timestamp }
 
@@ -169,6 +168,7 @@ class PersonViewModel(
             amountOwed = owed,
             showOnlyGiven = showOnlyGiven,
             sortedBy = sortedBy,
+            searchQuery = _searchQuery.value,
             isLoading = false
         )
     }

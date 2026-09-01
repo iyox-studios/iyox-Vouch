@@ -91,6 +91,15 @@
     <string name="filter_person">Person</string>
     <string name="filter_given_received_short">Geg. &amp; Erh.</string>
 
+    <string name="search_vouches_placeholder">&vouches; durchsuchen&#8230;</string>
+    <string name="search_people_placeholder">Personen durchsuchen&#8230;</string>
+    <string name="search_person_vouches_placeholder">In &vouches; suchen&#8230;</string>
+    <string name="search_settled_placeholder">Erledigte durchsuchen&#8230;</string>
+    <string name="action_clear">Löschen</string>
+    <string name="cd_search">Suchen</string>
+    <string name="empty_search_title">Keine Ergebnisse gefunden</string>
+    <string name="empty_search_subtitle">Keine Einträge für „%1$s“ gefunden</string>
+
     <string name="empty_vouches_prompt">Tippe auf +, um einen neuen &vouch; hinzuzufügen</string>
     <string name="empty_vouches_title">Noch keine &vouches;</string>
     <string name="empty_vouches_subtitle">Tippe auf +, um einen neuen Einzel- oder &group_vouch; hinzuzufügen</string>
@@ -184,7 +193,7 @@
     <string name="group_vouch_custom_split">Individuell</string>
     <string name="group_vouch_equal_split">Gleichmäßig</string>
     <string name="group_vouch_reset_equal">Neu verteilen</string>
-    <string name="group_vouch_add_member_placeholder">Name suchen oder eingeben…</string>
+    <string name="group_vouch_add_member_placeholder">Name suchen oder eingeben&#8230;</string>
     <string name="group_vouch_create_cta">&group_vouch; erstellen (%1$d)</string>
     <string name="group_vouch_empty_members_title">Personen zum Aufteilen hinzufügen</string>
     <string name="group_vouch_empty_members_subtitle">Suche vorhandene Personen oder tippe einen neuen Namen ein, um den Betrag aufzuteilen.</string>
