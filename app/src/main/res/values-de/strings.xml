@@ -9,7 +9,7 @@
     <string name="screen_vouches">&vouches;</string>
     <string name="screen_people">Personen</string>
     <string name="screen_settings">Einstellungen</string>
-    <string name="screen_settled_space">Erledigte &vouches;</string>
+    <string name="screen_settled_space">Erledigt</string>
     <string name="title_person_settled_space">Erledigt • %1$s</string>
     <string name="title_add_vouch">&vouch; hinzufügen</string>
     <string name="title_edit_vouch">&vouch; bearbeiten</string>
@@ -103,13 +103,13 @@
     <string name="empty_person_settled_vouches">Keine beglichenen &vouches; für %1$s</string>
     <string name="settled_space_hero_title">Erledigter Verlauf</string>
     <string name="settled_space_total_resolved">Gesamt beglichen</string>
-    <string name="action_view_settled_space">Erledigte &vouches;</string>
+    <string name="action_view_settled_space">Erledigt</string>
     <string name="action_view_settled_history">Beglichene &vouches; (%1$d)</string>
     <string name="action_show_all_settled">Alle erledigten anzeigen</string>
     <string name="all_settled_title">Alles beglichen!</string>
     <string name="all_settled_subtitle">Keine offenen &vouches; mit %1$s</string>
     <string name="all_settled_global_subtitle">Du hast aktuell keine offenen &vouches;</string>
-    <string name="cd_settled_space">Erledigte &vouches;</string>
+    <string name="cd_settled_space">Erledigt</string>
 
     <plurals name="vouch_count">
         <item quantity="one">%1$d &vouch;</item>
