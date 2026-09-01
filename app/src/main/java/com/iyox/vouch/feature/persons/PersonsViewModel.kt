@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.iyox.vouch.core.data.PersonRepository
 import com.iyox.vouch.core.data.VouchRepository
 import com.iyox.vouch.core.model.PersonTotal
+import com.iyox.vouch.core.utils.VouchFilterUtils.filterBySearchQuery
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -15,7 +16,8 @@ import kotlinx.coroutines.launch
 
 data class PersonsUiState(
     val persons: List<PersonTotal> = emptyList(),
-    val showOnlyNonZero: Boolean = true
+    val showOnlyNonZero: Boolean = true,
+    val searchQuery: String = ""
 )
 
 class PersonsViewModel(application: Application) : AndroidViewModel(application) {
@@ -24,17 +26,21 @@ class PersonsViewModel(application: Application) : AndroidViewModel(application)
 
     private val _persons = MutableStateFlow<List<PersonTotal>>(emptyList())
     private val _showOnlyNonZero = MutableStateFlow(true)
+    private val _searchQuery = MutableStateFlow("")
 
     val uiState: StateFlow<PersonsUiState> = combine(
-        _persons, _showOnlyNonZero
-    ) { personsList, showOnlyNonZero ->
+        _persons, _showOnlyNonZero, _searchQuery
+    ) { personsList, showOnlyNonZero, searchQuery ->
+        val filtered = if (showOnlyNonZero) {
+            personsList.filter { it.vouchCount > 0 }
+        } else {
+            personsList
+        }
+        val searched = filtered.filterBySearchQuery(searchQuery)
         PersonsUiState(
-            persons = if (showOnlyNonZero) {
-                personsList.filter { it.vouchCount > 0 }
-            } else {
-                personsList
-            },
-            showOnlyNonZero = showOnlyNonZero
+            persons = searched,
+            showOnlyNonZero = showOnlyNonZero,
+            searchQuery = searchQuery
         )
     }.stateIn(
         scope = viewModelScope,
@@ -49,6 +55,10 @@ class PersonsViewModel(application: Application) : AndroidViewModel(application)
                 loadPersons()
             }
         }
+    }
+
+    fun setSearchQuery(query: String) {
+        _searchQuery.value = query
     }
 
     fun toggleShowOnlyNonZero() {

@@ -13,12 +13,9 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.sql.Timestamp
 
 @RunWith(AndroidJUnit4::class)
 class SettledSpaceViewModelTest {
@@ -135,5 +132,41 @@ class SettledSpaceViewModelTest {
         assertEquals(2, viewModel.uiState.first { it.sortedBy == 2 }.sortedBy)
         viewModel.toggleSortedBy()
         assertEquals(0, viewModel.uiState.first { it.sortedBy == 0 }.sortedBy)
+    }
+
+    @Test
+    fun testSearchQuery() = runTest {
+        val v1 = repository.insert(
+            VouchWithPerson(
+                vouch = Vouch(amount = 2000L, description = "Birthday Gift", given = true),
+                persons = listOf(PersonWithAmount(Person(name = "Alice"), 2000L, settled = true))
+            )
+        )
+        val v2 = repository.insert(
+            VouchWithPerson(
+                vouch = Vouch(amount = 1000L, description = "Train Ticket", given = false),
+                persons = listOf(PersonWithAmount(Person(name = "Bob"), 1000L, settled = true))
+            )
+        )
+
+        val viewModel = SettledSpaceViewModel(application, null)
+        viewModel.loadVouches()
+        viewModel.uiState.first { it.vouches.size == 2 }
+
+        // Search description
+        viewModel.setSearchQuery("Birthday")
+        val bdayState =
+            viewModel.uiState.first { it.searchQuery == "Birthday" && it.vouches.size == 1 }
+        assertEquals("Birthday Gift", bdayState.vouches[0].vouch.description)
+
+        // Search person
+        viewModel.setSearchQuery("Bob")
+        val bobState = viewModel.uiState.first { it.searchQuery == "Bob" && it.vouches.size == 1 }
+        assertEquals("Bob", bobState.vouches[0].persons[0].person.name)
+
+        // Clear query
+        viewModel.setSearchQuery("")
+        val clearedState = viewModel.uiState.first { it.searchQuery == "" && it.vouches.size == 2 }
+        assertEquals(2, clearedState.vouches.size)
     }
 }
