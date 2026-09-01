@@ -54,7 +54,7 @@ class SingleVouchViewModelTest {
     }
 
     private fun createViewModel(
-        vouchId: Int? = null,
+        vouchId: Long? = null,
         personName: String? = null
     ): SingleVouchViewModel {
         val args = mutableMapOf<String, Any?>()

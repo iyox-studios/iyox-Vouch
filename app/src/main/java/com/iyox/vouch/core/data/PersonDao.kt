@@ -21,10 +21,10 @@ interface PersonDao {
     suspend fun update(person: Person)
 
     @Query("UPDATE Person SET name = :newName WHERE id = :personId")
-    suspend fun updateName(personId: Int, newName: String)
+    suspend fun updateName(personId: Long, newName: String)
 
     @Query("SELECT * FROM Person WHERE id = :id LIMIT 1")
-    suspend fun getById(id: Int): Person?
+    suspend fun getById(id: Long): Person?
 
     @Query("SELECT * FROM Person WHERE name = :name LIMIT 1")
     suspend fun getByName(name: String): Person?

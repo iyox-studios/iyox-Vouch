@@ -48,7 +48,7 @@ class GroupVouchViewModelTest {
         repository.notifyDataChanged()
     }
 
-    private fun createViewModel(vouchId: Int? = null): GroupVouchViewModel {
+    private fun createViewModel(vouchId: Long? = null): GroupVouchViewModel {
         val args = mutableMapOf<String, Any?>()
         if (vouchId != null) args["vouchId"] = vouchId
         val savedStateHandle = SavedStateHandle(args)

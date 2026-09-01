@@ -45,7 +45,7 @@ class SingleVouchViewModel @Inject constructor(
     val sharedActions = SharedVouchActions(repository) {}
 
     private var searchJob: Job? = null
-    private var editingVouchId: Int? = null
+    private var editingVouchId: Long? = null
     private var originalVouch: VouchWithPerson? = null
 
     private val _uiState = MutableStateFlow(
@@ -78,9 +78,8 @@ class SingleVouchViewModel @Inject constructor(
         }
 
         _uiState.update { it.copy(isLoading = true) }
-        val intId = id.toInt()
         viewModelScope.launch {
-            val vouch = repository.getById(intId)
+            val vouch = repository.getById(id)
             _uiState.update { state ->
                 if (vouch != null) {
                     editingVouchId = vouch.vouch.id

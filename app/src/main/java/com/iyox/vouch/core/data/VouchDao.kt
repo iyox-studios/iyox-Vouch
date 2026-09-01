@@ -91,7 +91,7 @@ interface VouchDao {
     suspend fun getPersonRowsForVouchesOfPerson(name: String): List<VouchPersonRow>
 
     @Query("SELECT * FROM Vouch WHERE id = :id")
-    suspend fun getById(id: Int): Vouch?
+    suspend fun getById(id: Long): Vouch?
 
     @Insert
     suspend fun insert(vouch: Vouch): Long
@@ -103,7 +103,7 @@ interface VouchDao {
     suspend fun delete(vouch: Vouch)
 
     @Query("DELETE FROM Vouch WHERE id = :id")
-    suspend fun deleteById(id: Int)
+    suspend fun deleteById(id: Long)
 
     @Query("DELETE FROM Vouch")
     suspend fun deleteAll()
@@ -112,7 +112,7 @@ interface VouchDao {
     suspend fun insertCrossRefs(refs: List<VouchPersonCrossRef>)
 
     @Query("DELETE FROM vouch_person_cross_ref WHERE vouchId = :vouchId")
-    suspend fun deleteCrossRefsByVouchId(vouchId: Int)
+    suspend fun deleteCrossRefsByVouchId(vouchId: Long)
 
     @Query(
         """
@@ -122,7 +122,7 @@ interface VouchDao {
         WHERE vpc.vouchId = :vouchId
         """
     )
-    suspend fun getPersonsForVouch(vouchId: Int): List<PersonWithAmount>
+    suspend fun getPersonsForVouch(vouchId: Long): List<PersonWithAmount>
 
     @Query(
         """
@@ -131,7 +131,7 @@ interface VouchDao {
         WHERE vouchId = :vouchId
         """
     )
-    suspend fun getSettlementsForVouch(vouchId: Int): List<VouchPersonSettlement>
+    suspend fun getSettlementsForVouch(vouchId: Long): List<VouchPersonSettlement>
 
     @Query(
         """
@@ -140,7 +140,7 @@ interface VouchDao {
         WHERE vouchId = :vouchId AND personId = :personId
         """
     )
-    suspend fun updateCrossRefSettlement(vouchId: Int, personId: Int, settled: Boolean)
+    suspend fun updateCrossRefSettlement(vouchId: Long, personId: Long, settled: Boolean)
 
     @Query(
         """
@@ -149,7 +149,7 @@ interface VouchDao {
         WHERE personId = :personId
         """
     )
-    suspend fun updateCrossRefsSettledByPersonId(personId: Int, settled: Boolean)
+    suspend fun updateCrossRefsSettledByPersonId(personId: Long, settled: Boolean)
 
     @Query(
         """
@@ -158,7 +158,7 @@ interface VouchDao {
         WHERE personId = :personId AND vouchId IN (:vouchIds)
         """
     )
-    suspend fun updateCrossRefsSettledForPerson(personId: Int, vouchIds: List<Int>, settled: Boolean)
+    suspend fun updateCrossRefsSettledForPerson(personId: Long, vouchIds: List<Long>, settled: Boolean)
 
     @Query(
         """
@@ -167,5 +167,5 @@ interface VouchDao {
         WHERE vouchId = :vouchId
         """
     )
-    suspend fun updateCrossRefsSettledByVouchId(vouchId: Int, settled: Boolean)
+    suspend fun updateCrossRefsSettledByVouchId(vouchId: Long, settled: Boolean)
 }

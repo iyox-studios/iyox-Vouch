@@ -89,7 +89,7 @@ class VouchRepository @Inject constructor(
         }
     }
 
-    suspend fun getById(id: Int): VouchWithPerson? {
+    suspend fun getById(id: Long): VouchWithPerson? {
         return database.withTransaction {
             val vouch = vouchDataDao.getById(id) ?: return@withTransaction null
             VouchWithPerson(
@@ -101,7 +101,7 @@ class VouchRepository @Inject constructor(
 
     suspend fun insert(vouchWithPerson: VouchWithPerson): VouchWithPerson {
         val result = database.withTransaction {
-            val newVouchId = vouchDataDao.insert(vouchWithPerson.vouch).toInt()
+            val newVouchId = vouchDataDao.insert(vouchWithPerson.vouch)
 
             upsertCrossRefs(newVouchId, vouchWithPerson.persons, deleteExisting = false)
 
@@ -113,14 +113,14 @@ class VouchRepository @Inject constructor(
         return result
     }
 
-    suspend fun delete(vouchId: Int) {
+    suspend fun delete(vouchId: Long) {
         database.withTransaction {
             vouchDataDao.deleteById(vouchId) // also deletes cross refs by cascade
             personDataDao.deletePersonsWithoutVouches()
         }
     }
 
-    suspend fun deletePersonFromVouch(vouchId: Int, personId: Int) {
+    suspend fun deletePersonFromVouch(vouchId: Long, personId: Long) {
         database.withTransaction {
             val currentVouch = vouchDataDao.getById(vouchId) ?: return@withTransaction
             val currentPersons = vouchDataDao.getPersonsForVouch(vouchId)
@@ -167,25 +167,25 @@ class VouchRepository @Inject constructor(
         }
     }
 
-    suspend fun setVouchSettled(vouchId: Int, settled: Boolean) {
+    suspend fun setVouchSettled(vouchId: Long, settled: Boolean) {
         database.withTransaction {
             vouchDataDao.updateCrossRefsSettledByVouchId(vouchId, settled)
         }
     }
 
-    suspend fun setPersonSettlement(vouchId: Int, personId: Int, settled: Boolean) {
+    suspend fun setPersonSettlement(vouchId: Long, personId: Long, settled: Boolean) {
         database.withTransaction {
             vouchDataDao.updateCrossRefSettlement(vouchId, personId, settled)
         }
     }
 
-    suspend fun setPersonSettled(personId: Int, settled: Boolean) {
+    suspend fun setPersonSettled(personId: Long, settled: Boolean) {
         database.withTransaction {
             vouchDataDao.updateCrossRefsSettledByPersonId(personId, settled)
         }
     }
 
-    suspend fun setPersonSettlements(personId: Int, vouchIds: List<Int>, settled: Boolean) {
+    suspend fun setPersonSettlements(personId: Long, vouchIds: List<Long>, settled: Boolean) {
         if (vouchIds.isEmpty()) return
         database.withTransaction {
             vouchDataDao.updateCrossRefsSettledForPerson(personId, vouchIds, settled)
@@ -193,7 +193,7 @@ class VouchRepository @Inject constructor(
     }
 
     private suspend fun upsertCrossRefs(
-        vouchId: Int,
+        vouchId: Long,
         persons: List<PersonWithAmount>,
         deleteExisting: Boolean
     ) {

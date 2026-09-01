@@ -299,12 +299,12 @@ fun AppNavigation(
             }
             composable(
                 route = Screen.EditVouch.route,
-                arguments = listOf(navArgument("vouchId") { type = NavType.IntType })
+                arguments = listOf(navArgument("vouchId") { type = NavType.LongType })
             ) { backStackEntry ->
-                val vouchId = backStackEntry.arguments?.getInt("vouchId") ?: return@composable
+                val vouchId = backStackEntry.arguments?.getLong("vouchId") ?: return@composable
                 Box(modifier = Modifier.fillMaxSize().padding(bottom = innerPadding.calculateBottomPadding())) {
                     SingleVouchScreen(
-                        vouchId = vouchId.toLong(),
+                        vouchId = vouchId,
                         edit = true,
                         onNavigateBack = {
                             navController.popBackStack()
@@ -313,12 +313,12 @@ fun AppNavigation(
             }
             composable(
                 route = Screen.EditGroupVouch.route,
-                arguments = listOf(navArgument("vouchId") { type = NavType.IntType })
+                arguments = listOf(navArgument("vouchId") { type = NavType.LongType })
             ) { backStackEntry ->
-                val vouchId = backStackEntry.arguments?.getInt("vouchId") ?: return@composable
+                val vouchId = backStackEntry.arguments?.getLong("vouchId") ?: return@composable
                 Box(modifier = Modifier.fillMaxSize().padding(bottom = innerPadding.calculateBottomPadding())) {
                     GroupVouchScreen(
-                        vouchId = vouchId.toLong(),
+                        vouchId = vouchId,
                         edit = true,
                         onNavigateBack = {
                             navController.popBackStack()

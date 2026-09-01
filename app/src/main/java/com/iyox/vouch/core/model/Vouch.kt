@@ -8,7 +8,7 @@ import androidx.room.PrimaryKey
 
 @Entity
 data class Vouch(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    @PrimaryKey(autoGenerate = true) val id: Long = 0L,
     val amount: Long,
     val description: String = "",
     val given: Boolean = true,
@@ -40,8 +40,8 @@ data class Vouch(
     ]
 )
 data class VouchPersonCrossRef(
-    val vouchId: Int,
-    val personId: Int,
+    val vouchId: Long,
+    val personId: Long,
     val amount: Long,
     val settled: Boolean = false
 )
@@ -51,7 +51,7 @@ data class VouchPersonCrossRef(
  * For domain/UI representation, use [PersonWithAmount].
  */
 data class VouchPersonRow(
-    val vouchId: Int,
+    val vouchId: Long,
     @Embedded val person: Person,
     val amount: Long,
     val settled: Boolean
@@ -68,10 +68,13 @@ data class VouchWithPerson(
 fun VouchWithPerson.isSettled(): Boolean =
     persons.isNotEmpty() && persons.all { it.settled }
 
+fun VouchWithPerson.isSettledForPerson(personId: Long): Boolean =
+    persons.firstOrNull { it.person.id == personId }?.settled ?: false
+
 fun VouchWithPerson.isSettledForPerson(personName: String): Boolean =
     persons.firstOrNull { it.person.name == personName }?.settled ?: false
 
 data class VouchPersonSettlement(
-    val personId: Int,
+    val personId: Long,
     val settled: Boolean
 )

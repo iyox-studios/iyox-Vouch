@@ -40,8 +40,8 @@ data class PersonUiState(
 )
 
 data class PersonSettlementChange(
-    val vouchId: Int,
-    val personId: Int
+    val vouchId: Long,
+    val personId: Long
 )
 
 @HiltViewModel

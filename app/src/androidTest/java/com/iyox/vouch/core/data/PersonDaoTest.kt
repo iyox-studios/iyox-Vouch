@@ -50,7 +50,7 @@ class PersonDaoTest {
         val retrieved = personDao.getByName("Alice")
         assertNotNull(retrieved)
         assertEquals("Alice", retrieved?.name)
-        assertEquals(id.toInt(), retrieved?.id)
+        assertEquals(id, retrieved?.id)
     }
 
     @Test
@@ -63,7 +63,7 @@ class PersonDaoTest {
         assertEquals(-1L, id2)
 
         val retrieved = personDao.getByName("Bob")
-        assertEquals(id1.toInt(), retrieved?.id)
+        assertEquals(id1, retrieved?.id)
     }
 
     @Test
@@ -95,12 +95,12 @@ class PersonDaoTest {
 
     @Test
     fun deletePersonsWithoutVouches() = runTest {
-        val aliceId = personDao.insert(Person(name = "Alice")).toInt()
-        val bobId = personDao.insert(Person(name = "Bob")).toInt()
-        val charlieId = personDao.insert(Person(name = "Charlie")).toInt()
+        val aliceId = personDao.insert(Person(name = "Alice"))
+        val bobId = personDao.insert(Person(name = "Bob"))
+        val charlieId = personDao.insert(Person(name = "Charlie"))
 
         // Create vouch only for Alice and Bob
-        val vouchId = vouchDao.insert(Vouch(amount = 2000L, given = true)).toInt()
+        val vouchId = vouchDao.insert(Vouch(amount = 2000L, given = true))
         vouchDao.insertCrossRefs(
             listOf(
                 VouchPersonCrossRef(vouchId = vouchId, personId = aliceId, amount = 1000L),
@@ -118,18 +118,18 @@ class PersonDaoTest {
 
     @Test
     fun getPersonTotalByName_calculations() = runTest {
-        val aliceId = personDao.insert(Person(name = "Alice")).toInt()
+        val aliceId = personDao.insert(Person(name = "Alice"))
 
         // 1. Given active vouch (I paid 30.00 EUR for Alice -> Alice owes me 30.00 EUR -> +3000)
-        val v1 = vouchDao.insert(Vouch(amount = 3000L, given = true, timestamp = 1000L)).toInt()
+        val v1 = vouchDao.insert(Vouch(amount = 3000L, given = true, timestamp = 1000L))
         vouchDao.insertCrossRefs(listOf(VouchPersonCrossRef(vouchId = v1, personId = aliceId, amount = 3000L, settled = false)))
 
         // 2. Received active vouch (Alice paid 10.00 EUR for me -> I owe Alice 10.00 EUR -> -1000)
-        val v2 = vouchDao.insert(Vouch(amount = 1000L, given = false, timestamp = 2000L)).toInt()
+        val v2 = vouchDao.insert(Vouch(amount = 1000L, given = false, timestamp = 2000L))
         vouchDao.insertCrossRefs(listOf(VouchPersonCrossRef(vouchId = v2, personId = aliceId, amount = 1000L, settled = false)))
 
         // 3. Settled vouch (should NOT count in amount, should NOT count in active vouchCount)
-        val v3 = vouchDao.insert(Vouch(amount = 5000L, given = true, timestamp = 3000L)).toInt()
+        val v3 = vouchDao.insert(Vouch(amount = 5000L, given = true, timestamp = 3000L))
         vouchDao.insertCrossRefs(listOf(VouchPersonCrossRef(vouchId = v3, personId = aliceId, amount = 5000L, settled = true)))
 
         val total = personDao.getPersonTotalByName("Alice")
@@ -147,10 +147,10 @@ class PersonDaoTest {
 
     @Test
     fun getPersonsTotalAll_multiplePersons() = runTest {
-        val aliceId = personDao.insert(Person(name = "Alice")).toInt()
-        val bobId = personDao.insert(Person(name = "Bob")).toInt()
+        val aliceId = personDao.insert(Person(name = "Alice"))
+        val bobId = personDao.insert(Person(name = "Bob"))
 
-        val v1 = vouchDao.insert(Vouch(amount = 5000L, given = true)).toInt()
+        val v1 = vouchDao.insert(Vouch(amount = 5000L, given = true))
         vouchDao.insertCrossRefs(
             listOf(
                 VouchPersonCrossRef(vouchId = v1, personId = aliceId, amount = 2500L, settled = false),
@@ -174,13 +174,13 @@ class PersonDaoTest {
 
     @Test
     fun getPersonsTotalFiltered_queryMatching() = runTest {
-        val aliceId = personDao.insert(Person(name = "Alice Wonderland")).toInt()
-        val bobId = personDao.insert(Person(name = "Bob Smith")).toInt()
+        val aliceId = personDao.insert(Person(name = "Alice Wonderland"))
+        val bobId = personDao.insert(Person(name = "Bob Smith"))
 
-        val v1 = vouchDao.insert(Vouch(amount = 1000L, given = true)).toInt()
+        val v1 = vouchDao.insert(Vouch(amount = 1000L, given = true))
         vouchDao.insertCrossRefs(listOf(VouchPersonCrossRef(vouchId = v1, personId = aliceId, amount = 1000L)))
 
-        val v2 = vouchDao.insert(Vouch(amount = 2000L, given = true)).toInt()
+        val v2 = vouchDao.insert(Vouch(amount = 2000L, given = true))
         vouchDao.insertCrossRefs(listOf(VouchPersonCrossRef(vouchId = v2, personId = bobId, amount = 2000L)))
 
         val results = personDao.getPersonsTotalFiltered("Alice")
@@ -193,19 +193,19 @@ class PersonDaoTest {
 
     @Test
     fun getPersonsByTotalVouches_ordering() = runTest {
-        val aliceId = personDao.insert(Person(name = "Alice")).toInt()
-        val bobId = personDao.insert(Person(name = "Bob")).toInt()
-        val charlieId = personDao.insert(Person(name = "Charlie")).toInt()
+        val aliceId = personDao.insert(Person(name = "Alice"))
+        val bobId = personDao.insert(Person(name = "Bob"))
+        val charlieId = personDao.insert(Person(name = "Charlie"))
 
         // Bob: 3 vouches (including settled)
         for (i in 1..3) {
-            val v = vouchDao.insert(Vouch(amount = 1000L, given = true)).toInt()
+            val v = vouchDao.insert(Vouch(amount = 1000L, given = true))
             vouchDao.insertCrossRefs(listOf(VouchPersonCrossRef(vouchId = v, personId = bobId, amount = 1000L, settled = (i == 3))))
         }
 
         // Alice: 2 vouches
         for (i in 1..2) {
-            val v = vouchDao.insert(Vouch(amount = 1000L, given = true)).toInt()
+            val v = vouchDao.insert(Vouch(amount = 1000L, given = true))
             vouchDao.insertCrossRefs(listOf(VouchPersonCrossRef(vouchId = v, personId = aliceId, amount = 1000L)))
         }
 
@@ -222,7 +222,7 @@ class PersonDaoTest {
 
     @Test
     fun getById_and_update() = runTest {
-        val id = personDao.insert(Person(name = "Alice")).toInt()
+        val id = personDao.insert(Person(name = "Alice"))
         val person = personDao.getById(id)
         assertNotNull(person)
         assertEquals("Alice", person?.name)

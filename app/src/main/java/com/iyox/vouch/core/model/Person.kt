@@ -7,7 +7,7 @@ import androidx.room.PrimaryKey
 
 @Entity(indices = [Index(value = ["name"], unique = true)])
 data class Person(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0, val name: String
+    @PrimaryKey(autoGenerate = true) val id: Long = 0L, val name: String
 )
 
 data class PersonWithAmount(

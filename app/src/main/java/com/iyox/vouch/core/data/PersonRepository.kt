@@ -30,7 +30,7 @@ class PersonRepository @Inject constructor(
         return personDao.getPersonTotalByName(name)
     }
 
-    suspend fun getPersonById(id: Int): Person? {
+    suspend fun getPersonById(id: Long): Person? {
         return personDao.getById(id)
     }
 
@@ -40,13 +40,8 @@ class PersonRepository @Inject constructor(
 
     /**
      * Renames a person by ID.
-     *
-     * Note: callers (ViewModels) are responsible for triggering any cache invalidation
-     * (e.g. calling [VouchRepository.notifyDataChanged]) after a successful rename, so
-     * that this repository does not need to know about [VouchRepository] and the
-     * circular dependency is avoided.
      */
-    suspend fun renamePerson(personId: Int, newName: String): Result<Unit> {
+    suspend fun renamePerson(personId: Long, newName: String): Result<Unit> {
         val trimmed = newName.trim()
         if (trimmed.isBlank()) {
             return Result.failure(IllegalArgumentException("Name cannot be empty"))

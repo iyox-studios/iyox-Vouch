@@ -190,9 +190,8 @@ class BackupRepository @Inject constructor(
 
                                 val allCrossRefs = mutableListOf<VouchPersonCrossRef>()
                                 vouches.forEach { export ->
-                                    val newVouchId = database.vouchDataDao()
-                                        .insert(export.vouch.copy(id = 0))
-                                        .toInt()
+                                    val newVouchId = database.vouchDao()
+                                        .insert(export.vouch.copy(id = 0L))
 
                                     val crossRefs = export.persons.mapNotNull { personAmount ->
                                         val normalizedName = personAmount.name.trim()
@@ -208,7 +207,7 @@ class BackupRepository @Inject constructor(
                                 }
 
                                 if (allCrossRefs.isNotEmpty()) {
-                                    database.vouchDataDao().insertCrossRefs(allCrossRefs)
+                                    database.vouchDao().insertCrossRefs(allCrossRefs)
                                 }
                             }
 
@@ -230,9 +229,8 @@ class BackupRepository @Inject constructor(
                                 }
                                 val personMap = database.personDao().getByNames(allNames).associateBy { it.name }
 
-                                val newVouchId = database.vouchDataDao()
-                                    .insert(singleVouch.vouch.copy(id = 0))
-                                    .toInt()
+                                val newVouchId = database.vouchDao()
+                                    .insert(singleVouch.vouch.copy(id = 0L))
 
                                 val crossRefs = singleVouch.persons.mapNotNull { personAmount ->
                                     val normalizedName = personAmount.name.trim()
@@ -246,7 +244,7 @@ class BackupRepository @Inject constructor(
                                 }
 
                                 if (crossRefs.isNotEmpty()) {
-                                    database.vouchDataDao().insertCrossRefs(crossRefs)
+                                    database.vouchDao().insertCrossRefs(crossRefs)
                                 }
                             }
 

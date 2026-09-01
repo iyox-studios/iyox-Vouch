@@ -12,12 +12,12 @@ class SharedVouchActions(
         onDataChanged()
     }
 
-    suspend fun deleteVouch(vouchID: Int) {
-        repository.delete(vouchID)
+    suspend fun deleteVouch(vouchId: Long) {
+        repository.delete(vouchId)
         onDataChanged()
     }
 
-    suspend fun deletePersonFromVouch(vouchId: Int, personId: Int) {
+    suspend fun deletePersonFromVouch(vouchId: Long, personId: Long) {
         repository.deletePersonFromVouch(vouchId, personId)
         onDataChanged()
     }
@@ -27,7 +27,6 @@ class SharedVouchActions(
         onDataChanged()
     }
 
-    // TODO: make this one method and use id instead of vouch and also use this everywhere instead of update
     suspend fun settleVouch(vouch: VouchWithPerson) {
         repository.setVouchSettled(vouch.vouch.id, true)
         onDataChanged()
@@ -38,7 +37,7 @@ class SharedVouchActions(
         onDataChanged()
     }
 
-    suspend fun setVouchPersonSettlement(vouchId: Int, personId: Int, settled: Boolean) {
+    suspend fun setVouchPersonSettlement(vouchId: Long, personId: Long, settled: Boolean) {
         repository.setPersonSettlement(vouchId, personId, settled)
         onDataChanged()
     }
