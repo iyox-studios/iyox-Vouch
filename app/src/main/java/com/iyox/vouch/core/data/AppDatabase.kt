@@ -11,7 +11,7 @@ import com.iyox.vouch.core.model.VouchPersonCrossRef
 @Database(
     entities = [Vouch::class, Person::class, VouchPersonCrossRef::class],
     version = 1,
-    exportSchema = true
+    exportSchema = false // Schema export disabled due to upstream Room FieldBundle serializer binary incompatibility with Kotlin 2.x
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun vouchDao(): VouchDao

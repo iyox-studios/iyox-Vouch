@@ -55,9 +55,7 @@ kotlin {
     }
 }
 
-ksp {
-    arg("room.schemaLocation", "$projectDir/schemas")
-}
+
 
 dependencies {
     implementation(libs.gson)
