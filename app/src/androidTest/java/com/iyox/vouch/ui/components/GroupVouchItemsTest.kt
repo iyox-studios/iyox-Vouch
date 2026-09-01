@@ -17,7 +17,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.sql.Timestamp
 
 @RunWith(AndroidJUnit4::class)
 class GroupVouchItemsTest {
@@ -35,7 +34,7 @@ class GroupVouchItemsTest {
                 amount = 6000L,
                 description = "Airbnb weekend",
                 given = true,
-                timestamp = Timestamp(1700000000000L)
+                timestamp = 1700000000000L
             ),
             persons = listOf(
                 PersonWithAmount(Person(name = "Alice"), 3000L, settled = true),
@@ -76,7 +75,7 @@ class GroupVouchItemsTest {
                 amount = 6000L,
                 description = "Airbnb weekend",
                 given = true,
-                timestamp = Timestamp(1700000000000L)
+                timestamp = 1700000000000L
             ),
             persons = listOf(
                 PersonWithAmount(alice, 3000L, settled = false),
@@ -120,7 +119,7 @@ class GroupVouchItemsTest {
                 amount = 9000L,
                 description = "Trip",
                 given = true,
-                timestamp = Timestamp(1700000000000L)
+                timestamp = 1700000000000L
             ),
             persons = listOf(
                 PersonWithAmount(Person(id = 1, name = "Alice"), 3000L, settled = true),
@@ -167,7 +166,7 @@ class GroupVouchItemsTest {
                 amount = 6000L,
                 description = "Dinner",
                 given = true,
-                timestamp = Timestamp(1700000000000L)
+                timestamp = 1700000000000L
             ),
             persons = listOf(
                 PersonWithAmount(alice, 3000L, settled = false),

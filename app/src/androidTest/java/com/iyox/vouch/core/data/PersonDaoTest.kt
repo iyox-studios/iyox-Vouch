@@ -19,7 +19,6 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.IOException
-import java.sql.Timestamp
 
 @RunWith(AndroidJUnit4::class)
 class PersonDaoTest {
@@ -124,15 +123,15 @@ class PersonDaoTest {
         val aliceId = personDao.insert(Person(name = "Alice")).toInt()
 
         // 1. Given active vouch (I paid 30.00 EUR for Alice -> Alice owes me 30.00 EUR -> +3000)
-        val v1 = vouchDao.insert(Vouch(amount = 3000L, given = true, timestamp = Timestamp(1000L))).toInt()
+        val v1 = vouchDao.insert(Vouch(amount = 3000L, given = true, timestamp = 1000L)).toInt()
         vouchDao.insertCrossRefs(listOf(VouchPersonCrossRef(vouchId = v1, personId = aliceId, amount = 3000L, settled = false)))
 
         // 2. Received active vouch (Alice paid 10.00 EUR for me -> I owe Alice 10.00 EUR -> -1000)
-        val v2 = vouchDao.insert(Vouch(amount = 1000L, given = false, timestamp = Timestamp(2000L))).toInt()
+        val v2 = vouchDao.insert(Vouch(amount = 1000L, given = false, timestamp = 2000L)).toInt()
         vouchDao.insertCrossRefs(listOf(VouchPersonCrossRef(vouchId = v2, personId = aliceId, amount = 1000L, settled = false)))
 
         // 3. Settled vouch (should NOT count in amount, should NOT count in active vouchCount)
-        val v3 = vouchDao.insert(Vouch(amount = 5000L, given = true, timestamp = Timestamp(3000L))).toInt()
+        val v3 = vouchDao.insert(Vouch(amount = 5000L, given = true, timestamp = 3000L)).toInt()
         vouchDao.insertCrossRefs(listOf(VouchPersonCrossRef(vouchId = v3, personId = aliceId, amount = 5000L, settled = true)))
 
         val total = personDao.getPersonTotalByName("Alice")

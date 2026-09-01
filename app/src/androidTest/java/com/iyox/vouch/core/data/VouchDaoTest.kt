@@ -20,7 +20,6 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.IOException
-import java.sql.Timestamp
 
 @RunWith(AndroidJUnit4::class)
 class VouchDaoTest {
@@ -129,9 +128,9 @@ class VouchDaoTest {
         val aliceId = personDao.insert(Person(name = "Alice")).toInt()
         val bobId = personDao.insert(Person(name = "Bob")).toInt()
 
-        val v1 = vouchDao.insert(Vouch(amount = 1000L, timestamp = Timestamp(1000L))).toInt()
-        val v2 = vouchDao.insert(Vouch(amount = 2000L, timestamp = Timestamp(3000L))).toInt()
-        val v3 = vouchDao.insert(Vouch(amount = 3000L, timestamp = Timestamp(2000L))).toInt()
+        val v1 = vouchDao.insert(Vouch(amount = 1000L, timestamp = 1000L)).toInt()
+        val v2 = vouchDao.insert(Vouch(amount = 2000L, timestamp = 3000L)).toInt()
+        val v3 = vouchDao.insert(Vouch(amount = 3000L, timestamp = 2000L)).toInt()
 
         vouchDao.insertCrossRefs(
             listOf(

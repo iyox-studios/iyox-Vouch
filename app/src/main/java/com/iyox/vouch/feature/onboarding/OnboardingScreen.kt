@@ -85,7 +85,6 @@ import com.iyox.vouch.ui.components.PageHeader
 import com.iyox.vouch.ui.components.VouchBalanceHeroCard
 import com.iyox.vouch.ui.components.vouches.SingleVouchItem
 import kotlinx.coroutines.launch
-import java.sql.Timestamp
 import java.util.Locale
 
 private const val PAGE_COUNT = 5
@@ -395,7 +394,7 @@ private fun VouchesSlide() {
                 amount = 2500L,
                 description = sampleDesc,
                 given = true,
-                timestamp = Timestamp(System.currentTimeMillis())
+                timestamp = System.currentTimeMillis()
             ),
             persons = listOf(
                 PersonWithAmount(
