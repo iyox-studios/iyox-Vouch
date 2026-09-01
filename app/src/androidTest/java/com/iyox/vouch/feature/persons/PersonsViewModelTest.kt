@@ -84,4 +84,46 @@ class PersonsViewModelTest {
         assertTrue(stateToggledBack.showOnlyNonZero)
         assertEquals(1, stateToggledBack.persons.size)
     }
+
+    @Test
+    fun testSearchQuery() = runTest {
+        repository.insert(
+            VouchWithPerson(
+                vouch = Vouch(amount = 1000L),
+                persons = listOf(PersonWithAmount(Person(name = "Alice Anderson"), 1000L))
+            )
+        )
+        repository.insert(
+            VouchWithPerson(
+                vouch = Vouch(amount = 2000L),
+                persons = listOf(PersonWithAmount(Person(name = "Bob Builder"), 2000L))
+            )
+        )
+
+        val viewModel = PersonsViewModel(application)
+        viewModel.loadPersons()
+        viewModel.uiState.first { it.persons.size == 2 }
+
+        // Search for "Alice"
+        viewModel.setSearchQuery("alice")
+        val aliceState =
+            viewModel.uiState.first { it.searchQuery == "alice" && it.persons.size == 1 }
+        assertEquals("Alice Anderson", aliceState.persons[0].person.name)
+
+        // Search for "Bob"
+        viewModel.setSearchQuery("Bob")
+        val bobState = viewModel.uiState.first { it.searchQuery == "Bob" && it.persons.size == 1 }
+        assertEquals("Bob Builder", bobState.persons[0].person.name)
+
+        // Non-matching search
+        viewModel.setSearchQuery("Charlie")
+        val emptyState =
+            viewModel.uiState.first { it.searchQuery == "Charlie" && it.persons.isEmpty() }
+        assertEquals(0, emptyState.persons.size)
+
+        // Clear search
+        viewModel.setSearchQuery("")
+        val clearedState = viewModel.uiState.first { it.searchQuery == "" && it.persons.size == 2 }
+        assertEquals(2, clearedState.persons.size)
+    }
 }

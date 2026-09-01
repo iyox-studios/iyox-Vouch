@@ -71,6 +71,7 @@ import com.iyox.vouch.core.model.PersonTotal
 import com.iyox.vouch.core.model.VouchWithPerson
 import com.iyox.vouch.core.model.isSettledForPerson
 import com.iyox.vouch.core.utils.rememberToastManager
+import com.iyox.vouch.ui.components.EmptySearchContent
 import com.iyox.vouch.ui.components.RenamePersonDialog
 import com.iyox.vouch.ui.components.VouchBackButton
 import com.iyox.vouch.ui.components.VouchBalanceHeroCard
@@ -204,13 +205,21 @@ fun PersonScreen(
                     showOnlyGiven = state.showOnlyGiven,
                     onToggleSort = viewModel::toggleSortedBy,
                     onToggleGiven = viewModel::toggleShowOnlyGiven,
+                    searchQuery = state.searchQuery,
+                    onSearchQueryChange = viewModel::setSearchQuery,
+                    searchPlaceholder = stringResource(R.string.search_person_vouches_placeholder),
                     modifier = Modifier
                         .padding(horizontal = 16.dp)
                         .padding(bottom = 6.dp)
                 )
 
                 if (state.vouches.isEmpty()) {
-                    if (state.settledCount > 0 && state.showOnlyGiven == 0) {
+                    if (state.searchQuery.isNotBlank()) {
+                        EmptySearchContent(
+                            searchQuery = state.searchQuery,
+                            onClearSearch = { viewModel.setSearchQuery("") }
+                        )
+                    } else if (state.settledCount > 0 && state.showOnlyGiven == 0) {
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()

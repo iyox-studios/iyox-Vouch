@@ -39,6 +39,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.iyox.vouch.R
+import com.iyox.vouch.ui.components.EmptySearchContent
 import com.iyox.vouch.ui.components.PageHeader
 import com.iyox.vouch.ui.components.VouchFilterRow
 import com.iyox.vouch.ui.components.vouches.VouchList
@@ -71,7 +72,10 @@ fun VouchesScreen(
                     showOnlyGiven = uiState.showOnlyGiven,
                     onToggleSort = viewModel::toggleSortedBy,
                     onToggleGiven = viewModel::toggleShowOnlyGiven,
-                    onSettledClick = onNavigateToSettledSpace
+                    onSettledClick = onNavigateToSettledSpace,
+                    searchQuery = uiState.searchQuery,
+                    onSearchQueryChange = viewModel::setSearchQuery,
+                    searchPlaceholder = stringResource(R.string.search_vouches_placeholder)
                 )
             }
         },
@@ -114,56 +118,70 @@ fun VouchesScreen(
                 .padding(top = innerPadding.calculateTopPadding())
         ) {
             if (uiState.vouches.isEmpty()) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(24.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                if (uiState.searchQuery.isNotBlank()) {
+                    EmptySearchContent(
+                        searchQuery = uiState.searchQuery,
+                        onClearSearch = { viewModel.setSearchQuery("") }
+                    )
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(24.dp),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Surface(
-                            shape = MaterialShapes.Cookie9Sided.toShape(),
-                            color = MaterialTheme.colorScheme.primaryContainer,
-                            modifier = Modifier.size(88.dp)
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    imageVector = if (uiState.settledCount > 0) Icons.Outlined.Archive else Icons.Filled.Payments,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                                    modifier = Modifier.size(44.dp)
-                                )
-                            }
-                        }
-                        Text(
-                            text = if (uiState.settledCount > 0) stringResource(R.string.all_settled_title) else stringResource(R.string.empty_vouches_title),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Text(
-                            text = if (uiState.settledCount > 0) stringResource(R.string.all_settled_global_subtitle) else stringResource(R.string.empty_vouches_subtitle),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Center
-                        )
-                        if (uiState.settledCount > 0) {
-                            OutlinedButton(
-                                onClick = onNavigateToSettledSpace,
-                                modifier = Modifier.padding(top = 8.dp)
+                            Surface(
+                                shape = MaterialShapes.Cookie9Sided.toShape(),
+                                color = MaterialTheme.colorScheme.primaryContainer,
+                                modifier = Modifier.size(88.dp)
                             ) {
-                                Icon(
-                                    imageVector = Icons.Outlined.Archive,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                                Text(
-                                    text = stringResource(R.string.action_view_settled_history, uiState.settledCount),
-                                    modifier = Modifier.padding(start = 8.dp)
-                                )
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        imageVector = if (uiState.settledCount > 0) Icons.Outlined.Archive else Icons.Filled.Payments,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        modifier = Modifier.size(44.dp)
+                                    )
+                                }
+                            }
+                            Text(
+                                text = if (uiState.settledCount > 0) stringResource(R.string.all_settled_title) else stringResource(
+                                    R.string.empty_vouches_title
+                                ),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = if (uiState.settledCount > 0) stringResource(R.string.all_settled_global_subtitle) else stringResource(
+                                    R.string.empty_vouches_subtitle
+                                ),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center
+                            )
+                            if (uiState.settledCount > 0) {
+                                OutlinedButton(
+                                    onClick = onNavigateToSettledSpace,
+                                    modifier = Modifier.padding(top = 8.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Archive,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Text(
+                                        text = stringResource(
+                                            R.string.action_view_settled_history,
+                                            uiState.settledCount
+                                        ),
+                                        modifier = Modifier.padding(start = 8.dp)
+                                    )
+                                }
                             }
                         }
                     }

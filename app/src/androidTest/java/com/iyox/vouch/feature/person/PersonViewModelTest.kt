@@ -231,4 +231,41 @@ class PersonViewModelTest {
         val duplicateResult = viewModel.renamePerson("Bob")
         assertTrue(duplicateResult.isFailure)
     }
+
+    @Test
+    fun testSearchQuery() = runTest {
+        repository.insert(
+            VouchWithPerson(
+                vouch = Vouch(amount = 2500L, description = "Concert Ticket", given = true),
+                persons = listOf(PersonWithAmount(Person(name = "Alice"), 2500L))
+            )
+        )
+        repository.insert(
+            VouchWithPerson(
+                vouch = Vouch(amount = 800L, description = "Lunch Tacos", given = false),
+                persons = listOf(PersonWithAmount(Person(name = "Alice"), 800L))
+            )
+        )
+
+        val viewModel = PersonViewModel(application, "Alice")
+        viewModel.loadPerson("Alice")
+        viewModel.uiState.first { !it.isLoading && it.vouches.size == 2 }
+
+        // Search by description
+        viewModel.setSearchQuery("Concert")
+        val concertState =
+            viewModel.uiState.first { it.searchQuery == "Concert" && it.vouches.size == 1 }
+        assertEquals("Concert Ticket", concertState.vouches[0].vouch.description)
+
+        // Search by other description
+        viewModel.setSearchQuery("Tacos")
+        val tacosState =
+            viewModel.uiState.first { it.searchQuery == "Tacos" && it.vouches.size == 1 }
+        assertEquals("Lunch Tacos", tacosState.vouches[0].vouch.description)
+
+        // Clear query
+        viewModel.setSearchQuery("")
+        val clearedState = viewModel.uiState.first { it.searchQuery == "" && it.vouches.size == 2 }
+        assertEquals(2, clearedState.vouches.size)
+    }
 }

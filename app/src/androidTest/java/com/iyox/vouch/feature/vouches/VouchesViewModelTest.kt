@@ -134,4 +134,40 @@ class VouchesViewModelTest {
         viewModel.toggleSortedBy()
         assertEquals(0, viewModel.uiState.first { it.sortedBy == 0 }.sortedBy)
     }
+
+    @Test
+    fun testSearchQuery() = runTest {
+        repository.insert(
+            VouchWithPerson(
+                vouch = Vouch(amount = 1200L, description = "Pizza Dinner", given = true),
+                persons = listOf(PersonWithAmount(Person(name = "Alice"), 1200L))
+            )
+        )
+        repository.insert(
+            VouchWithPerson(
+                vouch = Vouch(amount = 450L, description = "Morning Coffee", given = false),
+                persons = listOf(PersonWithAmount(Person(name = "Bob"), 450L))
+            )
+        )
+
+        val viewModel = VouchesViewModel(application)
+        viewModel.loadVouches()
+        viewModel.uiState.first { it.vouches.size == 2 }
+
+        // Search by description
+        viewModel.setSearchQuery("Pizza")
+        val pizzaState =
+            viewModel.uiState.first { it.searchQuery == "Pizza" && it.vouches.size == 1 }
+        assertEquals("Pizza Dinner", pizzaState.vouches[0].vouch.description)
+
+        // Search by person name
+        viewModel.setSearchQuery("Bob")
+        val bobState = viewModel.uiState.first { it.searchQuery == "Bob" && it.vouches.size == 1 }
+        assertEquals("Bob", bobState.vouches[0].persons[0].person.name)
+
+        // Search clearing
+        viewModel.setSearchQuery("")
+        val clearedState = viewModel.uiState.first { it.searchQuery == "" && it.vouches.size == 2 }
+        assertEquals(2, clearedState.vouches.size)
+    }
 }

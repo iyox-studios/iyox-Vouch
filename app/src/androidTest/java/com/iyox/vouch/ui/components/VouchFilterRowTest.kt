@@ -3,6 +3,7 @@ package com.iyox.vouch.ui.components
 import android.content.Context
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ApplicationProvider
@@ -51,5 +52,41 @@ class VouchFilterRowTest {
         composeTestRule.onNodeWithText(filterLabel, substring = true, ignoreCase = true).assertIsDisplayed()
         composeTestRule.onNodeWithText(filterLabel, substring = true, ignoreCase = true).performClick()
         assertEquals(1, givenToggled)
+    }
+
+    @Test
+    fun testVouchFilterRow_searchOverlay() {
+        var query = ""
+
+        composeTestRule.setContent {
+            IyoxVouchTheme {
+                VouchFilterRow(
+                    sortedBy = 0,
+                    showOnlyGiven = 0,
+                    onToggleSort = { },
+                    onToggleGiven = { },
+                    searchQuery = query,
+                    onSearchQueryChange = { query = it }
+                )
+            }
+        }
+
+        val searchCd = context.getString(R.string.cd_search)
+        val placeholder = context.getString(R.string.search_vouches_placeholder)
+
+        // Click search icon button to open search overlay
+        composeTestRule.onNodeWithContentDescription(searchCd).assertIsDisplayed()
+        composeTestRule.onNodeWithContentDescription(searchCd).performClick()
+
+        // Placeholder is displayed in the active search bar
+        composeTestRule.onNodeWithText(placeholder).assertIsDisplayed()
+
+        // Close search using the X button
+        val cancelCd = context.getString(R.string.action_cancel)
+        composeTestRule.onNodeWithContentDescription(cancelCd).assertIsDisplayed()
+        composeTestRule.onNodeWithContentDescription(cancelCd).performClick()
+
+        // Search icon button is back
+        composeTestRule.onNodeWithContentDescription(searchCd).assertIsDisplayed()
     }
 }
