@@ -10,7 +10,7 @@
     <string name="screen_people">Personen</string>
     <string name="screen_settings">Einstellungen</string>
     <string name="screen_settled_space">Erledigt</string>
-    <string name="title_person_settled_space">Erledigt • %1$s</string>
+    <string name="title_person_settled_space">Erledigt: %1$s</string>
     <string name="title_add_vouch">&vouch; hinzufügen</string>
     <string name="title_edit_vouch">&vouch; bearbeiten</string>
     <string name="title_view_person">Person ansehen</string>
