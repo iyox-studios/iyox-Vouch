@@ -29,7 +29,7 @@ class VouchApplication : Application() {
         // Uses a supervised applicationScope instead of GlobalScope so it is properly
         // associated with the app's lifetime.
         applicationScope.launch {
-            AppDatabase.getDatabase(this@VouchApplication).vouchDataDao().getAll()
+            AppDatabase.getDatabase(this@VouchApplication).vouchDao().getAll()
         }
         migrateLegacyLocalesIfNeeded()
     }
@@ -39,7 +39,7 @@ class VouchApplication : Application() {
             return
         }
 
-        val prefs = getSharedPreferences("settings", MODE_PRIVATE)
+        val prefs = getSharedPreferences(com.iyox.vouch.core.utils.PreferenceKeys.PREFS_SETTINGS, MODE_PRIVATE)
         if (prefs.getBoolean("locales_migrated_33", false)) {
             return
         }

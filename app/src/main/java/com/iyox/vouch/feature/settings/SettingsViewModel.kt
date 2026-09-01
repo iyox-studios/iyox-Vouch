@@ -17,6 +17,7 @@ import com.iyox.vouch.core.backup.BackupPreview
 import com.iyox.vouch.core.backup.BackupRepository
 import com.iyox.vouch.core.backup.InvalidSignatureException
 import com.iyox.vouch.core.currency.CurrencyManager
+import com.iyox.vouch.core.utils.PreferenceKeys
 import com.iyox.vouch.ui.theme.AppColorTheme
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -60,7 +61,7 @@ class SettingsViewModel @Inject constructor(
     val pendingImportPreview: StateFlow<BackupPreview?> = _pendingImportPreview.asStateFlow()
 
     private val uiModeManager = context.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
-    private val prefs: SharedPreferences = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
+    private val prefs: SharedPreferences = context.getSharedPreferences(PreferenceKeys.PREFS_SETTINGS, Context.MODE_PRIVATE)
 
     private fun currentLanguageTag(): String {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
@@ -77,7 +78,7 @@ class SettingsViewModel @Inject constructor(
     }
 
     private fun resolveInitialTheme(): Int {
-        val storedTheme = prefs.getInt("theme", Int.MIN_VALUE)
+        val storedTheme = prefs.getInt(PreferenceKeys.KEY_THEME, Int.MIN_VALUE)
         if (storedTheme != Int.MIN_VALUE) return storedTheme
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             UiModeManager.MODE_NIGHT_AUTO
@@ -92,12 +93,12 @@ class SettingsViewModel @Inject constructor(
     }
 
     private fun resolveInitialColorTheme(): AppColorTheme {
-        val stored = prefs.getString("color_theme", null)
+        val stored = prefs.getString(PreferenceKeys.KEY_COLOR_THEME, null)
         if (stored != null) {
             return AppColorTheme.fromKey(stored)
         }
-        if (prefs.contains("dynamic_colors")) {
-            val isDynamic = prefs.getBoolean("dynamic_colors", true)
+        if (prefs.contains(PreferenceKeys.KEY_DYNAMIC_COLORS)) {
+            val isDynamic = prefs.getBoolean(PreferenceKeys.KEY_DYNAMIC_COLORS, true)
             return if (isDynamic) AppColorTheme.DYNAMIC else AppColorTheme.PURPLE
         }
         return AppColorTheme.DYNAMIC
@@ -106,8 +107,8 @@ class SettingsViewModel @Inject constructor(
     private val _theme = MutableStateFlow(resolveInitialTheme())
     private val _colorTheme = MutableStateFlow(resolveInitialColorTheme())
     private val _languageTag = MutableStateFlow(currentLanguageTag())
-    private val _biometricEnabled = MutableStateFlow(prefs.getBoolean("biometric_enabled", false))
-    private val _onboardingCompleted = MutableStateFlow(prefs.getBoolean("onboarding_completed", false))
+    private val _biometricEnabled = MutableStateFlow(prefs.getBoolean(PreferenceKeys.KEY_BIOMETRIC_ENABLED, false))
+    private val _onboardingCompleted = MutableStateFlow(prefs.getBoolean(PreferenceKeys.KEY_ONBOARDING_COMPLETED, false))
 
     val uiState: StateFlow<SettingsUiState> = combine(
         _theme, _colorTheme, _languageTag, currencyManager.currencyFlow, _biometricEnabled
@@ -136,17 +137,17 @@ class SettingsViewModel @Inject constructor(
     )
 
     fun isOnboardingCompleted(): Boolean {
-        return prefs.getBoolean("onboarding_completed", false)
+        return prefs.getBoolean(PreferenceKeys.KEY_ONBOARDING_COMPLETED, false)
     }
 
     fun setOnboardingCompleted(completed: Boolean = true) {
         _onboardingCompleted.value = completed
-        prefs.edit { putBoolean("onboarding_completed", completed) }
+        prefs.edit { putBoolean(PreferenceKeys.KEY_ONBOARDING_COMPLETED, completed) }
     }
 
     fun setTheme(theme: Int) {
         _theme.value = theme
-        prefs.edit { putInt("theme", theme) }
+        prefs.edit { putInt(PreferenceKeys.KEY_THEME, theme) }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             uiModeManager.setApplicationNightMode(theme)
         } else {
@@ -157,14 +158,14 @@ class SettingsViewModel @Inject constructor(
     fun setColorTheme(colorTheme: AppColorTheme) {
         _colorTheme.value = colorTheme
         prefs.edit {
-            putString("color_theme", colorTheme.key)
-            putBoolean("dynamic_colors", colorTheme == AppColorTheme.DYNAMIC)
+            putString(PreferenceKeys.KEY_COLOR_THEME, colorTheme.key)
+            putBoolean(PreferenceKeys.KEY_DYNAMIC_COLORS, colorTheme == AppColorTheme.DYNAMIC)
         }
     }
 
     fun setBiometricEnabled(enabled: Boolean) {
         _biometricEnabled.value = enabled
-        prefs.edit { putBoolean("biometric_enabled", enabled) }
+        prefs.edit { putBoolean(PreferenceKeys.KEY_BIOMETRIC_ENABLED, enabled) }
     }
 
     fun showBiometricError(@StringRes messageRes: Int) {
@@ -226,7 +227,7 @@ class SettingsViewModel @Inject constructor(
     fun confirmImport(preview: BackupPreview) {
         _pendingImportPreview.value = null
         viewModelScope.launch {
-            val result = backupRepository.importData(preview.uri)
+            val result = backupRepository.importData(Uri.parse(preview.uri))
             if (result.isSuccess) {
                 _toastEvents.emit(ToastEvent.Info(R.string.toast_import_success))
             } else {
@@ -243,10 +244,6 @@ class SettingsViewModel @Inject constructor(
 
     fun dismissImportDialog() {
         _pendingImportPreview.value = null
-    }
-
-    fun importData(uri: Uri) {
-        requestImport(uri)
     }
 
     fun deleteAllData() {

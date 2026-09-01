@@ -68,7 +68,7 @@ class BackupRepository @Inject constructor(
 
                             Result.success(
                                 BackupPreview(
-                                    uri = uri,
+                                    uri = uri.toString(),
                                     type = envelope.type,
                                     version = envelope.version,
                                     vouchCount = vouches.size,
@@ -86,7 +86,7 @@ class BackupRepository @Inject constructor(
 
                             Result.success(
                                 BackupPreview(
-                                    uri = uri,
+                                    uri = uri.toString(),
                                     type = envelope.type,
                                     version = envelope.version,
                                     vouchCount = 1,

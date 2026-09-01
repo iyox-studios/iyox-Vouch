@@ -24,7 +24,7 @@ class CurrencyManager @Inject constructor(
     }
 
     private val prefs: SharedPreferences =
-        context.getSharedPreferences("settings", Context.MODE_PRIVATE)
+        context.getSharedPreferences(com.iyox.vouch.core.utils.PreferenceKeys.PREFS_SETTINGS, Context.MODE_PRIVATE)
 
     private val _currencyFlow = MutableStateFlow(getInitialCurrency())
     val currencyFlow: StateFlow<Currency> = _currencyFlow.asStateFlow()
@@ -32,7 +32,7 @@ class CurrencyManager @Inject constructor(
     fun getDefaultCurrency(): Currency = resolveDefaultCurrency()
 
     private fun getInitialCurrency(): Currency {
-        val code = prefs.getString("currency_code", null)
+        val code = prefs.getString(com.iyox.vouch.core.utils.PreferenceKeys.KEY_CURRENCY_CODE, null)
         if (!code.isNullOrBlank()) {
             return try {
                 Currency.getInstance(code)
@@ -41,7 +41,7 @@ class CurrencyManager @Inject constructor(
             }
         }
         val defaultCurrency = resolveDefaultCurrency()
-        prefs.edit { putString("currency_code", defaultCurrency.currencyCode) }
+        prefs.edit { putString(com.iyox.vouch.core.utils.PreferenceKeys.KEY_CURRENCY_CODE, defaultCurrency.currencyCode) }
         return defaultCurrency
     }
 
@@ -53,7 +53,7 @@ class CurrencyManager @Inject constructor(
         } catch (_: Exception) {
             Currency.getInstance("EUR")
         }
-        prefs.edit { putString("currency_code", newCurrency.currencyCode) }
+        prefs.edit { putString(com.iyox.vouch.core.utils.PreferenceKeys.KEY_CURRENCY_CODE, newCurrency.currencyCode) }
         _currencyFlow.value = newCurrency
     }
 

@@ -31,7 +31,7 @@ class ImportConfirmationDialogTest {
     @Test
     fun testImportConfirmationDialog_flow() {
         val preview = BackupPreview(
-            uri = Uri.parse("file:///dummy.iyxv"),
+            uri = "file:///dummy.iyxv",
             type = IyoxEnvelope.TYPE_BACKUP,
             version = "1.0",
             vouchCount = 5,
@@ -76,7 +76,7 @@ class ImportConfirmationDialogTest {
     @Test
     fun testImportConfirmationDialog_cancel() {
         val preview = BackupPreview(
-            uri = Uri.parse("file:///dummy.iyxv"),
+            uri = "file:///dummy.iyxv",
             type = IyoxEnvelope.TYPE_BACKUP,
             version = "1.0",
             vouchCount = 2,
