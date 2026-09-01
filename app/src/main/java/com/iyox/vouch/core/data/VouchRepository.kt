@@ -1,44 +1,81 @@
 package com.iyox.vouch.core.data
 
-import android.content.Context
 import androidx.room.withTransaction
 import com.iyox.vouch.core.model.Person
+import com.iyox.vouch.core.model.PersonDao
 import com.iyox.vouch.core.model.PersonWithAmount
+import com.iyox.vouch.core.model.VouchDao
 import com.iyox.vouch.core.model.VouchPersonCrossRef
 import com.iyox.vouch.core.model.VouchWithPerson
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class VouchRepository private constructor(context: Context) {
+@Singleton
+class VouchRepository @Inject constructor(
+    private val database: AppDatabase,
+    private val vouchDataDao: VouchDao,
+    private val personDataDao: PersonDao
+) {
 
-    private val database = AppDatabase.getDatabase(context)
-    private val vouchDataDao = database.vouchDataDao()
-    private val personDataDao = database.personDao()
-
-    private val _dataUpdates = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
-    val dataUpdates: SharedFlow<Unit> = _dataUpdates.asSharedFlow()
-
-    @Volatile
-    private var cachedVouches: List<VouchWithPerson>? = null
-
-    @Volatile
-    private var cachedVouchesByPerson: Map<String, List<VouchWithPerson>> = emptyMap()
-
-    fun getCachedVouchesByPerson(name: String): List<VouchWithPerson>? =
-        cachedVouchesByPerson[name]
-
-    fun notifyDataChanged() {
-        cachedVouches = null
-        cachedVouchesByPerson = emptyMap()
-        _dataUpdates.tryEmit(Unit)
+    /**
+     * Reactive flow of all [VouchWithPerson] entities, backed by Room's InvalidationTracker.
+     * Emits automatically whenever any Vouch, Person, or cross-reference changes.
+     */
+    val vouchesFlow: Flow<List<VouchWithPerson>> = combine(
+        vouchDataDao.getAllFlow(),
+        vouchDataDao.getAllPersonRowsFlow()
+    ) { vouches, personRows ->
+        val personsByVouchId = personRows.groupBy { it.vouchId }
+        vouches.map { vouch ->
+            VouchWithPerson(
+                vouch = vouch,
+                persons = personsByVouchId[vouch.id]?.map {
+                    PersonWithAmount(
+                        person = it.person,
+                        amount = it.amount,
+                        settled = it.settled
+                    )
+                } ?: emptyList()
+            )
+        }
     }
 
-    fun getCachedVouches(): List<VouchWithPerson>? = cachedVouches
+    /**
+     * Reactive flow of [VouchWithPerson] entities involving a specific person by name.
+     */
+    fun getVouchesByPersonNameFlow(name: String): Flow<List<VouchWithPerson>> = combine(
+        vouchDataDao.getVouchesByPersonNameFlow(name),
+        vouchDataDao.getPersonRowsForVouchesOfPersonFlow(name)
+    ) { vouches, personRows ->
+        val personsByVouchId = personRows.groupBy { it.vouchId }
+        vouches.map { vouch ->
+            VouchWithPerson(
+                vouch = vouch,
+                persons = personsByVouchId[vouch.id]?.map {
+                    PersonWithAmount(
+                        person = it.person,
+                        amount = it.amount,
+                        settled = it.settled
+                    )
+                } ?: emptyList()
+            )
+        }
+    }
+
+    /**
+     * Emits whenever the underlying vouches data changes. Maintained for backwards compatibility.
+     */
+    val dataUpdates: Flow<Unit> = vouchesFlow.map { }
+
+    fun notifyDataChanged() {
+        // No-op: Room's InvalidationTracker automatically notifies all active Flow collectors.
+    }
 
     suspend fun getAll(): List<VouchWithPerson> {
-        cachedVouches?.let { return it }
-        val result = database.withTransaction {
+        return database.withTransaction {
             val vouches = vouchDataDao.getAll()
             val personRows = vouchDataDao.getAllPersonRows()
             val personsByVouchId = personRows.groupBy { it.vouchId }
@@ -55,24 +92,10 @@ class VouchRepository private constructor(context: Context) {
                 )
             }
         }
-        cachedVouches = result
-
-        // Pre-warm the per-person cache for free — data is already in memory.
-        // Every person the user might tap on PersonsScreen or VouchesScreen will
-        // open instantly without a spinner on first entry.
-        val byPerson = mutableMapOf<String, MutableList<VouchWithPerson>>()
-        result.forEach { vouch ->
-            vouch.persons.forEach { personWithAmount ->
-                byPerson.getOrPut(personWithAmount.person.name) { mutableListOf() }.add(vouch)
-            }
-        }
-        cachedVouchesByPerson = byPerson
-
-        return result
     }
 
     suspend fun getVouchesByPersonName(name: String): List<VouchWithPerson> {
-        val result = database.withTransaction {
+        return database.withTransaction {
             val vouches = vouchDataDao.getVouchesByPersonName(name)
             if (vouches.isEmpty()) return@withTransaction emptyList()
             val personRows = vouchDataDao.getPersonRowsForVouchesOfPerson(name)
@@ -90,20 +113,9 @@ class VouchRepository private constructor(context: Context) {
                 )
             }
         }
-        cachedVouchesByPerson = cachedVouchesByPerson + (name to result)
-        return result
-    }
-
-    fun getCachedVouchById(id: Int): VouchWithPerson? {
-        cachedVouches?.firstOrNull { it.vouch.id == id }?.let { return it }
-        for (personVouches in cachedVouchesByPerson.values) {
-            personVouches.firstOrNull { it.vouch.id == id }?.let { return it }
-        }
-        return null
     }
 
     suspend fun getById(id: Int): VouchWithPerson? {
-        getCachedVouchById(id)?.let { return it }
         return database.withTransaction {
             val vouch = vouchDataDao.getById(id) ?: return@withTransaction null
             VouchWithPerson(
@@ -124,16 +136,14 @@ class VouchRepository private constructor(context: Context) {
                 persons = vouchDataDao.getPersonsForVouch(newVouchId)
             )
         }
-        notifyDataChanged()
         return result
     }
 
     suspend fun delete(vouchId: Int) {
         database.withTransaction {
-            vouchDataDao.deleteById(vouchId) //also deletes cross refs by cascade
+            vouchDataDao.deleteById(vouchId) // also deletes cross refs by cascade
             personDataDao.deletePersonsWithoutVouches()
         }
-        notifyDataChanged()
     }
 
     suspend fun deletePersonFromVouch(vouchId: Int, personId: Int) {
@@ -151,7 +161,6 @@ class VouchRepository private constructor(context: Context) {
             }
             personDataDao.deletePersonsWithoutVouches()
         }
-        notifyDataChanged()
     }
 
     suspend fun restoreVouch(vouchWithPerson: VouchWithPerson) {
@@ -174,7 +183,6 @@ class VouchRepository private constructor(context: Context) {
             }
             personDataDao.deletePersonsWithoutVouches()
         }
-        notifyDataChanged()
     }
 
     suspend fun update(newVouch: VouchWithPerson) {
@@ -183,28 +191,24 @@ class VouchRepository private constructor(context: Context) {
             upsertCrossRefs(newVouch.vouch.id, newVouch.persons, deleteExisting = true)
             personDataDao.deletePersonsWithoutVouches()
         }
-        notifyDataChanged()
     }
 
     suspend fun setVouchSettled(vouchId: Int, settled: Boolean) {
         database.withTransaction {
             vouchDataDao.updateCrossRefsSettledByVouchId(vouchId, settled)
         }
-        notifyDataChanged()
     }
 
     suspend fun setPersonSettlement(vouchId: Int, personId: Int, settled: Boolean) {
         database.withTransaction {
             vouchDataDao.updateCrossRefSettlement(vouchId, personId, settled)
         }
-        notifyDataChanged()
     }
 
     suspend fun setPersonSettled(personId: Int, settled: Boolean) {
         database.withTransaction {
             vouchDataDao.updateCrossRefsSettledByPersonId(personId, settled)
         }
-        notifyDataChanged()
     }
 
     suspend fun setPersonSettlements(personId: Int, vouchIds: List<Int>, settled: Boolean) {
@@ -212,7 +216,6 @@ class VouchRepository private constructor(context: Context) {
         database.withTransaction {
             vouchDataDao.updateCrossRefsSettledForPerson(personId, vouchIds, settled)
         }
-        notifyDataChanged()
     }
 
     private suspend fun upsertCrossRefs(
@@ -266,20 +269,6 @@ class VouchRepository private constructor(context: Context) {
         }
         if (crossRefs.isNotEmpty()) {
             vouchDataDao.insertCrossRefs(crossRefs)
-        }
-    }
-
-
-    companion object {
-        @Volatile
-        private var INSTANCE: VouchRepository? = null
-
-        fun getInstance(context: Context): VouchRepository {
-            return INSTANCE ?: synchronized(this) {
-                val instance = VouchRepository(context.applicationContext)
-                INSTANCE = instance
-                instance
-            }
         }
     }
 }

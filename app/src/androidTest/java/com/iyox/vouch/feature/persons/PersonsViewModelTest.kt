@@ -22,15 +22,14 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class PersonsViewModelTest {
 
-    private lateinit var application: Application
     private lateinit var repository: VouchRepository
     private lateinit var database: AppDatabase
 
     @Before
     fun setUp() = runTest {
-        application = ApplicationProvider.getApplicationContext()
-        database = AppDatabase.getDatabase(application)
-        repository = VouchRepository.getInstance(application)
+        val context: Application = ApplicationProvider.getApplicationContext()
+        database = AppDatabase.getDatabase(context)
+        repository = VouchRepository(database, database.vouchDataDao(), database.personDao())
 
         database.vouchDataDao().deleteAll()
         database.personDao().deleteAll()
@@ -63,7 +62,10 @@ class PersonsViewModelTest {
         )
         repository.setVouchSettled(v2.vouch.id, true)
 
-        val viewModel = PersonsViewModel(application)
+        val viewModel = PersonsViewModel(
+            com.iyox.vouch.core.data.PersonRepository(database.personDao()),
+            repository
+        )
         viewModel.loadPersons()
 
         // By default showOnlyNonZero is true -> wait for loaded persons (only Alice)
@@ -100,7 +102,10 @@ class PersonsViewModelTest {
             )
         )
 
-        val viewModel = PersonsViewModel(application)
+        val viewModel = PersonsViewModel(
+            com.iyox.vouch.core.data.PersonRepository(database.personDao()),
+            repository
+        )
         viewModel.loadPersons()
         viewModel.uiState.first { it.persons.size == 2 }
 

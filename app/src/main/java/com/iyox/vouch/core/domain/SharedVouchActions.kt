@@ -5,7 +5,7 @@ import com.iyox.vouch.core.model.VouchWithPerson
 
 class SharedVouchActions(
     private val repository: VouchRepository,
-    private val onDataChanged: suspend () -> Unit
+    private val onDataChanged: suspend () -> Unit = {}
 ) {
     suspend fun addVouch(vouchWithPerson: VouchWithPerson) {
         repository.insert(vouchWithPerson)

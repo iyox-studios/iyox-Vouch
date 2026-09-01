@@ -1,9 +1,12 @@
 package com.iyox.vouch.feature.vouch
 
 import android.app.Application
+import androidx.lifecycle.SavedStateHandle
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.iyox.vouch.core.currency.CurrencyManager
 import com.iyox.vouch.core.data.AppDatabase
+import com.iyox.vouch.core.data.PersonRepository
 import com.iyox.vouch.core.data.VouchRepository
 import com.iyox.vouch.core.model.Person
 import com.iyox.vouch.core.model.PersonWithAmount
@@ -26,13 +29,17 @@ class SingleVouchViewModelTest {
 
     private lateinit var application: Application
     private lateinit var repository: VouchRepository
+    private lateinit var personRepository: PersonRepository
+    private lateinit var currencyManager: CurrencyManager
     private lateinit var database: AppDatabase
 
     @Before
     fun setUp() = runTest {
         application = ApplicationProvider.getApplicationContext()
         database = AppDatabase.getDatabase(application)
-        repository = VouchRepository.getInstance(application)
+        repository = VouchRepository(database, database.vouchDataDao(), database.personDao())
+        personRepository = PersonRepository(database.personDao())
+        currencyManager = CurrencyManager(application)
 
         database.vouchDataDao().deleteAll()
         database.personDao().deleteAll()
@@ -46,9 +53,20 @@ class SingleVouchViewModelTest {
         repository.notifyDataChanged()
     }
 
+    private fun createViewModel(
+        vouchId: Int? = null,
+        personName: String? = null
+    ): SingleVouchViewModel {
+        val args = mutableMapOf<String, Any?>()
+        if (vouchId != null) args["vouchId"] = vouchId
+        if (personName != null) args["personName"] = personName
+        val savedStateHandle = SavedStateHandle(args)
+        return SingleVouchViewModel(savedStateHandle, repository, personRepository, currencyManager)
+    }
+
     @Test
     fun testCreateNewVouch_success() = runTest {
-        val viewModel = SingleVouchViewModel(application, initialVouchId = null, initialPersonName = "Alice")
+        val viewModel = createViewModel(vouchId = null, personName = "Alice")
         assertEquals("Alice", viewModel.uiState.value.personName)
 
         viewModel.onAmountChange("25.50")
@@ -70,7 +88,7 @@ class SingleVouchViewModelTest {
 
     @Test
     fun testCreateNewVouch_invalidAmount() = runTest {
-        val viewModel = SingleVouchViewModel(application)
+        val viewModel = createViewModel()
         viewModel.onAmountChange("abc")
         viewModel.onPersonChange("Bob")
 
@@ -89,7 +107,7 @@ class SingleVouchViewModelTest {
         )
         repository.getAll() // Populate cache
 
-        val viewModel = SingleVouchViewModel(application, initialVouchId = existing.vouch.id.toLong())
+        val viewModel = createViewModel(vouchId = existing.vouch.id)
         viewModel.loadVouch(existing.vouch.id.toLong(), null)
         viewModel.uiState.first { !it.isLoading && it.personName == "Charlie" }
 
@@ -110,7 +128,7 @@ class SingleVouchViewModelTest {
 
     @Test
     fun testOnPersonSelected() = runTest {
-        val viewModel = SingleVouchViewModel(application)
+        val viewModel = createViewModel()
         viewModel.onPersonSelected(Person(id = 1, name = "SelectedPerson"))
 
         assertEquals("SelectedPerson", viewModel.uiState.value.personName)

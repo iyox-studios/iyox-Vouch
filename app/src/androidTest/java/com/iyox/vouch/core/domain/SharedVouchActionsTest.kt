@@ -31,7 +31,7 @@ class SharedVouchActionsTest {
     fun setUp() = runTest {
         context = ApplicationProvider.getApplicationContext()
         database = AppDatabase.getDatabase(context)
-        repository = VouchRepository.getInstance(context)
+        repository = VouchRepository(database, database.vouchDataDao(), database.personDao())
 
         database.vouchDataDao().deleteAll()
         database.personDao().deleteAll()

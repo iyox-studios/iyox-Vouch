@@ -35,7 +35,7 @@ class VouchRepositoryTest {
     fun setUp() = runTest {
         context = ApplicationProvider.getApplicationContext()
         database = AppDatabase.getDatabase(context)
-        repository = VouchRepository.getInstance(context)
+        repository = VouchRepository(database, database.vouchDataDao(), database.personDao())
 
         // Clear all data before each test
         database.vouchDataDao().deleteAll()
@@ -134,12 +134,7 @@ class VouchRepositoryTest {
         val fromDb = repository.getById(inserted.vouch.id)
         assertNotNull(fromDb)
         assertEquals(1234L, fromDb?.vouch?.amount)
-
-        // Pre-warm cache via getAll()
-        repository.getAll()
-        val fromCache = repository.getCachedVouchById(inserted.vouch.id)
-        assertNotNull(fromCache)
-        assertEquals("Snack", fromCache?.vouch?.description)
+        assertEquals("Snack", fromDb?.vouch?.description)
     }
 
     @Test
@@ -303,18 +298,32 @@ class VouchRepositoryTest {
     }
 
     @Test
-    fun testNotifyDataChanged_emitsFlow() {
-        val latch = CountDownLatch(1)
-        val job = kotlinx.coroutines.CoroutineScope(Dispatchers.IO).launch {
-            repository.dataUpdates.collect {
-                latch.countDown()
-            }
-        }
+    fun testVouchesFlow_reactsToInserts() = runTest {
+        val initialList = repository.vouchesFlow.first()
+        assertTrue(initialList.isEmpty())
 
-        Thread.sleep(50)
-        repository.notifyDataChanged()
-        val success = latch.await(2, TimeUnit.SECONDS)
-        job.cancel()
-        assertTrue(success)
+        val input = VouchWithPerson(
+            vouch = Vouch(amount = 2500L, description = "Dinner", given = true),
+            persons = listOf(PersonWithAmount(person = Person(name = "Alice"), amount = 2500L))
+        )
+        repository.insert(input)
+
+        val updatedList = repository.vouchesFlow.first { it.isNotEmpty() }
+        assertEquals(1, updatedList.size)
+        assertEquals(2500L, updatedList[0].vouch.amount)
+        assertEquals("Alice", updatedList[0].persons[0].person.name)
+    }
+
+    @Test
+    fun testGetVouchesByPersonNameFlow() = runTest {
+        val input = VouchWithPerson(
+            vouch = Vouch(amount = 1500L, description = "Lunch", given = true),
+            persons = listOf(PersonWithAmount(person = Person(name = "Bob"), amount = 1500L))
+        )
+        repository.insert(input)
+
+        val bobVouches = repository.getVouchesByPersonNameFlow("Bob").first { it.isNotEmpty() }
+        assertEquals(1, bobVouches.size)
+        assertEquals("Bob", bobVouches[0].persons[0].person.name)
     }
 }

@@ -1,11 +1,8 @@
 package com.iyox.vouch.feature.vouch
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
 import com.iyox.vouch.core.currency.CurrencyManager
 import com.iyox.vouch.core.data.PersonRepository
 import com.iyox.vouch.core.data.VouchRepository
@@ -15,12 +12,14 @@ import com.iyox.vouch.core.model.PersonTotal
 import com.iyox.vouch.core.model.PersonWithAmount
 import com.iyox.vouch.core.model.Vouch
 import com.iyox.vouch.core.model.VouchWithPerson
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 private const val STEP_DETAILS = 1
 private const val STEP_MEMBERS = 2
@@ -45,12 +44,15 @@ data class GroupVouchUiState(
     val isLoading: Boolean = false
 )
 
-class GroupVouchViewModel(
-    application: Application,
-    private val initialVouchId: Long? = null
-) : AndroidViewModel(application) {
-    private val repository = VouchRepository.getInstance(application)
-    private val personRepository = PersonRepository.getInstance(application)
+@HiltViewModel
+class GroupVouchViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
+    private val repository: VouchRepository,
+    private val personRepository: PersonRepository,
+    private val currencyManager: CurrencyManager
+) : ViewModel() {
+
+    private val initialVouchId: Long? = savedStateHandle.get<Int>("vouchId")?.toLong()
 
     val sharedActions = SharedVouchActions(repository) {}
 
@@ -58,44 +60,14 @@ class GroupVouchViewModel(
     private var editingVouchId: Int? = null
     private var originalVouch: VouchWithPerson? = null
 
-    private val _uiState = MutableStateFlow(createInitialState())
+    private val _uiState = MutableStateFlow(
+        GroupVouchUiState(isLoading = initialVouchId != null)
+    )
     val uiState: StateFlow<GroupVouchUiState> = _uiState.asStateFlow()
-
-    private fun createInitialState(): GroupVouchUiState {
-        if (initialVouchId != null) {
-            val cached = repository.getCachedVouchById(initialVouchId.toInt())
-            if (cached != null) {
-                editingVouchId = cached.vouch.id
-                originalVouch = cached
-                val memberCount = cached.persons.size
-                val totalAmount = cached.vouch.amount
-                val defaultSplit = if (memberCount > 0) totalAmount / memberCount else 0L
-                val members = cached.persons.map { p ->
-                    val isCustom = p.amount != defaultSplit
-                    GroupMemberInput(
-                        personName = p.person.name,
-                        amount = CurrencyManager.formatAmount(p.amount),
-                        isCustom = isCustom,
-                        isSelf = false
-                    )
-                }
-                return GroupVouchUiState(
-                    amount = CurrencyManager.formatAmount(totalAmount),
-                    given = cached.vouch.given,
-                    description = cached.vouch.description,
-                    members = members,
-                    step = STEP_DETAILS,
-                    isLoading = false
-                )
-            }
-            return GroupVouchUiState(isLoading = true)
-        }
-        return GroupVouchUiState(isLoading = false)
-    }
 
     init {
         loadSuggestedPersons()
-        if (initialVouchId != null && originalVouch == null) {
+        if (initialVouchId != null) {
             loadVouch(initialVouchId)
         }
     }
@@ -109,35 +81,6 @@ class GroupVouchViewModel(
             return
         }
 
-        val cached = repository.getCachedVouchById(id.toInt())
-        if (cached != null) {
-            editingVouchId = cached.vouch.id
-            originalVouch = cached
-            val memberCount = cached.persons.size
-            val totalAmount = cached.vouch.amount
-            val defaultSplit = if (memberCount > 0) totalAmount / memberCount else 0L
-            val members = cached.persons.map { p ->
-                val isCustom = p.amount != defaultSplit
-                GroupMemberInput(
-                    personName = p.person.name,
-                    amount = CurrencyManager.formatAmount(p.amount),
-                    isCustom = isCustom,
-                    isSelf = false
-                )
-            }
-            _uiState.update { state ->
-                state.copy(
-                    amount = CurrencyManager.formatAmount(totalAmount),
-                    given = cached.vouch.given,
-                    description = cached.vouch.description,
-                    members = members,
-                    step = STEP_DETAILS,
-                    isLoading = false
-                )
-            }
-            return
-        }
-
         _uiState.update { it.copy(isLoading = true) }
         val intId = id.toInt()
         viewModelScope.launch {
@@ -145,21 +88,10 @@ class GroupVouchViewModel(
             if (vouch != null) {
                 editingVouchId = vouch.vouch.id
                 originalVouch = vouch
-                val memberCount = vouch.persons.size
-                val totalAmount = vouch.vouch.amount
-                val defaultSplit = if (memberCount > 0) totalAmount / memberCount else 0L
-                val members = vouch.persons.map { p ->
-                    val isCustom = p.amount != defaultSplit
-                    GroupMemberInput(
-                        personName = p.person.name,
-                        amount = CurrencyManager.formatAmount(p.amount),
-                        isCustom = isCustom,
-                        isSelf = false
-                    )
-                }
+                val members = vouch.toGroupMemberInputs(currencyManager)
                 _uiState.update { state ->
                     state.copy(
-                        amount = CurrencyManager.formatAmount(totalAmount),
+                        amount = currencyManager.formatAmount(vouch.vouch.amount),
                         given = vouch.vouch.given,
                         description = vouch.vouch.description,
                         members = members,
@@ -252,7 +184,7 @@ class GroupVouchViewModel(
     }
 
     fun continueToMembers() {
-        if (CurrencyManager.parseToMinorUnits(_uiState.value.amount) == null) {
+        if (currencyManager.parseToMinorUnits(_uiState.value.amount) == null) {
             return
         }
         _uiState.update { it.copy(step = STEP_MEMBERS) }
@@ -272,19 +204,19 @@ class GroupVouchViewModel(
     }
 
     fun resetAllToEqualSplit() {
-        val totalAmount = CurrencyManager.parseToMinorUnits(_uiState.value.amount) ?: 0L
+        val totalAmount = currencyManager.parseToMinorUnits(_uiState.value.amount) ?: 0L
         val members = _uiState.value.members
         if (members.isEmpty()) return
 
         val customMembers = members.filter { it.isCustom }
         val nonCustomMembers = members.filterNot { it.isCustom }
-        val sumCustom = customMembers.sumOf { CurrencyManager.parseToMinorUnits(it.amount) ?: 0L }
+        val sumCustom = customMembers.sumOf { currencyManager.parseToMinorUnits(it.amount) ?: 0L }
         val nonCustomCount = nonCustomMembers.size
 
         if (nonCustomCount > 0) {
             val remainingForNonCustom = (totalAmount - sumCustom).coerceAtLeast(0L)
             val splitAmount = remainingForNonCustom / nonCustomCount
-            val formattedSplit = CurrencyManager.formatAmount(splitAmount)
+            val formattedSplit = currencyManager.formatAmount(splitAmount)
             _uiState.update { current ->
                 val updated = current.members.map { member ->
                     if (member.isCustom) {
@@ -298,7 +230,7 @@ class GroupVouchViewModel(
         } else {
             // If all members are custom, reset all to equal
             val splitAmount = totalAmount / members.size
-            val formattedSplit = CurrencyManager.formatAmount(splitAmount)
+            val formattedSplit = currencyManager.formatAmount(splitAmount)
             _uiState.update { current ->
                 val updated = current.members.map { member ->
                     member.copy(amount = formattedSplit, isCustom = false)
@@ -338,7 +270,7 @@ class GroupVouchViewModel(
 
     suspend fun saveGroupVouches(): VouchWithPerson? {
         val currentState = _uiState.value
-        val totalAmount = CurrencyManager.parseToMinorUnits(currentState.amount)
+        val totalAmount = currencyManager.parseToMinorUnits(currentState.amount)
         if (totalAmount == null) {
             _uiState.update { it.copy(saveSuccess = false) }
             return null
@@ -353,7 +285,7 @@ class GroupVouchViewModel(
         val otherMemberAmounts = mutableListOf<Pair<String, Long>>()
         for (member in nonSelfMembers) {
             val amount = if (member.isCustom) {
-                CurrencyManager.parseToMinorUnits(member.amount)
+                currencyManager.parseToMinorUnits(member.amount)
             } else {
                 defaultSplit
             }
@@ -432,19 +364,19 @@ class GroupVouchViewModel(
 
     private fun recomputeDefaultSplitAmounts() {
         val state = _uiState.value
-        val totalAmount = CurrencyManager.parseToMinorUnits(state.amount) ?: 0L
+        val totalAmount = currencyManager.parseToMinorUnits(state.amount) ?: 0L
         val members = state.members
         if (members.isEmpty()) return
 
         val customMembers = members.filter { it.isCustom }
         val nonCustomMembers = members.filterNot { it.isCustom }
-        val sumCustom = customMembers.sumOf { CurrencyManager.parseToMinorUnits(it.amount) ?: 0L }
+        val sumCustom = customMembers.sumOf { currencyManager.parseToMinorUnits(it.amount) ?: 0L }
         val nonCustomCount = nonCustomMembers.size
 
         if (nonCustomCount > 0) {
             val remainingForNonCustom = (totalAmount - sumCustom).coerceAtLeast(0L)
             val defaultSplit = remainingForNonCustom / nonCustomCount
-            val formattedDefault = CurrencyManager.formatAmount(defaultSplit)
+            val formattedDefault = currencyManager.formatAmount(defaultSplit)
             _uiState.update { current ->
                 val updated = current.members.map { member ->
                     if (member.isCustom) {
@@ -465,13 +397,24 @@ class GroupVouchViewModel(
         if (memberCount == 0) return 0L
         return total / memberCount
     }
+}
 
-    companion object {
-        fun factory(vouchId: Long? = null): ViewModelProvider.Factory = viewModelFactory {
-            initializer {
-                val application = this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY]!!
-                GroupVouchViewModel(application, vouchId)
-            }
-        }
+/**
+ * Maps a [VouchWithPerson] to a list of [GroupMemberInput] items, extracting the
+ * default-split detection logic into a single shared helper to avoid the 3× duplication
+ * that existed previously.
+ */
+private fun VouchWithPerson.toGroupMemberInputs(currencyManager: CurrencyManager): List<GroupMemberInput> {
+    val memberCount = persons.size
+    val totalAmount = vouch.amount
+    val defaultSplit = if (memberCount > 0) totalAmount / memberCount else 0L
+    return persons.map { p ->
+        val isCustom = p.amount != defaultSplit
+        GroupMemberInput(
+            personName = p.person.name,
+            amount = currencyManager.formatAmount(p.amount),
+            isCustom = isCustom,
+            isSelf = false
+        )
     }
 }

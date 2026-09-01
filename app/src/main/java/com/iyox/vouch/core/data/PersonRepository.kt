@@ -1,13 +1,19 @@
 package com.iyox.vouch.core.data
 
-import android.content.Context
 import com.iyox.vouch.core.model.Person
+import com.iyox.vouch.core.model.PersonDao
 import com.iyox.vouch.core.model.PersonTotal
+import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class PersonRepository private constructor(context: Context) {
+@Singleton
+class PersonRepository @Inject constructor(
+    private val personDao: PersonDao
+) {
 
-    private val personDao = AppDatabase.getDatabase(context).personDao()
-    private val vouchRepository = VouchRepository.getInstance(context)
+    fun getPersonsTotalFlow(): Flow<List<PersonTotal>> =
+        personDao.getPersonsTotalAllFlow()
 
     suspend fun getPersonTotal(nameQuery: String? = null): List<PersonTotal> {
         return if (nameQuery.isNullOrEmpty()) {
@@ -33,6 +39,14 @@ class PersonRepository private constructor(context: Context) {
         return personDao.getByName(name)
     }
 
+    /**
+     * Renames a person by ID.
+     *
+     * Note: callers (ViewModels) are responsible for triggering any cache invalidation
+     * (e.g. calling [VouchRepository.notifyDataChanged]) after a successful rename, so
+     * that this repository does not need to know about [VouchRepository] and the
+     * circular dependency is avoided.
+     */
     suspend fun renamePerson(personId: Int, newName: String): Result<Unit> {
         val trimmed = newName.trim()
         if (trimmed.isBlank()) {
@@ -49,7 +63,6 @@ class PersonRepository private constructor(context: Context) {
         }
 
         personDao.update(current.copy(name = trimmed))
-        vouchRepository.notifyDataChanged()
         return Result.success(Unit)
     }
 
@@ -58,18 +71,5 @@ class PersonRepository private constructor(context: Context) {
         val person = personDao.getByName(trimmedOld)
             ?: return Result.failure(NoSuchElementException("Person not found"))
         return renamePerson(person.id, newName)
-    }
-
-    companion object {
-        @Volatile
-        private var INSTANCE: PersonRepository? = null
-
-        fun getInstance(context: Context): PersonRepository {
-            return INSTANCE ?: synchronized(this) {
-                val instance = PersonRepository(context.applicationContext)
-                INSTANCE = instance
-                instance
-            }
-        }
     }
 }
