@@ -21,8 +21,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-const val STEP_DETAILS = 0
-const val STEP_MEMBERS = 1
+const val STEP_DETAILS = 1
+const val STEP_MEMBERS = 2
 
 data class GroupMemberInput(
     val personName: String,
@@ -158,12 +158,37 @@ class GroupVouchViewModel @Inject constructor(
         recomputeDefaultSplitAmounts()
     }
 
+    fun onMemberAmountChange(member: GroupMemberInput, amount: String) {
+        _uiState.update { state ->
+            val members = state.members.map { current ->
+                if (current.personName == member.personName) {
+                    current.copy(
+                        amount = amount,
+                        isCustom = true
+                    )
+                } else {
+                    current
+                }
+            }
+            state.copy(members = members)
+        }
+        recomputeDefaultSplitAmounts()
+    }
+
     fun removeMember(index: Int) {
         _uiState.update { state ->
             val members = state.members.toMutableList()
             if (index in members.indices) {
                 members.removeAt(index)
             }
+            state.copy(members = members)
+        }
+        recomputeDefaultSplitAmounts()
+    }
+
+    fun removeMember(member: GroupMemberInput) {
+        _uiState.update { state ->
+            val members = state.members.filterNot { it.personName == member.personName }
             state.copy(members = members)
         }
         recomputeDefaultSplitAmounts()
@@ -177,6 +202,42 @@ class GroupVouchViewModel @Inject constructor(
                 members[index] = current.copy(isCustom = !current.isCustom)
             }
             state.copy(members = members)
+        }
+        recomputeDefaultSplitAmounts()
+    }
+
+    fun resetAllToEqualSplit() {
+        _uiState.update { current ->
+            val updated = current.members.map { it.copy(isCustom = false) }
+            current.copy(members = updated)
+        }
+        recomputeDefaultSplitAmounts()
+    }
+
+    fun resetMemberToEqualSplit(member: GroupMemberInput) {
+        _uiState.update { current ->
+            val updated = current.members.map { currentMember ->
+                if (currentMember.personName == member.personName) {
+                    currentMember.copy(isCustom = false)
+                } else {
+                    currentMember
+                }
+            }
+            current.copy(members = updated)
+        }
+        recomputeDefaultSplitAmounts()
+    }
+
+    fun resetMemberToEqualSplit(personName: String) {
+        _uiState.update { current ->
+            val updated = current.members.map { member ->
+                if (member.personName == personName) {
+                    member.copy(isCustom = false)
+                } else {
+                    member
+                }
+            }
+            current.copy(members = updated)
         }
         recomputeDefaultSplitAmounts()
     }
@@ -282,6 +343,25 @@ class GroupVouchViewModel @Inject constructor(
             )
         }
         recomputeDefaultSplitAmounts()
+    }
+
+    fun onPersonSelected(person: Person) {
+        addMember(person.name, isSelf = false)
+    }
+
+    fun onPersonSelected(personTotal: PersonTotal) {
+        addMember(personTotal.person.name, isSelf = false)
+    }
+
+    fun addMemberFromQuery() {
+        val query = _uiState.value.personQuery.trim()
+        if (query.isNotBlank()) {
+            addMember(query, isSelf = false)
+        }
+    }
+
+    fun addSelfMember(selfName: String) {
+        addMember(selfName, isSelf = true)
     }
 
     private fun recomputeDefaultSplitAmounts() {

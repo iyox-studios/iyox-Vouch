@@ -90,11 +90,7 @@ import com.iyox.vouch.core.model.Person
 import com.iyox.vouch.core.model.PersonTotal
 import com.iyox.vouch.core.utils.rememberToastManager
 import com.iyox.vouch.ui.components.VouchBackButton
-import kotlinx.coroutines.launch
 import kotlin.math.abs
-
-private const val STEP_DETAILS = 1
-private const val STEP_MEMBERS = 2
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
