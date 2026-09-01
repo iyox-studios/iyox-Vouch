@@ -19,7 +19,6 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonMenu
 import androidx.compose.material3.FloatingActionButtonMenuItem
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -65,25 +64,14 @@ fun VouchesScreen(
     Scaffold(
         topBar = {
             PageHeader(
-                title = stringResource(R.string.screen_vouches),
-                actions = {
-                    IconButton(
-                        onClick = onNavigateToSettledSpace,
-                        modifier = Modifier.padding(end = 8.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Archive,
-                            contentDescription = stringResource(R.string.cd_settled_space),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
+                title = stringResource(R.string.screen_vouches)
             ) {
                 VouchFilterRow(
                     sortedBy = uiState.sortedBy,
                     showOnlyGiven = uiState.showOnlyGiven,
                     onToggleSort = viewModel::toggleSortedBy,
-                    onToggleGiven = viewModel::toggleShowOnlyGiven
+                    onToggleGiven = viewModel::toggleShowOnlyGiven,
+                    onSettledClick = onNavigateToSettledSpace
                 )
             }
         },
