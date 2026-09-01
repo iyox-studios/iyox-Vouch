@@ -1,13 +1,20 @@
 package com.iyox.vouch.core.data
 
 import androidx.room.withTransaction
+import com.iyox.vouch.core.di.ApplicationScope
 import com.iyox.vouch.core.model.Person
 import com.iyox.vouch.core.model.PersonWithAmount
 import com.iyox.vouch.core.model.VouchPersonCrossRef
 import com.iyox.vouch.core.model.VouchWithPerson
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -15,14 +22,16 @@ import javax.inject.Singleton
 class VouchRepository @Inject constructor(
     private val database: AppDatabase,
     private val vouchDataDao: VouchDao,
-    private val personDataDao: PersonDao
+    private val personDataDao: PersonDao,
+    @ApplicationScope private val externalScope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 ) {
 
     /**
-     * Reactive flow of all [VouchWithPerson] entities, backed by Room's InvalidationTracker.
-     * Emits automatically whenever any Vouch, Person, or cross-reference changes.
+     * Reactive, hot StateFlow of all [VouchWithPerson] entities in memory.
+     * Backed by Room's InvalidationTracker and eagerly kept in RAM by [externalScope]
+     * for instant 0ms access across screens while preserving SQLite as the single source of truth.
      */
-    val vouchesFlow: Flow<List<VouchWithPerson>> = combine(
+    val vouchesFlow: StateFlow<List<VouchWithPerson>> = combine(
         vouchDataDao.getAllFlow(),
         vouchDataDao.getAllPersonRowsFlow()
     ) { vouches, personRows ->
@@ -33,7 +42,11 @@ class VouchRepository @Inject constructor(
                 persons = personsByVouchId[vouch.id]?.map { it.toPersonWithAmount() } ?: emptyList()
             )
         }
-    }
+    }.stateIn(
+        scope = externalScope,
+        started = SharingStarted.Eagerly,
+        initialValue = emptyList()
+    )
 
     /**
      * Reactive flow of [VouchWithPerson] entities involving a specific person by name.
@@ -61,6 +74,9 @@ class VouchRepository @Inject constructor(
     }
 
     suspend fun getAll(): List<VouchWithPerson> {
+        val inMemory = vouchesFlow.value
+        if (inMemory.isNotEmpty()) return inMemory
+
         return database.withTransaction {
             val vouches = vouchDataDao.getAll()
             val personRows = vouchDataDao.getAllPersonRows()
@@ -75,6 +91,13 @@ class VouchRepository @Inject constructor(
     }
 
     suspend fun getVouchesByPersonName(name: String): List<VouchWithPerson> {
+        val inMemory = vouchesFlow.value.filter { v ->
+            v.persons.any { it.person.name.equals(name, ignoreCase = true) }
+        }
+        if (inMemory.isNotEmpty() || vouchesFlow.value.isNotEmpty()) {
+            return inMemory
+        }
+
         return database.withTransaction {
             val vouches = vouchDataDao.getVouchesByPersonName(name)
             if (vouches.isEmpty()) return@withTransaction emptyList()
@@ -90,6 +113,9 @@ class VouchRepository @Inject constructor(
     }
 
     suspend fun getById(id: Long): VouchWithPerson? {
+        // Instant in-memory lookup (<1ms)
+        vouchesFlow.value.find { it.vouch.id == id }?.let { return it }
+
         return database.withTransaction {
             val vouch = vouchDataDao.getById(id) ?: return@withTransaction null
             VouchWithPerson(
@@ -110,14 +136,16 @@ class VouchRepository @Inject constructor(
                 persons = vouchDataDao.getPersonsForVouch(newVouchId)
             )
         }
+        notifyDataChanged()
         return result
     }
 
     suspend fun delete(vouchId: Long) {
         database.withTransaction {
-            vouchDataDao.deleteById(vouchId) // also deletes cross refs by cascade
+            vouchDataDao.deleteById(vouchId) //also deletes cross refs by cascade
             personDataDao.deletePersonsWithoutVouches()
         }
+        notifyDataChanged()
     }
 
     suspend fun deletePersonFromVouch(vouchId: Long, personId: Long) {
@@ -135,6 +163,7 @@ class VouchRepository @Inject constructor(
             }
             personDataDao.deletePersonsWithoutVouches()
         }
+        notifyDataChanged()
     }
 
     suspend fun restoreVouch(vouchWithPerson: VouchWithPerson) {
@@ -157,6 +186,7 @@ class VouchRepository @Inject constructor(
             }
             personDataDao.deletePersonsWithoutVouches()
         }
+        notifyDataChanged()
     }
 
     suspend fun update(newVouch: VouchWithPerson) {
@@ -165,24 +195,28 @@ class VouchRepository @Inject constructor(
             upsertCrossRefs(newVouch.vouch.id, newVouch.persons, deleteExisting = true)
             personDataDao.deletePersonsWithoutVouches()
         }
+        notifyDataChanged()
     }
 
     suspend fun setVouchSettled(vouchId: Long, settled: Boolean) {
         database.withTransaction {
             vouchDataDao.updateCrossRefsSettledByVouchId(vouchId, settled)
         }
+        notifyDataChanged()
     }
 
     suspend fun setPersonSettlement(vouchId: Long, personId: Long, settled: Boolean) {
         database.withTransaction {
             vouchDataDao.updateCrossRefSettlement(vouchId, personId, settled)
         }
+        notifyDataChanged()
     }
 
     suspend fun setPersonSettled(personId: Long, settled: Boolean) {
         database.withTransaction {
             vouchDataDao.updateCrossRefsSettledByPersonId(personId, settled)
         }
+        notifyDataChanged()
     }
 
     suspend fun setPersonSettlements(personId: Long, vouchIds: List<Long>, settled: Boolean) {
@@ -190,6 +224,7 @@ class VouchRepository @Inject constructor(
         database.withTransaction {
             vouchDataDao.updateCrossRefsSettledForPerson(personId, vouchIds, settled)
         }
+        notifyDataChanged()
     }
 
     private suspend fun upsertCrossRefs(

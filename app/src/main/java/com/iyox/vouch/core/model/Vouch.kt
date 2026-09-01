@@ -6,7 +6,12 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 
-@Entity
+@Entity(
+    indices = [
+        Index("timestamp"),
+        Index("given")
+    ]
+)
 data class Vouch(
     @PrimaryKey(autoGenerate = true) val id: Long = 0L,
     val amount: Long,
