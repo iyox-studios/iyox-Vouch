@@ -78,10 +78,6 @@ class VouchesViewModel @Inject constructor(
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, VouchesUiState())
 
-    fun loadVouches() {
-        // No-op: repository.vouchesFlow automatically updates reactively from Room.
-    }
-
     fun setSearchQuery(query: String) {
         _searchQuery.value = query
     }

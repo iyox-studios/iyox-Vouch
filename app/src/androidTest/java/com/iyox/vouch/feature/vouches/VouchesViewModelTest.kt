@@ -70,7 +70,6 @@ class VouchesViewModelTest {
         repository.setVouchSettled(v3.vouch.id, true)
 
         val viewModel = VouchesViewModel(repository)
-        viewModel.loadVouches()
 
         val state = viewModel.uiState.first { it.vouches.size == 2 && it.settledCount == 1 }
         assertEquals(2, state.vouches.size) // Only active vouches
@@ -96,7 +95,6 @@ class VouchesViewModelTest {
         )
 
         val viewModel = VouchesViewModel(repository)
-        viewModel.loadVouches()
         viewModel.uiState.first { it.vouches.size == 2 }
 
         assertEquals(com.iyox.vouch.core.model.VouchTypeFilter.ALL, viewModel.uiState.value.showOnlyGiven)
@@ -148,7 +146,6 @@ class VouchesViewModelTest {
         )
 
         val viewModel = VouchesViewModel(repository)
-        viewModel.loadVouches()
         viewModel.uiState.first { it.vouches.size == 2 }
 
         // Search by description
