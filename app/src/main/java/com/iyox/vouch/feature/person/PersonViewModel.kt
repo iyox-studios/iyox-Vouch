@@ -199,7 +199,7 @@ class PersonViewModel @Inject constructor(
                 VouchWithPerson(
                     vouch = Vouch(
                         amount = abs(diff),
-                        description = "[NETTING]",
+                        description = com.iyox.vouch.core.utils.VouchConstants.TAG_NETTING,
                         given = diff > 0L
                     ), persons = listOf(
                         PersonWithAmount(
