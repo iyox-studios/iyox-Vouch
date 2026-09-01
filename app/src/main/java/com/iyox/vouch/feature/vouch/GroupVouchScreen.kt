@@ -155,7 +155,7 @@ fun GroupVouchScreen(
                                         message = msgGroupVouchCreated,
                                         actionLabel = actionUndo,
                                         errorMessage = msgSaveFailed,
-                                        performAction = { viewModel.saveGroupVouches() },
+                                        performAction = { viewModel.saveGroupVouchesDirect() },
                                         undoAction = { savedVouch ->
                                             if (savedVouch != null) {
                                                 viewModel.sharedActions.deleteVouch(savedVouch.vouch.id)
@@ -163,13 +163,7 @@ fun GroupVouchScreen(
                                         }
                                     )
                                 } else {
-                                    coroutineScope.launch {
-                                        try {
-                                            viewModel.saveGroupVouches()
-                                        } catch (e: Exception) {
-                                            toastManager.showError(msgSaveFailed)
-                                        }
-                                    }
+                                    viewModel.saveGroupVouches()
                                 }
                             },
                             enabled = uiState.members.count { !it.isSelf } >= 2

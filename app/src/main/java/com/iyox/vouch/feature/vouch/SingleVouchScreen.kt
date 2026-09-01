@@ -79,7 +79,7 @@ fun SingleVouchScreen(
                                     message = msgVouchCreated,
                                     actionLabel = actionUndo,
                                     errorMessage = msgSaveFailed,
-                                    performAction = { viewModel.saveVouch() },
+                                    performAction = { viewModel.saveVouchDirect() },
                                     undoAction = { savedVouch ->
                                         if (savedVouch != null) {
                                             viewModel.sharedActions.deleteVouch(savedVouch.vouch.id)
@@ -87,13 +87,7 @@ fun SingleVouchScreen(
                                     }
                                 )
                             } else {
-                                coroutineScope.launch {
-                                    try {
-                                        viewModel.saveVouch()
-                                    } catch (e: Exception) {
-                                        toastManager.showError(msgSaveFailed)
-                                    }
-                                }
+                                viewModel.saveVouch()
                             }
                         },
                     ) {

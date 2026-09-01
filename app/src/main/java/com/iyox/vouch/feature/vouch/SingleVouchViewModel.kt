@@ -134,7 +134,16 @@ class SingleVouchViewModel @Inject constructor(
         _uiState.update { it.copy(description = value) }
     }
 
-    suspend fun saveVouch(): VouchWithPerson? {
+    fun saveVouch(onSaved: (VouchWithPerson?) -> Unit = {}) {
+        viewModelScope.launch {
+            val result = saveVouchInternal()
+            onSaved(result)
+        }
+    }
+
+    suspend fun saveVouchDirect(): VouchWithPerson? = saveVouchInternal()
+
+    private suspend fun saveVouchInternal(): VouchWithPerson? {
         val currentState = _uiState.value
         val minorUnits = currencyManager.parseToMinorUnits(currentState.amount)
         if (minorUnits == null) {
