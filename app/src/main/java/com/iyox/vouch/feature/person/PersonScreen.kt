@@ -29,8 +29,6 @@ import androidx.compose.material.icons.outlined.Archive
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
@@ -149,15 +147,10 @@ fun PersonScreen(
                             contentDescription = stringResource(R.string.cd_rename_person)
                         )
                     }
-                    IconButton(onClick = { onNavigateToSettledSpace(currentPersonName) }) {
-                        Icon(
-                            imageVector = Icons.Outlined.Archive,
-                            contentDescription = stringResource(R.string.cd_settled_space)
-                        )
-                    }
                 }
             )
-        }) { innerPadding ->
+        }
+    ) { innerPadding ->
         if (state.isLoading) {
             Box(
                 contentAlignment = Alignment.Center,
@@ -184,6 +177,9 @@ fun PersonScreen(
                     onAddVouch = {
                         onNavigateToAddVouch(currentPersonName)
                     },
+                    onSettledSpaceClick = {
+                        onNavigateToSettledSpace(currentPersonName)
+                    },
                     onShareClick = {
                         coroutineScope.launch {
                             capturing = true
@@ -198,11 +194,10 @@ fun PersonScreen(
                             )
                             capturing = false
                         }
-                    },
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp)
-                        .padding(bottom = 16.dp)
+                    }
                 )
+
+                Spacer(modifier = Modifier.height(22.dp))
 
                 VouchFilterRow(
                     sortedBy = state.sortedBy,
@@ -211,7 +206,7 @@ fun PersonScreen(
                     onToggleGiven = viewModel::toggleShowOnlyGiven,
                     modifier = Modifier
                         .padding(horizontal = 16.dp)
-                        .padding(bottom = 8.dp)
+                        .padding(bottom = 6.dp)
                 )
 
                 if (state.vouches.isEmpty()) {
@@ -283,6 +278,12 @@ fun PersonScreen(
                         displayedSorted = state.vouches,
                         listState = listState,
                         innerPadding = PaddingValues(0.dp),
+                        contentPadding = PaddingValues(
+                            start = 16.dp,
+                            end = 16.dp,
+                            top = 0.dp,
+                            bottom = 24.dp
+                        ),
                         sharedVouchActions = viewModel.sharedActions,
                         onEdit = onNavigateToEditVouch,
                         onNavigateToPerson = onNavigateToPerson,
@@ -385,7 +386,7 @@ fun PersonInfoCard(
         total = personData?.amount ?: (amountGiven - amountOwed),
         modifier = modifier
             .padding(horizontal = 16.dp)
-            .padding(bottom = 12.dp)
+            .padding(bottom = 10.dp)
     )
 }
 
@@ -394,55 +395,87 @@ fun QuickActionsCard(
     onSettleClick: () -> Unit,
     onShareClick: () -> Unit,
     onAddVouch: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onSettledSpaceClick: () -> Unit = {}
 ) {
-    Card(
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainer
-        ),
-        shape = MaterialTheme.shapes.large,
-        modifier = modifier.fillMaxWidth()
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
+        FilledTonalButton(
+            onClick = onSettledSpaceClick,
+            shape = MaterialTheme.shapes.medium,
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceAround
+                .weight(1f)
+                .height(44.dp),
+            contentPadding = PaddingValues(horizontal = 8.dp)
         ) {
-            FilledTonalButton(
-                onClick = onAddVouch,
-                shape = MaterialTheme.shapes.medium,
-                modifier = Modifier.size(48.dp),
-                contentPadding = PaddingValues(0.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Add,
-                    contentDescription = stringResource(R.string.cd_add_vouch)
-                )
-            }
-            FilledTonalButton(
-                onClick = onSettleClick,
-                shape = MaterialTheme.shapes.medium,
-                modifier = Modifier.size(48.dp),
-                contentPadding = PaddingValues(0.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.DoneAll,
-                    contentDescription = stringResource(R.string.cd_settle_person)
-                )
-            }
-            FilledTonalButton(
-                onClick = onShareClick,
-                shape = MaterialTheme.shapes.medium,
-                modifier = Modifier.size(48.dp),
-                contentPadding = PaddingValues(0.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Share,
-                    contentDescription = stringResource(R.string.cd_export_vouch_list)
-                )
-            }
+            Icon(
+                imageVector = Icons.Outlined.Archive,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp)
+            )
+            Spacer(Modifier.width(6.dp))
+            Text(
+                text = stringResource(R.string.action_view_settled_space),
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
         }
+
+        FilledTonalButton(
+            onClick = onSettleClick,
+            shape = MaterialTheme.shapes.medium,
+            modifier = Modifier
+                .weight(1f)
+                .height(44.dp),
+            contentPadding = PaddingValues(horizontal = 8.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Filled.DoneAll,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp)
+            )
+            Spacer(Modifier.width(6.dp))
+            Text(
+                text = stringResource(R.string.action_settle),
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+
+        FilledTonalButton(
+            onClick = onShareClick,
+            shape = MaterialTheme.shapes.medium,
+            modifier = Modifier.size(width = 44.dp, height = 44.dp),
+            contentPadding = PaddingValues(0.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Filled.Share,
+                contentDescription = stringResource(R.string.cd_export_vouch_list),
+                modifier = Modifier.size(18.dp)
+            )
+        }
+        Button(
+            onClick = onAddVouch,
+            shape = MaterialTheme.shapes.medium,
+            modifier = Modifier.size(width = 44.dp, height = 44.dp),
+            contentPadding = PaddingValues(0.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Filled.Add,
+                contentDescription = stringResource(R.string.cd_add_vouch),
+                modifier = Modifier.size(20.dp)
+            )
+        }
+
     }
 }
 
