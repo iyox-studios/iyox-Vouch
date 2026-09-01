@@ -1,6 +1,7 @@
 package com.iyox.vouch.feature.settled
 
 import android.app.Application
+import androidx.lifecycle.SavedStateHandle
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.iyox.vouch.core.data.AppDatabase
@@ -28,7 +29,7 @@ class SettledSpaceViewModelTest {
     fun setUp() = runTest {
         application = ApplicationProvider.getApplicationContext()
         database = AppDatabase.getDatabase(application)
-        repository = VouchRepository.getInstance(application)
+        repository = VouchRepository(database, database.vouchDataDao(), database.personDao())
 
         database.vouchDataDao().deleteAll()
         database.personDao().deleteAll()
@@ -40,6 +41,13 @@ class SettledSpaceViewModelTest {
         database.vouchDataDao().deleteAll()
         database.personDao().deleteAll()
         repository.notifyDataChanged()
+    }
+
+    private fun createViewModel(personName: String? = null): SettledSpaceViewModel {
+        val args = mutableMapOf<String, Any?>()
+        if (personName != null) args["personName"] = personName
+        val savedStateHandle = SavedStateHandle(args)
+        return SettledSpaceViewModel(savedStateHandle, repository)
     }
 
     @Test
@@ -66,7 +74,7 @@ class SettledSpaceViewModelTest {
             )
         )
 
-        val viewModel = SettledSpaceViewModel(application, null)
+        val viewModel = createViewModel(null)
         viewModel.loadVouches()
 
         val state = viewModel.uiState.first { it.vouches.size == 2 && it.settledCount == 2 }
@@ -90,7 +98,7 @@ class SettledSpaceViewModelTest {
             )
         )
 
-        val viewModel = SettledSpaceViewModel(application, "Alice")
+        val viewModel = createViewModel("Alice")
         viewModel.loadVouches()
 
         val state = viewModel.uiState.first { it.vouches.size == 1 && it.settledCount == 1 }
@@ -115,23 +123,23 @@ class SettledSpaceViewModelTest {
 
     @Test
     fun testFilterAndSortToggles() = runTest {
-        val viewModel = SettledSpaceViewModel(application)
+        val viewModel = createViewModel()
 
-        assertEquals(0, viewModel.uiState.value.showOnlyGiven)
+        assertEquals(com.iyox.vouch.core.model.VouchTypeFilter.ALL, viewModel.uiState.value.showOnlyGiven)
         viewModel.toggleShowOnlyGiven()
-        assertEquals(1, viewModel.uiState.first { it.showOnlyGiven == 1 }.showOnlyGiven)
+        assertEquals(com.iyox.vouch.core.model.VouchTypeFilter.GIVEN, viewModel.uiState.first { it.showOnlyGiven == com.iyox.vouch.core.model.VouchTypeFilter.GIVEN }.showOnlyGiven)
         viewModel.toggleShowOnlyGiven()
-        assertEquals(2, viewModel.uiState.first { it.showOnlyGiven == 2 }.showOnlyGiven)
+        assertEquals(com.iyox.vouch.core.model.VouchTypeFilter.RECEIVED, viewModel.uiState.first { it.showOnlyGiven == com.iyox.vouch.core.model.VouchTypeFilter.RECEIVED }.showOnlyGiven)
         viewModel.toggleShowOnlyGiven()
-        assertEquals(0, viewModel.uiState.first { it.showOnlyGiven == 0 }.showOnlyGiven)
+        assertEquals(com.iyox.vouch.core.model.VouchTypeFilter.ALL, viewModel.uiState.first { it.showOnlyGiven == com.iyox.vouch.core.model.VouchTypeFilter.ALL }.showOnlyGiven)
 
-        assertEquals(0, viewModel.uiState.value.sortedBy)
+        assertEquals(com.iyox.vouch.core.model.VouchSortOrder.DATE, viewModel.uiState.value.sortedBy)
         viewModel.toggleSortedBy()
-        assertEquals(1, viewModel.uiState.first { it.sortedBy == 1 }.sortedBy)
+        assertEquals(com.iyox.vouch.core.model.VouchSortOrder.AMOUNT, viewModel.uiState.first { it.sortedBy == com.iyox.vouch.core.model.VouchSortOrder.AMOUNT }.sortedBy)
         viewModel.toggleSortedBy()
-        assertEquals(2, viewModel.uiState.first { it.sortedBy == 2 }.sortedBy)
+        assertEquals(com.iyox.vouch.core.model.VouchSortOrder.PERSON, viewModel.uiState.first { it.sortedBy == com.iyox.vouch.core.model.VouchSortOrder.PERSON }.sortedBy)
         viewModel.toggleSortedBy()
-        assertEquals(0, viewModel.uiState.first { it.sortedBy == 0 }.sortedBy)
+        assertEquals(com.iyox.vouch.core.model.VouchSortOrder.DATE, viewModel.uiState.first { it.sortedBy == com.iyox.vouch.core.model.VouchSortOrder.DATE }.sortedBy)
     }
 
     @Test
@@ -149,7 +157,7 @@ class SettledSpaceViewModelTest {
             )
         )
 
-        val viewModel = SettledSpaceViewModel(application, null)
+        val viewModel = createViewModel(null)
         viewModel.loadVouches()
         viewModel.uiState.first { it.vouches.size == 2 }
 

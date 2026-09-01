@@ -31,7 +31,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.iyox.vouch.R
 import com.iyox.vouch.ui.components.EmptySearchContent
 import com.iyox.vouch.ui.components.SettledFilterRow
@@ -45,10 +45,7 @@ fun SettledSpaceScreen(
     onNavigateBack: () -> Unit = {},
     onNavigateToEditVouch: (Int, Boolean) -> Unit = { _, _ -> },
     onNavigateToPerson: (String) -> Unit = {},
-    viewModel: SettledSpaceViewModel = viewModel(
-        factory = SettledSpaceViewModel.factory(initialPersonName),
-        key = "SettledSpace_$initialPersonName"
-    )
+    viewModel: SettledSpaceViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val listState = rememberLazyListState()

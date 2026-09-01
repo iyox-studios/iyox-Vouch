@@ -10,7 +10,7 @@ import androidx.room.Insert
 import androidx.room.PrimaryKey
 import androidx.room.Query
 import androidx.room.Update
-import java.sql.Timestamp
+import kotlinx.coroutines.flow.Flow
 
 @Entity
 data class Vouch(
@@ -18,7 +18,7 @@ data class Vouch(
     val amount: Long,
     val description: String = "",
     val given: Boolean = true,
-    val timestamp: Timestamp = Timestamp(System.currentTimeMillis())
+    val timestamp: Long = System.currentTimeMillis()
 )
 
 @Entity(
@@ -78,7 +78,19 @@ data class VouchPersonSettlement(
 @Dao
 interface VouchDao {
     @Query("SELECT * FROM Vouch")
+    fun getAllFlow(): Flow<List<Vouch>>
+
+    @Query("SELECT * FROM Vouch")
     suspend fun getAll(): List<Vouch>
+
+    @Query(
+        """
+        SELECT vpc.vouchId AS vouchId, p.id AS id, p.name AS name, vpc.amount AS amount, vpc.settled AS settled
+        FROM Person p
+        INNER JOIN vouch_person_cross_ref vpc ON p.id = vpc.personId
+        """
+    )
+    fun getAllPersonRowsFlow(): Flow<List<VouchPersonRow>>
 
     @Query(
         """
@@ -99,7 +111,33 @@ interface VouchDao {
         ORDER BY v.timestamp DESC
         """
     )
+    fun getVouchesByPersonNameFlow(name: String): Flow<List<Vouch>>
+
+    @Query(
+        """
+        SELECT v.*
+        FROM Vouch v
+        INNER JOIN vouch_person_cross_ref vpc ON v.id = vpc.vouchId
+        INNER JOIN Person p ON vpc.personId = p.id
+        WHERE p.name = :name
+        ORDER BY v.timestamp DESC
+        """
+    )
     suspend fun getVouchesByPersonName(name: String): List<Vouch>
+
+    @Query(
+        """
+        SELECT vpc.vouchId AS vouchId, p.id AS id, p.name AS name, vpc.amount AS amount, vpc.settled AS settled
+        FROM Person p
+        INNER JOIN vouch_person_cross_ref vpc ON p.id = vpc.personId
+        WHERE vpc.vouchId IN (
+            SELECT vpc2.vouchId FROM vouch_person_cross_ref vpc2
+            INNER JOIN Person p2 ON vpc2.personId = p2.id
+            WHERE p2.name = :name
+        )
+        """
+    )
+    fun getPersonRowsForVouchesOfPersonFlow(name: String): Flow<List<VouchPersonRow>>
 
     @Query(
         """

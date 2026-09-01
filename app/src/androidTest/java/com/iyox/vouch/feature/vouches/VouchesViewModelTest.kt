@@ -1,6 +1,5 @@
 package com.iyox.vouch.feature.vouches
 
-import android.app.Application
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.iyox.vouch.core.data.AppDatabase
@@ -18,20 +17,18 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.sql.Timestamp
 
 @RunWith(AndroidJUnit4::class)
 class VouchesViewModelTest {
 
-    private lateinit var application: Application
     private lateinit var repository: VouchRepository
     private lateinit var database: AppDatabase
 
     @Before
     fun setUp() = runTest {
-        application = ApplicationProvider.getApplicationContext()
-        database = AppDatabase.getDatabase(application)
-        repository = VouchRepository.getInstance(application)
+        val context: Application = ApplicationProvider.getApplicationContext()
+        database = AppDatabase.getDatabase(context)
+        repository = VouchRepository(database, database.vouchDataDao(), database.personDao())
 
         database.vouchDataDao().deleteAll()
         database.personDao().deleteAll()
@@ -50,7 +47,7 @@ class VouchesViewModelTest {
         // Active Given: 3000
         repository.insert(
             VouchWithPerson(
-                vouch = Vouch(amount = 3000L, given = true, timestamp = Timestamp(1000L)),
+                vouch = Vouch(amount = 3000L, given = true, timestamp = 1000L),
                 persons = listOf(PersonWithAmount(Person(name = "Alice"), 3000L))
             )
         )
@@ -58,7 +55,7 @@ class VouchesViewModelTest {
         // Active Received: 1000
         repository.insert(
             VouchWithPerson(
-                vouch = Vouch(amount = 1000L, given = false, timestamp = Timestamp(2000L)),
+                vouch = Vouch(amount = 1000L, given = false, timestamp = 2000L),
                 persons = listOf(PersonWithAmount(Person(name = "Bob"), 1000L))
             )
         )
@@ -66,13 +63,13 @@ class VouchesViewModelTest {
         // Settled: 5000
         val v3 = repository.insert(
             VouchWithPerson(
-                vouch = Vouch(amount = 5000L, given = true, timestamp = Timestamp(3000L)),
+                vouch = Vouch(amount = 5000L, given = true, timestamp = 3000L),
                 persons = listOf(PersonWithAmount(Person(name = "Charlie"), 5000L))
             )
         )
         repository.setVouchSettled(v3.vouch.id, true)
 
-        val viewModel = VouchesViewModel(application)
+        val viewModel = VouchesViewModel(repository)
         viewModel.loadVouches()
 
         val state = viewModel.uiState.first { it.vouches.size == 2 && it.settledCount == 1 }
@@ -87,52 +84,52 @@ class VouchesViewModelTest {
     fun testToggleFiltersAndSorting() = runTest {
         repository.insert(
             VouchWithPerson(
-                vouch = Vouch(amount = 1000L, given = true, timestamp = Timestamp(1000L)),
+                vouch = Vouch(amount = 1000L, given = true, timestamp = 1000L),
                 persons = listOf(PersonWithAmount(Person(name = "Alice"), 1000L))
             )
         )
         repository.insert(
             VouchWithPerson(
-                vouch = Vouch(amount = 2000L, given = false, timestamp = Timestamp(2000L)),
+                vouch = Vouch(amount = 2000L, given = false, timestamp = 2000L),
                 persons = listOf(PersonWithAmount(Person(name = "Bob"), 2000L))
             )
         )
 
-        val viewModel = VouchesViewModel(application)
+        val viewModel = VouchesViewModel(repository)
         viewModel.loadVouches()
         viewModel.uiState.first { it.vouches.size == 2 }
 
-        assertEquals(0, viewModel.uiState.value.showOnlyGiven)
+        assertEquals(com.iyox.vouch.core.model.VouchTypeFilter.ALL, viewModel.uiState.value.showOnlyGiven)
         assertEquals(2, viewModel.uiState.value.vouches.size)
 
         // Filter: Given
         viewModel.toggleShowOnlyGiven()
-        val givenState = viewModel.uiState.first { it.showOnlyGiven == 1 && it.vouches.size == 1 }
-        assertEquals(1, givenState.showOnlyGiven)
+        val givenState = viewModel.uiState.first { it.showOnlyGiven == com.iyox.vouch.core.model.VouchTypeFilter.GIVEN && it.vouches.size == 1 }
+        assertEquals(com.iyox.vouch.core.model.VouchTypeFilter.GIVEN, givenState.showOnlyGiven)
         assertEquals(1, givenState.vouches.size)
         assertTrue(givenState.vouches[0].vouch.given)
 
         // Filter: Received
         viewModel.toggleShowOnlyGiven()
-        val receivedState = viewModel.uiState.first { it.showOnlyGiven == 2 && it.vouches.size == 1 }
-        assertEquals(2, receivedState.showOnlyGiven)
+        val receivedState = viewModel.uiState.first { it.showOnlyGiven == com.iyox.vouch.core.model.VouchTypeFilter.RECEIVED && it.vouches.size == 1 }
+        assertEquals(com.iyox.vouch.core.model.VouchTypeFilter.RECEIVED, receivedState.showOnlyGiven)
         assertEquals(1, receivedState.vouches.size)
         assertFalse(receivedState.vouches[0].vouch.given)
 
         // Filter: All
         viewModel.toggleShowOnlyGiven()
-        val allState = viewModel.uiState.first { it.showOnlyGiven == 0 && it.vouches.size == 2 }
-        assertEquals(0, allState.showOnlyGiven)
+        val allState = viewModel.uiState.first { it.showOnlyGiven == com.iyox.vouch.core.model.VouchTypeFilter.ALL && it.vouches.size == 2 }
+        assertEquals(com.iyox.vouch.core.model.VouchTypeFilter.ALL, allState.showOnlyGiven)
         assertEquals(2, allState.vouches.size)
 
         // Sort toggle
-        assertEquals(0, viewModel.uiState.value.sortedBy)
+        assertEquals(com.iyox.vouch.core.model.VouchSortOrder.DATE, viewModel.uiState.value.sortedBy)
         viewModel.toggleSortedBy()
-        assertEquals(1, viewModel.uiState.first { it.sortedBy == 1 }.sortedBy)
+        assertEquals(com.iyox.vouch.core.model.VouchSortOrder.AMOUNT, viewModel.uiState.first { it.sortedBy == com.iyox.vouch.core.model.VouchSortOrder.AMOUNT }.sortedBy)
         viewModel.toggleSortedBy()
-        assertEquals(2, viewModel.uiState.first { it.sortedBy == 2 }.sortedBy)
+        assertEquals(com.iyox.vouch.core.model.VouchSortOrder.PERSON, viewModel.uiState.first { it.sortedBy == com.iyox.vouch.core.model.VouchSortOrder.PERSON }.sortedBy)
         viewModel.toggleSortedBy()
-        assertEquals(0, viewModel.uiState.first { it.sortedBy == 0 }.sortedBy)
+        assertEquals(com.iyox.vouch.core.model.VouchSortOrder.DATE, viewModel.uiState.first { it.sortedBy == com.iyox.vouch.core.model.VouchSortOrder.DATE }.sortedBy)
     }
 
     @Test
@@ -150,7 +147,7 @@ class VouchesViewModelTest {
             )
         )
 
-        val viewModel = VouchesViewModel(application)
+        val viewModel = VouchesViewModel(repository)
         viewModel.loadVouches()
         viewModel.uiState.first { it.vouches.size == 2 }
 

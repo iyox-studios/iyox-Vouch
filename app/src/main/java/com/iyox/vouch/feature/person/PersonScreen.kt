@@ -64,7 +64,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.iyox.vouch.R
 import com.iyox.vouch.core.currency.CurrencyManager
 import com.iyox.vouch.core.model.PersonTotal
@@ -94,7 +94,7 @@ fun PersonScreen(
     onNavigateToPerson: (String) -> Unit = {},
     onNavigateToSettledSpace: (String) -> Unit = {}
 ) {
-    val viewModel: PersonViewModel = viewModel(factory = PersonViewModel.factory(personName))
+    val viewModel: PersonViewModel = hiltViewModel()
     val personUiState by viewModel.uiState.collectAsState()
     val state by viewModel.uiState.collectAsState()
     val exportLayer = rememberGraphicsLayer()
@@ -219,7 +219,7 @@ fun PersonScreen(
                             searchQuery = state.searchQuery,
                             onClearSearch = { viewModel.setSearchQuery("") }
                         )
-                    } else if (state.settledCount > 0 && state.showOnlyGiven == 0) {
+                    } else if (state.settledCount > 0 && state.showOnlyGiven == com.iyox.vouch.core.model.VouchTypeFilter.ALL) {
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()

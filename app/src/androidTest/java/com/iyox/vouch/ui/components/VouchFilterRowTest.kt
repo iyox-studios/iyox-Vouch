@@ -9,6 +9,8 @@ import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.iyox.vouch.R
+import com.iyox.vouch.core.model.VouchSortOrder
+import com.iyox.vouch.core.model.VouchTypeFilter
 import com.iyox.vouch.ui.theme.IyoxVouchTheme
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -32,8 +34,8 @@ class VouchFilterRowTest {
         composeTestRule.setContent {
             IyoxVouchTheme {
                 VouchFilterRow(
-                    sortedBy = 0,
-                    showOnlyGiven = 0,
+                    sortedBy = VouchSortOrder.DATE,
+                    showOnlyGiven = VouchTypeFilter.ALL,
                     onToggleSort = { sortToggled++ },
                     onToggleGiven = { givenToggled++ }
                 )
@@ -61,8 +63,8 @@ class VouchFilterRowTest {
         composeTestRule.setContent {
             IyoxVouchTheme {
                 VouchFilterRow(
-                    sortedBy = 0,
-                    showOnlyGiven = 0,
+                    sortedBy = VouchSortOrder.DATE,
+                    showOnlyGiven = VouchTypeFilter.ALL,
                     onToggleSort = { },
                     onToggleGiven = { },
                     searchQuery = query,
