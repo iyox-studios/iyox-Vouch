@@ -5,9 +5,7 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.iyox.vouch.core.model.Person
-import com.iyox.vouch.core.model.PersonDao
 import com.iyox.vouch.core.model.Vouch
-import com.iyox.vouch.core.model.VouchDao
 import com.iyox.vouch.core.model.VouchPersonCrossRef
 
 @Database(
@@ -16,8 +14,11 @@ import com.iyox.vouch.core.model.VouchPersonCrossRef
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
-    abstract fun vouchDataDao(): VouchDao
+    abstract fun vouchDao(): VouchDao
     abstract fun personDao(): PersonDao
+
+    // Backwards compatibility alias
+    fun vouchDataDao(): VouchDao = vouchDao()
 
     companion object {
         @Volatile

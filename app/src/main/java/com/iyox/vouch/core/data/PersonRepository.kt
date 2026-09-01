@@ -1,7 +1,6 @@
 package com.iyox.vouch.core.data
 
 import com.iyox.vouch.core.model.Person
-import com.iyox.vouch.core.model.PersonDao
 import com.iyox.vouch.core.model.PersonTotal
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject

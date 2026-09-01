@@ -2,9 +2,7 @@ package com.iyox.vouch.core.data
 
 import androidx.room.withTransaction
 import com.iyox.vouch.core.model.Person
-import com.iyox.vouch.core.model.PersonDao
 import com.iyox.vouch.core.model.PersonWithAmount
-import com.iyox.vouch.core.model.VouchDao
 import com.iyox.vouch.core.model.VouchPersonCrossRef
 import com.iyox.vouch.core.model.VouchWithPerson
 import kotlinx.coroutines.flow.Flow

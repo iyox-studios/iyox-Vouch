@@ -5,9 +5,7 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.iyox.vouch.core.model.Person
-import com.iyox.vouch.core.model.PersonDao
 import com.iyox.vouch.core.model.Vouch
-import com.iyox.vouch.core.model.VouchDao
 import com.iyox.vouch.core.model.VouchPersonCrossRef
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -34,7 +32,7 @@ class VouchDaoTest {
         database = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java)
             .allowMainThreadQueries()
             .build()
-        vouchDao = database.vouchDataDao()
+        vouchDao = database.vouchDao()
         personDao = database.personDao()
     }
 

@@ -2,8 +2,8 @@ package com.iyox.vouch.core.di
 
 import android.content.Context
 import com.iyox.vouch.core.data.AppDatabase
-import com.iyox.vouch.core.model.PersonDao
-import com.iyox.vouch.core.model.VouchDao
+import com.iyox.vouch.core.data.PersonDao
+import com.iyox.vouch.core.data.VouchDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -25,7 +25,7 @@ object DatabaseModule {
 
     @Provides
     fun provideVouchDao(database: AppDatabase): VouchDao {
-        return database.vouchDataDao()
+        return database.vouchDao()
     }
 
     @Provides
