@@ -39,7 +39,12 @@ class SingleVouchViewModel @Inject constructor(
     private val currencyManager: CurrencyManager
 ) : ViewModel() {
 
-    private val initialVouchId: Long? = savedStateHandle.get<Int>("vouchId")?.toLong()
+    private val initialVouchId: Long? = when (val raw = savedStateHandle.get<Any>("vouchId")) {
+        is Long -> raw
+        is Int -> raw.toLong()
+        is String -> raw.toLongOrNull()
+        else -> null
+    }
     private val initialPersonName: String? = savedStateHandle["personName"]
 
     val sharedActions = SharedVouchActions(repository) {}
@@ -48,16 +53,32 @@ class SingleVouchViewModel @Inject constructor(
     private var editingVouchId: Long? = null
     private var originalVouch: VouchWithPerson? = null
 
-    private val _uiState = MutableStateFlow(
-        VouchUiState(
+    private fun resolveInitialState(): VouchUiState {
+        if (initialVouchId != null) {
+            val cached = repository.vouchesFlow.value.find { it.vouch.id == initialVouchId }
+            if (cached != null) {
+                editingVouchId = cached.vouch.id
+                originalVouch = cached
+                return VouchUiState(
+                    amount = currencyManager.formatAmount(cached.vouch.amount),
+                    given = cached.vouch.given,
+                    personName = cached.persons.firstOrNull()?.person?.name ?: "",
+                    description = cached.vouch.description,
+                    isLoading = false
+                )
+            }
+        }
+        return VouchUiState(
             personName = initialPersonName ?: "",
             isLoading = initialVouchId != null
         )
-    )
+    }
+
+    private val _uiState = MutableStateFlow(resolveInitialState())
     val uiState: StateFlow<VouchUiState> = _uiState.asStateFlow()
 
     init {
-        if (initialVouchId != null) {
+        if (initialVouchId != null && originalVouch == null) {
             loadVouch(initialVouchId, initialPersonName)
         }
     }
@@ -72,6 +93,22 @@ class SingleVouchViewModel @Inject constructor(
                 it.copy(
                     isLoading = false,
                     personName = prefilledPersonName ?: it.personName
+                )
+            }
+            return
+        }
+
+        val inMemory = repository.vouchesFlow.value.find { it.vouch.id == id }
+        if (inMemory != null) {
+            editingVouchId = inMemory.vouch.id
+            originalVouch = inMemory
+            _uiState.update { state ->
+                state.copy(
+                    amount = currencyManager.formatAmount(inMemory.vouch.amount),
+                    given = inMemory.vouch.given,
+                    personName = inMemory.persons.firstOrNull()?.person?.name ?: "",
+                    description = inMemory.vouch.description,
+                    isLoading = false
                 )
             }
             return
@@ -126,7 +163,6 @@ class SingleVouchViewModel @Inject constructor(
                 personSearchResults = emptyList()
             )
         }
-        searchJob?.cancel()
     }
 
     fun onDescriptionChange(value: String) {
@@ -135,8 +171,8 @@ class SingleVouchViewModel @Inject constructor(
 
     fun saveVouch(onSaved: (VouchWithPerson?) -> Unit = {}) {
         viewModelScope.launch {
-            val result = saveVouchInternal()
-            onSaved(result)
+            val saved = saveVouchInternal()
+            onSaved(saved)
         }
     }
 
@@ -144,46 +180,40 @@ class SingleVouchViewModel @Inject constructor(
 
     private suspend fun saveVouchInternal(): VouchWithPerson? {
         val currentState = _uiState.value
-        val minorUnits = currencyManager.parseToMinorUnits(currentState.amount)
-        if (minorUnits == null) {
+        val amountLong = currencyManager.parseToMinorUnits(currentState.amount)
+        if (amountLong == null || amountLong <= 0) {
+            _uiState.update { it.copy(saveSuccess = false) }
+            return null
+        }
+        val personName = currentState.personName.trim()
+        if (personName.isBlank()) {
             _uiState.update { it.copy(saveSuccess = false) }
             return null
         }
 
-        var savedVouch: VouchWithPerson?
-        if (editingVouchId != null) {
-            val newVouch = originalVouch!!.copy(
+        val savedVouch: VouchWithPerson?
+        if (editingVouchId != null && originalVouch != null) {
+            val updated = originalVouch!!.copy(
                 vouch = originalVouch!!.vouch.copy(
-                    amount = minorUnits,
+                    amount = amountLong,
                     description = currentState.description.trim(),
                     given = currentState.given
                 ),
-                persons = listOf(
-                    PersonWithAmount(
-                        person = Person(name = currentState.personName.trim()),
-                        amount = minorUnits
-                    )
-                )
+                persons = listOf(PersonWithAmount(Person(name = personName), amountLong))
             )
-            repository.update(newVouch)
-            savedVouch = newVouch
+            repository.update(updated)
+            savedVouch = updated
         } else {
             val vouch = VouchWithPerson(
                 vouch = Vouch(
-                    id = 0,
-                    amount = minorUnits,
+                    amount = amountLong,
                     description = currentState.description.trim(),
                     given = currentState.given
-                ), persons = if (currentState.personName.isBlank()) emptyList() else listOf(
-                    PersonWithAmount(
-                        person = Person(name = currentState.personName.trim()),
-                        amount = minorUnits
-                    )
-                )
+                ),
+                persons = listOf(PersonWithAmount(Person(name = personName), amountLong))
             )
             savedVouch = repository.insert(vouch)
         }
-
         _uiState.update { it.copy(saveSuccess = true) }
         return savedVouch
     }

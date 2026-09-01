@@ -53,7 +53,12 @@ class GroupVouchViewModel @Inject constructor(
     private val currencyManager: CurrencyManager
 ) : ViewModel() {
 
-    private val initialVouchId: Long? = savedStateHandle.get<Int>("vouchId")?.toLong()
+    private val initialVouchId: Long? = when (val raw = savedStateHandle.get<Any>("vouchId")) {
+        is Long -> raw
+        is Int -> raw.toLong()
+        is String -> raw.toLongOrNull()
+        else -> null
+    }
 
     val sharedActions = SharedVouchActions(repository) {}
 
@@ -61,14 +66,32 @@ class GroupVouchViewModel @Inject constructor(
     private var editingVouchId: Long? = null
     private var originalVouch: VouchWithPerson? = null
 
-    private val _uiState = MutableStateFlow(
-        GroupVouchUiState(isLoading = initialVouchId != null)
-    )
+    private fun resolveInitialState(): GroupVouchUiState {
+        if (initialVouchId != null) {
+            val cached = repository.vouchesFlow.value.find { it.vouch.id == initialVouchId }
+            if (cached != null) {
+                editingVouchId = cached.vouch.id
+                originalVouch = cached
+                val members = cached.toGroupMemberInputs(currencyManager)
+                return GroupVouchUiState(
+                    amount = currencyManager.formatAmount(cached.vouch.amount),
+                    given = cached.vouch.given,
+                    description = cached.vouch.description,
+                    members = members,
+                    step = STEP_DETAILS,
+                    isLoading = false
+                )
+            }
+        }
+        return GroupVouchUiState(isLoading = initialVouchId != null)
+    }
+
+    private val _uiState = MutableStateFlow(resolveInitialState())
     val uiState: StateFlow<GroupVouchUiState> = _uiState.asStateFlow()
 
     init {
         loadSuggestedPersons()
-        if (initialVouchId != null) {
+        if (initialVouchId != null && originalVouch == null) {
             loadVouch(initialVouchId)
         }
     }
@@ -79,6 +102,24 @@ class GroupVouchViewModel @Inject constructor(
             editingVouchId = null
             originalVouch = null
             _uiState.update { it.copy(isLoading = false) }
+            return
+        }
+
+        val inMemory = repository.vouchesFlow.value.find { it.vouch.id == id }
+        if (inMemory != null) {
+            editingVouchId = inMemory.vouch.id
+            originalVouch = inMemory
+            val members = inMemory.toGroupMemberInputs(currencyManager)
+            _uiState.update { state ->
+                state.copy(
+                    amount = currencyManager.formatAmount(inMemory.vouch.amount),
+                    given = inMemory.vouch.given,
+                    description = inMemory.vouch.description,
+                    members = members,
+                    step = STEP_DETAILS,
+                    isLoading = false
+                )
+            }
             return
         }
 

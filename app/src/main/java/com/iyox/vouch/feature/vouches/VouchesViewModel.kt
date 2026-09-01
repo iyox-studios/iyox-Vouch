@@ -40,9 +40,12 @@ class VouchesViewModel @Inject constructor(
     private val _sortedBy = MutableStateFlow(VouchSortOrder.DATE)
     private val _searchQuery = MutableStateFlow("")
 
-    val uiState: StateFlow<VouchesUiState> = combine(
-        repository.vouchesFlow, _showOnlyGiven, _sortedBy, _searchQuery
-    ) { allVouches, showOnlyGiven, sortedBy, searchQuery ->
+    private fun computeState(
+        allVouches: List<VouchWithPerson>,
+        showOnlyGiven: VouchTypeFilter,
+        sortedBy: VouchSortOrder,
+        searchQuery: String
+    ): VouchesUiState {
         val activeVouches = allVouches.filter { !it.isSettled() }
         val settledCount = allVouches.count { it.isSettled() }
 
@@ -66,7 +69,7 @@ class VouchesViewModel @Inject constructor(
             }
         }
 
-        VouchesUiState(
+        return VouchesUiState(
             vouches = displayed,
             settledCount = settledCount,
             showOnlyGiven = showOnlyGiven,
@@ -76,7 +79,22 @@ class VouchesViewModel @Inject constructor(
             totalOwed = totalOwed,
             netTotal = totalGiven - totalOwed
         )
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, VouchesUiState())
+    }
+
+    val uiState: StateFlow<VouchesUiState> = combine(
+        repository.vouchesFlow, _showOnlyGiven, _sortedBy, _searchQuery
+    ) { allVouches, showOnlyGiven, sortedBy, searchQuery ->
+        computeState(allVouches, showOnlyGiven, sortedBy, searchQuery)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Eagerly,
+        initialValue = computeState(
+            repository.vouchesFlow.value,
+            _showOnlyGiven.value,
+            _sortedBy.value,
+            _searchQuery.value
+        )
+    )
 
     fun setSearchQuery(query: String) {
         _searchQuery.value = query

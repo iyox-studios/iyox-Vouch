@@ -29,24 +29,36 @@ class PersonsViewModel @Inject constructor(
     private val _showOnlyNonZero = MutableStateFlow(true)
     private val _searchQuery = MutableStateFlow("")
 
-    val uiState: StateFlow<PersonsUiState> = combine(
-        repository.getPersonsTotalFlow(), _showOnlyNonZero, _searchQuery
-    ) { personsList, showOnlyNonZero, searchQuery ->
+    private fun computeState(
+        personsList: List<PersonTotal>,
+        showOnlyNonZero: Boolean,
+        searchQuery: String
+    ): PersonsUiState {
         val filtered = if (showOnlyNonZero) {
             personsList.filter { it.vouchCount > 0 }
         } else {
             personsList
         }
         val searched = filtered.filterBySearchQuery(searchQuery)
-        PersonsUiState(
+        return PersonsUiState(
             persons = searched,
             showOnlyNonZero = showOnlyNonZero,
             searchQuery = searchQuery
         )
+    }
+
+    val uiState: StateFlow<PersonsUiState> = combine(
+        repository.getPersonsTotalFlow(), _showOnlyNonZero, _searchQuery
+    ) { personsList, showOnlyNonZero, searchQuery ->
+        computeState(personsList, showOnlyNonZero, searchQuery)
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.Eagerly,
-        initialValue = PersonsUiState()
+        initialValue = computeState(
+            repository.personsTotalFlow.value,
+            _showOnlyNonZero.value,
+            _searchQuery.value
+        )
     )
 
     fun setSearchQuery(query: String) {

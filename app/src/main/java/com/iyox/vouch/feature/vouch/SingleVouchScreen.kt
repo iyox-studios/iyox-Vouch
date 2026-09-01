@@ -28,7 +28,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.iyox.vouch.R
 import com.iyox.vouch.core.utils.rememberToastManager
 import com.iyox.vouch.ui.components.VouchBackButton
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -55,7 +54,10 @@ fun SingleVouchScreen(
 
     LaunchedEffect(uiState.isLoading) {
         if (!uiState.isLoading && !edit) {
-            amountFocusRequester.requestFocus()
+            try {
+                amountFocusRequester.requestFocus()
+            } catch (_: Exception) {
+            }
         }
     }
 

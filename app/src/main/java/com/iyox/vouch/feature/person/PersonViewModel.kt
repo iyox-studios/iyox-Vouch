@@ -51,7 +51,7 @@ class PersonViewModel @Inject constructor(
     private val personRepository: PersonRepository
 ) : ViewModel() {
 
-    private val initialPersonName: String = checkNotNull(savedStateHandle["personName"])
+    private val initialPersonName: String = savedStateHandle.get<String>("personName") ?: ""
     private val _personName = MutableStateFlow(initialPersonName)
     private val _showOnlyGiven = MutableStateFlow(VouchTypeFilter.ALL)
     private val _sortedBy = MutableStateFlow(VouchSortOrder.DATE)
@@ -59,36 +59,10 @@ class PersonViewModel @Inject constructor(
 
     val sharedActions = SharedVouchActions(vouchRepository) {}
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val uiState: StateFlow<PersonUiState> = _personName.flatMapLatest { name ->
-        combine(
-            vouchRepository.getVouchesByPersonNameFlow(name),
-            _showOnlyGiven,
-            _sortedBy,
-            _searchQuery
-        ) { personVouches, showOnlyGiven, sortedBy, searchQuery ->
-            buildState(name, personVouches, showOnlyGiven, sortedBy, searchQuery)
+    private fun getInitialPersonVouches(name: String): List<VouchWithPerson> {
+        return vouchRepository.vouchesFlow.value.filter { v ->
+            v.persons.any { it.person.name.equals(name, ignoreCase = true) }
         }
-    }.stateIn(
-        viewModelScope,
-        SharingStarted.Eagerly,
-        PersonUiState(isLoading = false)
-    )
-
-    fun loadPerson(name: String, shouldShowLoading: Boolean = false) {
-        _personName.value = name
-    }
-
-    fun setSearchQuery(query: String) {
-        _searchQuery.value = query
-    }
-
-    fun toggleShowOnlyGiven() {
-        _showOnlyGiven.value = _showOnlyGiven.value.next()
-    }
-
-    fun toggleSortedBy() {
-        _sortedBy.value = _sortedBy.value.next(supportsPerson = false)
     }
 
     private fun buildState(
@@ -135,13 +109,21 @@ class PersonViewModel @Inject constructor(
                 amount = given - owed,
                 vouchCount = activeVouches.size
             )
-        } else null
+        } else {
+            personRepository.personsTotalFlow.value.find {
+                it.person.name.equals(
+                    name,
+                    ignoreCase = true
+                )
+            }
+                ?: PersonTotal(Person(name = name), 0L, 0)
+        }
 
         return PersonUiState(
             personData = updatedPersonData,
             vouches = sortedActive,
             settledVouches = sortedSettled,
-            settledCount = sortedSettled.size,
+            settledCount = settledVouches.size,
             amountGiven = given,
             amountOwed = owed,
             showOnlyGiven = showOnlyGiven,
@@ -151,14 +133,87 @@ class PersonViewModel @Inject constructor(
         )
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val uiState: StateFlow<PersonUiState> = _personName.flatMapLatest { name ->
+        combine(
+            vouchRepository.getVouchesByPersonNameFlow(name),
+            _showOnlyGiven,
+            _sortedBy,
+            _searchQuery
+        ) { personVouches, showOnlyGiven, sortedBy, searchQuery ->
+            buildState(name, personVouches, showOnlyGiven, sortedBy, searchQuery)
+        }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Eagerly,
+        initialValue = buildState(
+            initialPersonName,
+            getInitialPersonVouches(initialPersonName),
+            _showOnlyGiven.value,
+            _sortedBy.value,
+            _searchQuery.value
+        )
+    )
+
+    fun loadPerson(name: String, shouldShowLoading: Boolean = false) {
+        _personName.value = name
+    }
+
+    fun setSearchQuery(query: String) {
+        _searchQuery.value = query
+    }
+
+    fun toggleShowOnlyGiven() {
+        _showOnlyGiven.value = _showOnlyGiven.value.next()
+    }
+
+    fun toggleSortedBy() {
+        _sortedBy.value = _sortedBy.value.next(supportsPerson = false)
+    }
+
+    fun onSettleOrUnsettleVouch(vouch: VouchWithPerson, settled: Boolean) {
+        viewModelScope.launch {
+            val personId =
+                vouch.persons.firstOrNull { it.person.name == _personName.value }?.person?.id
+            if (personId != null) {
+                vouchRepository.setPersonSettlement(vouch.vouch.id, personId, settled)
+            }
+        }
+    }
+
+    fun onSettleOrUnsettleAll(settled: Boolean): List<PersonSettlementChange> {
+        val personId = uiState.value.personData?.person?.id ?: return emptyList()
+        val targetVouches = if (settled) uiState.value.vouches else uiState.value.settledVouches
+        val changes = targetVouches.mapNotNull { v ->
+            val pid = v.persons.firstOrNull { it.person.name == _personName.value }?.person?.id
+                ?: personId
+            PersonSettlementChange(vouchId = v.vouch.id, personId = pid)
+        }
+        viewModelScope.launch {
+            vouchRepository.setPersonSettlements(personId, changes.map { it.vouchId }, settled)
+        }
+        return changes
+    }
+
+    fun undoSettlementChanges(changes: List<PersonSettlementChange>, revertToSettled: Boolean) {
+        if (changes.isEmpty()) return
+        viewModelScope.launch {
+            val personId = changes.first().personId
+            vouchRepository.setPersonSettlements(
+                personId,
+                changes.map { it.vouchId },
+                revertToSettled
+            )
+        }
+    }
+
     suspend fun renamePerson(newName: String): Result<Unit> {
         val trimmed = newName.trim()
-        if (trimmed.isEmpty()) {
+        if (trimmed.isBlank()) {
             return Result.failure(IllegalArgumentException("Name cannot be empty"))
         }
-        val currentName = _personName.value
         val person = uiState.value.personData?.person
-            ?: personRepository.getPersonByName(currentName)
+            ?: personRepository.getPersonByName(_personName.value)
             ?: return Result.failure(NoSuchElementException("Person not found"))
 
         val result = personRepository.renamePerson(person.id, trimmed)
@@ -170,7 +225,7 @@ class PersonViewModel @Inject constructor(
 
     suspend fun settlePerson(): List<PersonSettlementChange> {
         val personName = _personName.value
-        val currentVouches = vouchRepository.getVouchesByPersonName(personName)
+        val currentVouches = uiState.value.vouches
         val unsettledEntries = currentVouches.mapNotNull { vouch ->
             val personEntry = vouch.persons.firstOrNull { it.person.name == personName }
                 ?: return@mapNotNull null
@@ -185,25 +240,27 @@ class PersonViewModel @Inject constructor(
         return unsettledEntries
     }
 
-    /**
-     * @return (listOfJustSettledVouches, theNewNettingVouchOrNull)
-     */
     suspend fun netVouches(): Pair<List<PersonSettlementChange>, VouchWithPerson?> {
         val diff = uiState.value.amountGiven - uiState.value.amountOwed
         val settledVouches = settlePerson()
         var newNettingVouch: VouchWithPerson? = null
 
         val personName = _personName.value
-        if (diff != 0L) {
+        val person = uiState.value.personData?.person
+            ?: personRepository.getPersonByName(personName)
+
+        if (diff != 0L && person != null) {
             val netVouch = vouchRepository.insert(
                 VouchWithPerson(
                     vouch = Vouch(
                         amount = abs(diff),
                         description = com.iyox.vouch.core.utils.VouchConstants.TAG_NETTING,
                         given = diff > 0L
-                    ), persons = listOf(
+                    ),
+                    persons = listOf(
                         PersonWithAmount(
-                            person = Person(name = personName), amount = abs(diff)
+                            person = person,
+                            amount = abs(diff)
                         )
                     )
                 )

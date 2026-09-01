@@ -46,10 +46,13 @@ class SettledSpaceViewModel @Inject constructor(
     private val _sortedBy = MutableStateFlow(VouchSortOrder.DATE)
     private val _searchQuery = MutableStateFlow("")
 
-    val uiState: StateFlow<SettledSpaceUiState> = combine(
-        repository.vouchesFlow, _selectedPersonName, _showOnlyGiven, _sortedBy, _searchQuery
-    ) { allVouches, selectedPerson, showOnlyGiven, sortedBy, searchQuery ->
-        // Filter to settled vouches
+    private fun computeState(
+        allVouches: List<VouchWithPerson>,
+        selectedPerson: String?,
+        showOnlyGiven: VouchTypeFilter,
+        sortedBy: VouchSortOrder,
+        searchQuery: String
+    ): SettledSpaceUiState {
         val settledVouches = allVouches.filter { vouch ->
             if (selectedPerson != null) {
                 vouch.isSettledForPerson(selectedPerson)
@@ -83,7 +86,7 @@ class SettledSpaceViewModel @Inject constructor(
             }
         }
 
-        SettledSpaceUiState(
+        return SettledSpaceUiState(
             vouches = displayed,
             selectedPersonName = selectedPerson,
             showOnlyGiven = showOnlyGiven,
@@ -94,11 +97,23 @@ class SettledSpaceViewModel @Inject constructor(
             totalSettledVolume = totalGiven + totalReceived,
             settledCount = settledVouches.size
         )
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, SettledSpaceUiState())
-
-    fun loadVouches() {
-        // No-op: repository.vouchesFlow automatically updates reactively from Room.
     }
+
+    val uiState: StateFlow<SettledSpaceUiState> = combine(
+        repository.vouchesFlow, _selectedPersonName, _showOnlyGiven, _sortedBy, _searchQuery
+    ) { allVouches, selectedPerson, showOnlyGiven, sortedBy, searchQuery ->
+        computeState(allVouches, selectedPerson, showOnlyGiven, sortedBy, searchQuery)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Eagerly,
+        initialValue = computeState(
+            repository.vouchesFlow.value,
+            _selectedPersonName.value,
+            _showOnlyGiven.value,
+            _sortedBy.value,
+            _searchQuery.value
+        )
+    )
 
     fun setSearchQuery(query: String) {
         _searchQuery.value = query

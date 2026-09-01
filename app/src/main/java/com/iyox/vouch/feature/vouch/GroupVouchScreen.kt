@@ -119,7 +119,10 @@ fun GroupVouchScreen(
 
     LaunchedEffect(uiState.step, uiState.isLoading) {
         if (uiState.step == STEP_DETAILS && !uiState.isLoading && !edit) {
-            amountFocusRequester.requestFocus()
+            try {
+                amountFocusRequester.requestFocus()
+            } catch (_: Exception) {
+            }
         }
     }
 
