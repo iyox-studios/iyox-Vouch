@@ -8,17 +8,29 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.edit
 import com.iyox.vouch.core.currency.CurrencyManager
 import com.iyox.vouch.core.data.AppDatabase
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
+import dagger.hilt.android.HiltAndroidApp
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
+@HiltAndroidApp
 class VouchApplication : Application() {
-    @OptIn(DelicateCoroutinesApi::class)
+
+    /** Application-scoped coroutine scope — cancelled when the process dies. */
+    val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    @Inject lateinit var currencyManager: CurrencyManager
+
     override fun onCreate() {
         super.onCreate()
-        CurrencyManager.init(this)
-        // Pre-warm the Room database so the first screen open has no cold-start penalty
-        GlobalScope.launch { AppDatabase.getDatabase(this@VouchApplication).vouchDataDao().getAll() }
+        // Pre-warm the Room database so the first screen open has no cold-start penalty.
+        // Uses a supervised applicationScope instead of GlobalScope so it is properly
+        // associated with the app's lifetime.
+        applicationScope.launch {
+            AppDatabase.getDatabase(this@VouchApplication).vouchDataDao().getAll()
+        }
         migrateLegacyLocalesIfNeeded()
     }
 
