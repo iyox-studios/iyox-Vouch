@@ -46,12 +46,19 @@ data class VouchPersonCrossRef(
     val settled: Boolean = false
 )
 
+/**
+ * Internal database query carrier for flat join queries between Vouch, Person, and cross-reference table.
+ * For domain/UI representation, use [PersonWithAmount].
+ */
 data class VouchPersonRow(
     val vouchId: Int,
     @Embedded val person: Person,
     val amount: Long,
     val settled: Boolean
-)
+) {
+    fun toPersonWithAmount(): PersonWithAmount =
+        PersonWithAmount(person = person, amount = amount, settled = settled)
+}
 
 data class VouchWithPerson(
     @Embedded val vouch: Vouch,

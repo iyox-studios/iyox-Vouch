@@ -30,13 +30,7 @@ class VouchRepository @Inject constructor(
         vouches.map { vouch ->
             VouchWithPerson(
                 vouch = vouch,
-                persons = personsByVouchId[vouch.id]?.map {
-                    PersonWithAmount(
-                        person = it.person,
-                        amount = it.amount,
-                        settled = it.settled
-                    )
-                } ?: emptyList()
+                persons = personsByVouchId[vouch.id]?.map { it.toPersonWithAmount() } ?: emptyList()
             )
         }
     }
@@ -52,13 +46,7 @@ class VouchRepository @Inject constructor(
         vouches.map { vouch ->
             VouchWithPerson(
                 vouch = vouch,
-                persons = personsByVouchId[vouch.id]?.map {
-                    PersonWithAmount(
-                        person = it.person,
-                        amount = it.amount,
-                        settled = it.settled
-                    )
-                } ?: emptyList()
+                persons = personsByVouchId[vouch.id]?.map { it.toPersonWithAmount() } ?: emptyList()
             )
         }
     }
@@ -80,13 +68,7 @@ class VouchRepository @Inject constructor(
             vouches.map { vouch ->
                 VouchWithPerson(
                     vouch = vouch,
-                    persons = personsByVouchId[vouch.id]?.map {
-                        PersonWithAmount(
-                            person = it.person,
-                            amount = it.amount,
-                            settled = it.settled
-                        )
-                    } ?: emptyList()
+                    persons = personsByVouchId[vouch.id]?.map { it.toPersonWithAmount() } ?: emptyList()
                 )
             }
         }
@@ -101,13 +83,7 @@ class VouchRepository @Inject constructor(
             vouches.map { vouch ->
                 VouchWithPerson(
                     vouch = vouch,
-                    persons = personsByVouchId[vouch.id]?.map {
-                        PersonWithAmount(
-                            person = it.person,
-                            amount = it.amount,
-                            settled = it.settled
-                        )
-                    } ?: emptyList()
+                    persons = personsByVouchId[vouch.id]?.map { it.toPersonWithAmount() } ?: emptyList()
                 )
             }
         }
