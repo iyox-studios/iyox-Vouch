@@ -3,6 +3,40 @@ package com.iyox.vouch.navigation
 import android.net.Uri.encode
 import androidx.annotation.StringRes
 import com.iyox.vouch.R
+import kotlinx.serialization.Serializable
+
+@Serializable
+object OnboardingRoute
+
+@Serializable
+object VouchesRoute
+
+@Serializable
+object PersonsRoute
+
+@Serializable
+object SettingsRoute
+
+@Serializable
+data class SettledSpaceRoute(
+    val personName: String? = null
+)
+
+@Serializable
+data class SingleVouchRoute(
+    val vouchId: Long? = null,
+    val personName: String? = null
+)
+
+@Serializable
+data class GroupVouchRoute(
+    val vouchId: Long? = null
+)
+
+@Serializable
+data class ViewPersonRoute(
+    val personName: String
+)
 
 sealed class Screen(val route: String, @StringRes val titleRes: Int) {
     object Onboarding : Screen("onboarding", R.string.screen_onboarding)
