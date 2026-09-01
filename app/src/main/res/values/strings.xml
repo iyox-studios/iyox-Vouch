@@ -248,5 +248,5 @@
     <string name="onboarding_slide4_security_note">Biometric Lock and Dark Theme are available anytime in Settings.</string>
 
     <string name="settings_onboarding_guide">App Guide &amp; Tour</string>
-    <string name="settings_onboarding_guide_subtitle">Replay the feature walkthrough and guide</string>
+    <string name="settings_onboarding_guide_subtitle">Replay</string>
 </resources>

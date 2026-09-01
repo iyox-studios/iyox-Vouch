@@ -246,5 +246,5 @@
     <string name="onboarding_slide4_security_note">Biometrische Sperre und Dark Mode sind jederzeit in den Einstellungen verfügbar.</string>
 
     <string name="settings_onboarding_guide">App-Einführung &amp; Tour</string>
-    <string name="settings_onboarding_guide_subtitle">Die Einführung und Funktionsübersicht erneut anzeigen</string>
+    <string name="settings_onboarding_guide_subtitle">Erneut anzeigen</string>
 </resources>
