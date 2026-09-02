@@ -97,7 +97,7 @@ class PersonDaoTest {
     fun deletePersonsWithoutVouches() = runTest {
         val aliceId = personDao.insert(Person(name = "Alice"))
         val bobId = personDao.insert(Person(name = "Bob"))
-        val charlieId = personDao.insert(Person(name = "Charlie"))
+        personDao.insert(Person(name = "Charlie"))
 
         // Create vouch only for Alice and Bob
         val vouchId = vouchDao.insert(Vouch(amount = 2000L, given = true))
@@ -195,7 +195,7 @@ class PersonDaoTest {
     fun getPersonsByTotalVouches_ordering() = runTest {
         val aliceId = personDao.insert(Person(name = "Alice"))
         val bobId = personDao.insert(Person(name = "Bob"))
-        val charlieId = personDao.insert(Person(name = "Charlie"))
+        personDao.insert(Person(name = "Charlie"))
 
         // Bob: 3 vouches (including settled)
         for (i in 1..3) {

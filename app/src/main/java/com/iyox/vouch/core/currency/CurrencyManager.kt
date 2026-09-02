@@ -59,12 +59,6 @@ class CurrencyManager @Inject constructor(
         _currencyFlow.value = newCurrency
     }
 
-    fun getDecimalSeparator(locale: Locale = Locale.getDefault()): Char =
-        Companion.getDecimalSeparator(locale)
-
-    fun getMinorUnitFactor(currency: Currency = getCurrency()): Int =
-        Companion.getMinorUnitFactor(currency)
-
     fun formatAmount(
         minorUnits: Long,
         currency: Currency = getCurrency(),

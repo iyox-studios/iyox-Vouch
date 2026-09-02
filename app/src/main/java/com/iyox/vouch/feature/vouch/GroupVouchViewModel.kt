@@ -398,10 +398,6 @@ class GroupVouchViewModel @Inject constructor(
         addMember(person.name, isSelf = false)
     }
 
-    fun onPersonSelected(personTotal: PersonTotal) {
-        addMember(personTotal.person.name, isSelf = false)
-    }
-
     fun addMemberFromQuery() {
         val query = _uiState.value.personQuery.trim()
         if (query.isNotBlank()) {

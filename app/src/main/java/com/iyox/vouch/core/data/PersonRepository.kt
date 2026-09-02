@@ -45,10 +45,6 @@ class PersonRepository @Inject constructor(
         return personDao.getPersonsByTotalVouches()
     }
 
-    suspend fun getPersonTotalByName(name: String): PersonTotal? {
-        return personDao.getPersonTotalByName(name)
-    }
-
     suspend fun getPersonByName(name: String): Person? {
         return personDao.getByName(name)
     }

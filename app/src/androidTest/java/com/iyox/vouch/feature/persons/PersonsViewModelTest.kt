@@ -45,7 +45,7 @@ class PersonsViewModelTest {
     @Test
     fun testLoadPersons_and_toggleShowOnlyNonZero() = runTest {
         // Alice has active vouch (vouchCount = 1)
-        val v1 = repository.insert(
+        repository.insert(
             VouchWithPerson(
                 vouch = Vouch(amount = 1000L),
                 persons = listOf(PersonWithAmount(Person(name = "Alice"), 1000L))

@@ -46,15 +46,6 @@ class ToastManager(
         }
     }
 
-    fun show(
-        @StringRes messageRes: Int,
-        type: ToastType = ToastType.INFO,
-        duration: SnackbarDuration = SnackbarDuration.Short
-    ) {
-        val message = context?.getString(messageRes) ?: return
-        show(message, type, duration)
-    }
-
     fun showInfo(
         message: String,
         actionLabel: String? = null,

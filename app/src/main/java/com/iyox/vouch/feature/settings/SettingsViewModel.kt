@@ -247,18 +247,6 @@ class SettingsViewModel @Inject constructor(
         _pendingImportPreview.value = null
     }
 
-    fun deleteAllData() {
-        viewModelScope.launch {
-            val result = backupRepository.deleteAllData()
-            if (result.isSuccess) {
-                _toastEvents.emit(ToastEvent.Info(R.string.msg_all_data_deleted))
-            } else {
-                result.exceptionOrNull()?.printStackTrace()
-                _toastEvents.emit(ToastEvent.Error(R.string.msg_delete_data_failed))
-            }
-        }
-    }
-
     val appVersion: String
         get() = try {
             val pInfo = context.packageManager.getPackageInfo(context.packageName, 0)

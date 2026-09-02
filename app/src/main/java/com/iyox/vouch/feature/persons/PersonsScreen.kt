@@ -34,7 +34,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -56,7 +55,6 @@ fun PersonsScreen(
     onNavigateToViewPerson: (String) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val haptics = LocalHapticFeedback.current
 
     Scaffold(
         topBar = {

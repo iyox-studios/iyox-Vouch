@@ -53,14 +53,14 @@ class SettledSpaceViewModelTest {
     @Test
     fun testGlobalSettledSpace() = runTest {
         // Vouch 1: Settled Given (2000)
-        val v1 = repository.insert(
+        repository.insert(
             VouchWithPerson(
                 vouch = Vouch(amount = 2000L, given = true),
                 persons = listOf(PersonWithAmount(Person(name = "Alice"), 2000L, settled = true))
             )
         )
         // Vouch 2: Settled Received (1000)
-        val v2 = repository.insert(
+        repository.insert(
             VouchWithPerson(
                 vouch = Vouch(amount = 1000L, given = false),
                 persons = listOf(PersonWithAmount(Person(name = "Bob"), 1000L, settled = true))
@@ -88,7 +88,7 @@ class SettledSpaceViewModelTest {
     @Test
     fun testPersonSpecificSettledSpace() = runTest {
         // Vouch with Alice settled, Bob unsettled
-        val v1 = repository.insert(
+        repository.insert(
             VouchWithPerson(
                 vouch = Vouch(amount = 3000L, given = true),
                 persons = listOf(
@@ -162,13 +162,13 @@ class SettledSpaceViewModelTest {
 
     @Test
     fun testSearchQuery() = runTest {
-        val v1 = repository.insert(
+        repository.insert(
             VouchWithPerson(
                 vouch = Vouch(amount = 2000L, description = "Birthday Gift", given = true),
                 persons = listOf(PersonWithAmount(Person(name = "Alice"), 2000L, settled = true))
             )
         )
-        val v2 = repository.insert(
+        repository.insert(
             VouchWithPerson(
                 vouch = Vouch(amount = 1000L, description = "Train Ticket", given = false),
                 persons = listOf(PersonWithAmount(Person(name = "Bob"), 1000L, settled = true))
