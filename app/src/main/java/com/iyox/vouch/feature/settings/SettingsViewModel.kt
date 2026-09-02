@@ -1,23 +1,27 @@
 package com.iyox.vouch.feature.settings
 
-import android.app.Application
 import android.app.LocaleManager
 import android.app.UiModeManager
 import android.content.Context
+import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Build
 import android.os.LocaleList
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.edit
-import androidx.lifecycle.AndroidViewModel
+import androidx.core.net.toUri
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.iyox.vouch.R
 import com.iyox.vouch.core.backup.BackupPreview
 import com.iyox.vouch.core.backup.BackupRepository
 import com.iyox.vouch.core.backup.InvalidSignatureException
 import com.iyox.vouch.core.currency.CurrencyManager
+import com.iyox.vouch.core.utils.PreferenceKeys
 import com.iyox.vouch.ui.theme.AppColorTheme
+import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -28,6 +32,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 sealed interface ToastEvent {
     data class Info(@field:StringRes val messageRes: Int) : ToastEvent
@@ -43,7 +48,12 @@ data class SettingsUiState(
     val onboardingCompleted: Boolean = false
 )
 
-class SettingsViewModel(application: Application) : AndroidViewModel(application) {
+@HiltViewModel
+class SettingsViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
+    private val backupRepository: BackupRepository,
+    private val currencyManager: CurrencyManager
+) : ViewModel() {
 
     private val _toastEvents = MutableSharedFlow<ToastEvent>()
     val toastEvents: SharedFlow<ToastEvent> = _toastEvents.asSharedFlow()
@@ -51,17 +61,15 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     private val _pendingImportPreview = MutableStateFlow<BackupPreview?>(null)
     val pendingImportPreview: StateFlow<BackupPreview?> = _pendingImportPreview.asStateFlow()
 
-    val uiModeManager = application.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
-    private val prefs = application.getSharedPreferences("settings", Context.MODE_PRIVATE)
-    private val backupRepository = BackupRepository.getInstance(application)
+    private val uiModeManager = context.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
+    private val prefs: SharedPreferences = context.getSharedPreferences(PreferenceKeys.PREFS_SETTINGS, Context.MODE_PRIVATE)
 
     private fun currentLanguageTag(): String {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
             return "system"
         }
 
-        val localeManager =
-            getApplication<Application>().getSystemService(LocaleManager::class.java)
+        val localeManager = context.getSystemService(LocaleManager::class.java)
         val current = localeManager.applicationLocales.toLanguageTags()
         return current.ifBlank { "system" }
     }
@@ -71,7 +79,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     }
 
     private fun resolveInitialTheme(): Int {
-        val storedTheme = prefs.getInt("theme", Int.MIN_VALUE)
+        val storedTheme = prefs.getInt(PreferenceKeys.KEY_THEME, Int.MIN_VALUE)
         if (storedTheme != Int.MIN_VALUE) return storedTheme
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             UiModeManager.MODE_NIGHT_AUTO
@@ -86,12 +94,12 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     }
 
     private fun resolveInitialColorTheme(): AppColorTheme {
-        val stored = prefs.getString("color_theme", null)
+        val stored = prefs.getString(PreferenceKeys.KEY_COLOR_THEME, null)
         if (stored != null) {
             return AppColorTheme.fromKey(stored)
         }
-        if (prefs.contains("dynamic_colors")) {
-            val isDynamic = prefs.getBoolean("dynamic_colors", true)
+        if (prefs.contains(PreferenceKeys.KEY_DYNAMIC_COLORS)) {
+            val isDynamic = prefs.getBoolean(PreferenceKeys.KEY_DYNAMIC_COLORS, true)
             return if (isDynamic) AppColorTheme.DYNAMIC else AppColorTheme.PURPLE
         }
         return AppColorTheme.DYNAMIC
@@ -100,11 +108,11 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     private val _theme = MutableStateFlow(resolveInitialTheme())
     private val _colorTheme = MutableStateFlow(resolveInitialColorTheme())
     private val _languageTag = MutableStateFlow(currentLanguageTag())
-    private val _biometricEnabled = MutableStateFlow(prefs.getBoolean("biometric_enabled", false))
-    private val _onboardingCompleted = MutableStateFlow(prefs.getBoolean("onboarding_completed", false))
+    private val _biometricEnabled = MutableStateFlow(prefs.getBoolean(PreferenceKeys.KEY_BIOMETRIC_ENABLED, false))
+    private val _onboardingCompleted = MutableStateFlow(prefs.getBoolean(PreferenceKeys.KEY_ONBOARDING_COMPLETED, false))
 
     val uiState: StateFlow<SettingsUiState> = combine(
-        _theme, _colorTheme, _languageTag, CurrencyManager.currencyFlow(), _biometricEnabled
+        _theme, _colorTheme, _languageTag, currencyManager.currencyFlow, _biometricEnabled
     ) { theme, colorTheme, languageTag, currency, biometricEnabled ->
         SettingsUiState(
             theme = theme,
@@ -120,27 +128,27 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         viewModelScope,
         SharingStarted.WhileSubscribed(5000),
         SettingsUiState(
-            resolveInitialTheme(),
-            resolveInitialColorTheme(),
-            currentLanguageTag(),
-            CurrencyManager.getCurrency().currencyCode,
-            prefs.getBoolean("biometric_enabled", false),
-            prefs.getBoolean("onboarding_completed", false)
+            theme = _theme.value,
+            colorTheme = _colorTheme.value,
+            languageTag = _languageTag.value,
+            currencyCode = currencyManager.getCurrency().currencyCode,
+            biometricEnabled = _biometricEnabled.value,
+            onboardingCompleted = _onboardingCompleted.value
         )
     )
 
     fun isOnboardingCompleted(): Boolean {
-        return prefs.getBoolean("onboarding_completed", false)
+        return prefs.getBoolean(PreferenceKeys.KEY_ONBOARDING_COMPLETED, false)
     }
 
     fun setOnboardingCompleted(completed: Boolean = true) {
         _onboardingCompleted.value = completed
-        prefs.edit { putBoolean("onboarding_completed", completed) }
+        prefs.edit { putBoolean(PreferenceKeys.KEY_ONBOARDING_COMPLETED, completed) }
     }
 
     fun setTheme(theme: Int) {
         _theme.value = theme
-        prefs.edit { putInt("theme", theme) }
+        prefs.edit { putInt(PreferenceKeys.KEY_THEME, theme) }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             uiModeManager.setApplicationNightMode(theme)
         } else {
@@ -151,14 +159,14 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     fun setColorTheme(colorTheme: AppColorTheme) {
         _colorTheme.value = colorTheme
         prefs.edit {
-            putString("color_theme", colorTheme.key)
-            putBoolean("dynamic_colors", colorTheme == AppColorTheme.DYNAMIC)
+            putString(PreferenceKeys.KEY_COLOR_THEME, colorTheme.key)
+            putBoolean(PreferenceKeys.KEY_DYNAMIC_COLORS, colorTheme == AppColorTheme.DYNAMIC)
         }
     }
 
     fun setBiometricEnabled(enabled: Boolean) {
         _biometricEnabled.value = enabled
-        prefs.edit { putBoolean("biometric_enabled", enabled) }
+        prefs.edit { putBoolean(PreferenceKeys.KEY_BIOMETRIC_ENABLED, enabled) }
     }
 
     fun showBiometricError(@StringRes messageRes: Int) {
@@ -180,13 +188,12 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             LocaleList.forLanguageTags(tag)
         }
 
-        val localeManager =
-            getApplication<Application>().getSystemService(LocaleManager::class.java)
+        val localeManager = context.getSystemService(LocaleManager::class.java)
         localeManager.applicationLocales = appLocale
     }
 
     fun setCurrency(currencyCode: String) {
-        CurrencyManager.setCurrency(currencyCode)
+        currencyManager.setCurrency(currencyCode)
     }
 
     fun exportData(uri: Uri) {
@@ -221,7 +228,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     fun confirmImport(preview: BackupPreview) {
         _pendingImportPreview.value = null
         viewModelScope.launch {
-            val result = backupRepository.importData(preview.uri)
+            val result = backupRepository.importData(preview.uri.toUri())
             if (result.isSuccess) {
                 _toastEvents.emit(ToastEvent.Info(R.string.toast_import_success))
             } else {
@@ -240,29 +247,11 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         _pendingImportPreview.value = null
     }
 
-    fun importData(uri: Uri) {
-        requestImport(uri)
-    }
-
-    fun deleteAllData() {
-        viewModelScope.launch {
-            val result = backupRepository.deleteAllData()
-            if (result.isSuccess) {
-                _toastEvents.emit(ToastEvent.Info(R.string.msg_all_data_deleted))
-            } else {
-                result.exceptionOrNull()?.printStackTrace()
-                _toastEvents.emit(ToastEvent.Error(R.string.msg_delete_data_failed))
-            }
-        }
-    }
-
     val appVersion: String
         get() = try {
-            val pInfo = getApplication<Application>().packageManager.getPackageInfo(
-                getApplication<Application>().packageName, 0
-            )
-            pInfo.versionName ?: getApplication<Application>().getString(R.string.label_unknown)
+            val pInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+            pInfo.versionName ?: context.getString(R.string.label_unknown)
         } catch (_: Exception) {
-            getApplication<Application>().getString(R.string.label_unknown)
+            context.getString(R.string.label_unknown)
         }
 }

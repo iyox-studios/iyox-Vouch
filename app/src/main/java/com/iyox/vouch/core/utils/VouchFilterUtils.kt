@@ -2,6 +2,8 @@ package com.iyox.vouch.core.utils
 
 import com.iyox.vouch.core.currency.CurrencyManager
 import com.iyox.vouch.core.model.PersonTotal
+import com.iyox.vouch.core.model.VouchSortOrder
+import com.iyox.vouch.core.model.VouchTypeFilter
 import com.iyox.vouch.core.model.VouchWithPerson
 
 /**
@@ -10,14 +12,13 @@ import com.iyox.vouch.core.model.VouchWithPerson
 object VouchFilterUtils {
 
     /**
-     * Filters vouches by given/received status.
-     * @param showOnlyGiven 0 = All, 1 = Given, 2 = Received
+     * Filters vouches by given/received status using [VouchTypeFilter].
      */
-    fun List<VouchWithPerson>.filterByGiven(showOnlyGiven: Int): List<VouchWithPerson> {
-        return when (showOnlyGiven) {
-            1 -> filter { it.vouch.given }
-            2 -> filter { !it.vouch.given }
-            else -> this
+    fun List<VouchWithPerson>.filterByGiven(filter: VouchTypeFilter): List<VouchWithPerson> {
+        return when (filter) {
+            VouchTypeFilter.GIVEN -> filter { it.vouch.given }
+            VouchTypeFilter.RECEIVED -> filter { !it.vouch.given }
+            VouchTypeFilter.ALL -> this
         }
     }
 
@@ -37,30 +38,28 @@ object VouchFilterUtils {
     }
 
     /**
-     * Sorts vouches by date, amount, or person name in descending order.
-     * @param sortedBy 0 = Date (newest first), 1 = Amount (highest first), 2 = Person name
+     * Sorts vouches by date, amount, or person name in descending order using [VouchSortOrder].
      */
-    fun List<VouchWithPerson>.sortVouches(sortedBy: Int): List<VouchWithPerson> {
-        return when (sortedBy) {
-            0 -> sortedBy { it.vouch.timestamp }
-            1 -> sortedBy { it.vouch.amount }
-            2 -> sortedBy { if (it.persons.size == 1) it.persons.first().person.name else "" }
-            else -> sortedBy { it.vouch.timestamp }
-        }.reversed()
+    fun List<VouchWithPerson>.sortVouches(sortOrder: VouchSortOrder): List<VouchWithPerson> {
+        return when (sortOrder) {
+            VouchSortOrder.DATE -> sortedByDescending { it.vouch.timestamp }
+            VouchSortOrder.AMOUNT -> sortedByDescending { it.vouch.amount }
+            VouchSortOrder.PERSON -> sortedByDescending { if (it.persons.size == 1) it.persons.first().person.name else "" }
+        }
     }
 
     /**
      * Applies given/received filter, search query filter, and sorting in one cohesive pipeline.
      */
     fun List<VouchWithPerson>.filterSearchAndSort(
-        showOnlyGiven: Int,
+        typeFilter: VouchTypeFilter,
         searchQuery: String,
-        sortedBy: Int
+        sortOrder: VouchSortOrder
     ): List<VouchWithPerson> {
         return this
-            .filterByGiven(showOnlyGiven)
+            .filterByGiven(typeFilter)
             .filterBySearchQuery(searchQuery)
-            .sortVouches(sortedBy)
+            .sortVouches(sortOrder)
     }
 
     /**

@@ -25,7 +25,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- 1. Pathless MIME filter: Catches system file managers (content:// URIs without filename in path) -->
+            <!-- 1. Pathless MIME filter: Catches system file managers with explicit MIME type -->
             <intent-filter tools:ignore="AppLinkUrlError">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -35,7 +35,7 @@
                 <data android:mimeType="application/x-iyxv" />
             </intent-filter>
 
-            <!-- 2. Path dragnet with MIME types: Catches 3rd-party file managers, WhatsApp, Gmail, etc. -->
+            <!-- 2. Path filter with recognized data types for .iyxv files -->
             <intent-filter tools:ignore="AppLinkUrlError">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -43,20 +43,14 @@
                 <data android:scheme="content" />
                 <data android:scheme="file" />
                 <data android:host="*" />
-                <data android:mimeType="*/*" />
-                <data android:mimeType="application/*" />
                 <data android:mimeType="application/octet-stream" />
                 <data android:mimeType="application/json" />
-                <data android:mimeType="text/plain" />
                 <data android:mimeType="application/x-iyxv" />
                 <data android:pathPattern=".*\\.iyxv" />
-                <data android:pathPattern=".*\\..*\\.iyxv" />
-                <data android:pathPattern=".*\\..*\\..*\\.iyxv" />
-                <data android:pathPattern=".*\\..*\\..*\\..*\\.iyxv" />
                 <data android:pathSuffix=".iyxv" />
             </intent-filter>
 
-            <!-- 3. Path dragnet without MIME type: Catches callers that omit MIME type -->
+            <!-- 3. Path filter without MIME type for callers that omit MIME type -->
             <intent-filter tools:ignore="AppLinkUrlError">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -65,9 +59,6 @@
                 <data android:scheme="file" />
                 <data android:host="*" />
                 <data android:pathPattern=".*\\.iyxv" />
-                <data android:pathPattern=".*\\..*\\.iyxv" />
-                <data android:pathPattern=".*\\..*\\..*\\.iyxv" />
-                <data android:pathPattern=".*\\..*\\..*\\..*\\.iyxv" />
                 <data android:pathSuffix=".iyxv" />
             </intent-filter>
         </activity>

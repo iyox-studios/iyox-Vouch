@@ -1,13 +1,46 @@
 package com.iyox.vouch.core.data
 
-import android.content.Context
+import com.iyox.vouch.core.di.ApplicationScope
 import com.iyox.vouch.core.model.Person
 import com.iyox.vouch.core.model.PersonTotal
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class PersonRepository private constructor(context: Context) {
+@Singleton
+class PersonRepository @Inject constructor(
+    private val personDao: PersonDao,
+    @ApplicationScope private val externalScope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+) {
 
-    private val personDao = AppDatabase.getDatabase(context).personDao()
-    private val vouchRepository = VouchRepository.getInstance(context)
+    /**
+     * Reactive, hot StateFlow of all person totals, eagerly held in RAM by [externalScope]
+     * for instant 0ms screen rendering on tab navigation.
+     * Initialized to null until SQLite finishes the first load.
+     */
+    val personsTotalFlow: StateFlow<List<PersonTotal>?> =
+        personDao.getPersonsTotalAllFlow()
+            .stateIn(
+                scope = externalScope,
+                started = SharingStarted.Eagerly,
+                initialValue = null
+            )
+
+    fun getPersonsTotalFlow(): Flow<List<PersonTotal>?> = personsTotalFlow
+
+    /**
+     * Explicit warm-up hook called during application startup to prime the in-memory cache
+     * before the user navigates to the People tab, enabling 0ms instant tab transitions.
+     */
+    fun warmUp() {
+        personsTotalFlow
+    }
 
     suspend fun getPersonTotal(nameQuery: String? = null): List<PersonTotal> {
         return if (nameQuery.isNullOrEmpty()) {
@@ -21,19 +54,14 @@ class PersonRepository private constructor(context: Context) {
         return personDao.getPersonsByTotalVouches()
     }
 
-    suspend fun getPersonTotalByName(name: String): PersonTotal? {
-        return personDao.getPersonTotalByName(name)
-    }
-
-    suspend fun getPersonById(id: Int): Person? {
-        return personDao.getById(id)
-    }
-
     suspend fun getPersonByName(name: String): Person? {
         return personDao.getByName(name)
     }
 
-    suspend fun renamePerson(personId: Int, newName: String): Result<Unit> {
+    /**
+     * Renames a person by ID.
+     */
+    suspend fun renamePerson(personId: Long, newName: String): Result<Unit> {
         val trimmed = newName.trim()
         if (trimmed.isBlank()) {
             return Result.failure(IllegalArgumentException("Name cannot be empty"))
@@ -49,27 +77,6 @@ class PersonRepository private constructor(context: Context) {
         }
 
         personDao.update(current.copy(name = trimmed))
-        vouchRepository.notifyDataChanged()
         return Result.success(Unit)
-    }
-
-    suspend fun renamePersonByName(oldName: String, newName: String): Result<Unit> {
-        val trimmedOld = oldName.trim()
-        val person = personDao.getByName(trimmedOld)
-            ?: return Result.failure(NoSuchElementException("Person not found"))
-        return renamePerson(person.id, newName)
-    }
-
-    companion object {
-        @Volatile
-        private var INSTANCE: PersonRepository? = null
-
-        fun getInstance(context: Context): PersonRepository {
-            return INSTANCE ?: synchronized(this) {
-                val instance = PersonRepository(context.applicationContext)
-                INSTANCE = instance
-                instance
-            }
-        }
     }
 }

@@ -19,13 +19,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.iyox.vouch.R
+import com.iyox.vouch.core.model.VouchSortOrder
+import com.iyox.vouch.core.model.VouchTypeFilter
 import com.iyox.vouch.feature.vouch.PersonAvatar
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun SettledFilterRow(
-    sortedBy: Int,
-    showOnlyGiven: Int,
+    sortedBy: VouchSortOrder,
+    showOnlyGiven: VouchTypeFilter,
     selectedPersonName: String?,
     onToggleSort: () -> Unit,
     onToggleGiven: () -> Unit,
@@ -57,10 +59,9 @@ fun SettledFilterRow(
             label = {
                 Text(
                     when (sortedBy) {
-                        0 -> stringResource(R.string.filter_date)
-                        1 -> stringResource(R.string.filter_amount)
-                        2 -> stringResource(R.string.filter_person)
-                        else -> stringResource(R.string.filter_date)
+                        VouchSortOrder.DATE -> stringResource(R.string.filter_date)
+                        VouchSortOrder.AMOUNT -> stringResource(R.string.filter_amount)
+                        VouchSortOrder.PERSON -> stringResource(R.string.filter_person)
                     }
                 )
             },
@@ -72,20 +73,19 @@ fun SettledFilterRow(
 
         // Given/Received Filter Chip
         FilterChip(
-            selected = showOnlyGiven > 0,
-            onClick = { handleToggle(showOnlyGiven == 2, onToggleGiven) },
+            selected = showOnlyGiven != VouchTypeFilter.ALL,
+            onClick = { handleToggle(showOnlyGiven == VouchTypeFilter.RECEIVED, onToggleGiven) },
             label = {
                 Text(
                     when (showOnlyGiven) {
-                        0 -> stringResource(R.string.filter_given_received_short)
-                        1 -> stringResource(R.string.label_given)
-                        2 -> stringResource(R.string.label_received)
-                        else -> ""
+                        VouchTypeFilter.ALL -> stringResource(R.string.filter_given_received_short)
+                        VouchTypeFilter.GIVEN -> stringResource(R.string.label_given)
+                        VouchTypeFilter.RECEIVED -> stringResource(R.string.label_received)
                     }
                 )
             },
             leadingIcon = {
-                if (showOnlyGiven > 0) {
+                if (showOnlyGiven != VouchTypeFilter.ALL) {
                     Icon(Icons.Default.FilterList, null, Modifier.size(18.dp))
                 }
             },

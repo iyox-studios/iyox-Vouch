@@ -1,29 +1,29 @@
 package com.iyox.vouch.feature.settled
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
 import com.iyox.vouch.core.data.VouchRepository
 import com.iyox.vouch.core.domain.SharedVouchActions
+import com.iyox.vouch.core.model.VouchSortOrder
+import com.iyox.vouch.core.model.VouchTypeFilter
 import com.iyox.vouch.core.model.VouchWithPerson
 import com.iyox.vouch.core.model.isSettled
 import com.iyox.vouch.core.model.isSettledForPerson
 import com.iyox.vouch.core.utils.VouchFilterUtils.filterSearchAndSort
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 data class SettledSpaceUiState(
     val vouches: List<VouchWithPerson> = emptyList(),
     val selectedPersonName: String? = null,
-    val showOnlyGiven: Int = 0, // 0 = all, 1 = given, 2 = received
-    val sortedBy: Int = 0, // 0 = date, 1 = amount, 2 = person
+    val showOnlyGiven: VouchTypeFilter = VouchTypeFilter.ALL,
+    val sortedBy: VouchSortOrder = VouchSortOrder.DATE,
     val searchQuery: String = "",
     val totalSettledGiven: Long = 0L,
     val totalSettledReceived: Long = 0L,
@@ -31,25 +31,28 @@ data class SettledSpaceUiState(
     val settledCount: Int = 0
 )
 
-class SettledSpaceViewModel(
-    application: Application,
-    initialPersonName: String? = null
-) : AndroidViewModel(application) {
+@HiltViewModel
+class SettledSpaceViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
+    repository: VouchRepository
+) : ViewModel() {
 
-    private val repository = VouchRepository.getInstance(application)
+    private val initialPersonName: String? = savedStateHandle["personName"]
 
-    val sharedActions = SharedVouchActions(repository) { loadVouches() }
+    val sharedActions = SharedVouchActions(repository)
 
-    private val _allVouches = MutableStateFlow(repository.getCachedVouches() ?: emptyList())
     private val _selectedPersonName = MutableStateFlow(initialPersonName)
-    private val _showOnlyGiven = MutableStateFlow(0)
-    private val _sortedBy = MutableStateFlow(0)
+    private val _showOnlyGiven = MutableStateFlow(VouchTypeFilter.ALL)
+    private val _sortedBy = MutableStateFlow(VouchSortOrder.DATE)
     private val _searchQuery = MutableStateFlow("")
 
-    val uiState: StateFlow<SettledSpaceUiState> = combine(
-        _allVouches, _selectedPersonName, _showOnlyGiven, _sortedBy, _searchQuery
-    ) { allVouches, selectedPerson, showOnlyGiven, sortedBy, searchQuery ->
-        // Filter to settled vouches
+    private fun computeState(
+        allVouches: List<VouchWithPerson>,
+        selectedPerson: String?,
+        showOnlyGiven: VouchTypeFilter,
+        sortedBy: VouchSortOrder,
+        searchQuery: String
+    ): SettledSpaceUiState {
         val settledVouches = allVouches.filter { vouch ->
             if (selectedPerson != null) {
                 vouch.isSettledForPerson(selectedPerson)
@@ -59,9 +62,9 @@ class SettledSpaceViewModel(
         }
 
         val displayed = settledVouches.filterSearchAndSort(
-            showOnlyGiven = showOnlyGiven,
+            typeFilter = showOnlyGiven,
             searchQuery = searchQuery,
-            sortedBy = sortedBy
+            sortOrder = sortedBy
         )
 
         var totalGiven = 0L
@@ -83,7 +86,7 @@ class SettledSpaceViewModel(
             }
         }
 
-        SettledSpaceUiState(
+        return SettledSpaceUiState(
             vouches = displayed,
             selectedPersonName = selectedPerson,
             showOnlyGiven = showOnlyGiven,
@@ -94,22 +97,23 @@ class SettledSpaceViewModel(
             totalSettledVolume = totalGiven + totalReceived,
             settledCount = settledVouches.size
         )
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, SettledSpaceUiState())
-
-    init {
-        loadVouches()
-        viewModelScope.launch {
-            repository.dataUpdates.collect {
-                loadVouches()
-            }
-        }
     }
 
-    fun loadVouches() {
-        viewModelScope.launch {
-            _allVouches.value = repository.getAll()
-        }
-    }
+    val uiState: StateFlow<SettledSpaceUiState> = combine(
+        repository.vouchesFlow, _selectedPersonName, _showOnlyGiven, _sortedBy, _searchQuery
+    ) { allVouches, selectedPerson, showOnlyGiven, sortedBy, searchQuery ->
+        computeState(allVouches, selectedPerson, showOnlyGiven, sortedBy, searchQuery)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Eagerly,
+        initialValue = computeState(
+            repository.vouchesFlow.value,
+            _selectedPersonName.value,
+            _showOnlyGiven.value,
+            _sortedBy.value,
+            _searchQuery.value
+        )
+    )
 
     fun setSearchQuery(query: String) {
         _searchQuery.value = query
@@ -120,19 +124,10 @@ class SettledSpaceViewModel(
     }
 
     fun toggleShowOnlyGiven() {
-        _showOnlyGiven.value = (_showOnlyGiven.value + 1) % 3
+        _showOnlyGiven.value = _showOnlyGiven.value.next()
     }
 
     fun toggleSortedBy() {
-        _sortedBy.value = (_sortedBy.value + 1) % 3
-    }
-
-    companion object {
-        fun factory(initialPersonName: String?): ViewModelProvider.Factory = viewModelFactory {
-            initializer {
-                val application = this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY]!!
-                SettledSpaceViewModel(application, initialPersonName)
-            }
-        }
+        _sortedBy.value = _sortedBy.value.next(supportsPerson = true)
     }
 }

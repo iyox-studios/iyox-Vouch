@@ -22,6 +22,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -31,7 +32,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.iyox.vouch.R
 import com.iyox.vouch.ui.components.EmptySearchContent
 import com.iyox.vouch.ui.components.SettledFilterRow
@@ -43,15 +44,18 @@ import com.iyox.vouch.ui.components.vouches.VouchList
 fun SettledSpaceScreen(
     initialPersonName: String? = null,
     onNavigateBack: () -> Unit = {},
-    onNavigateToEditVouch: (Int, Boolean) -> Unit = { _, _ -> },
+    onNavigateToEditVouch: (Long, Boolean) -> Unit = { _, _ -> },
     onNavigateToPerson: (String) -> Unit = {},
-    viewModel: SettledSpaceViewModel = viewModel(
-        factory = SettledSpaceViewModel.factory(initialPersonName),
-        key = "SettledSpace_$initialPersonName"
-    )
+    viewModel: SettledSpaceViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val listState = rememberLazyListState()
+
+    LaunchedEffect(initialPersonName) {
+        if (initialPersonName != null) {
+            viewModel.setSelectedPerson(initialPersonName)
+        }
+    }
 
     Scaffold(
         topBar = {

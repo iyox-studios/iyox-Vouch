@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.iyox.vouch.core.data.AppDatabase
+import com.iyox.vouch.core.data.PersonRepository
 import com.iyox.vouch.core.data.VouchRepository
 import com.iyox.vouch.core.model.Person
 import com.iyox.vouch.core.model.PersonWithAmount
@@ -22,32 +23,29 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class PersonsViewModelTest {
 
-    private lateinit var application: Application
     private lateinit var repository: VouchRepository
     private lateinit var database: AppDatabase
 
     @Before
     fun setUp() = runTest {
-        application = ApplicationProvider.getApplicationContext()
-        database = AppDatabase.getDatabase(application)
-        repository = VouchRepository.getInstance(application)
+        val context: Application = ApplicationProvider.getApplicationContext()
+        database = AppDatabase.getDatabase(context)
+        repository = VouchRepository(database, database.vouchDao(), database.personDao())
 
-        database.vouchDataDao().deleteAll()
+        database.vouchDao().deleteAll()
         database.personDao().deleteAll()
-        repository.notifyDataChanged()
     }
 
     @After
     fun tearDown() = runTest {
-        database.vouchDataDao().deleteAll()
+        database.vouchDao().deleteAll()
         database.personDao().deleteAll()
-        repository.notifyDataChanged()
     }
 
     @Test
     fun testLoadPersons_and_toggleShowOnlyNonZero() = runTest {
         // Alice has active vouch (vouchCount = 1)
-        val v1 = repository.insert(
+        repository.insert(
             VouchWithPerson(
                 vouch = Vouch(amount = 1000L),
                 persons = listOf(PersonWithAmount(Person(name = "Alice"), 1000L))
@@ -63,8 +61,9 @@ class PersonsViewModelTest {
         )
         repository.setVouchSettled(v2.vouch.id, true)
 
-        val viewModel = PersonsViewModel(application)
-        viewModel.loadPersons()
+        val viewModel = PersonsViewModel(
+            PersonRepository(database.personDao())
+        )
 
         // By default showOnlyNonZero is true -> wait for loaded persons (only Alice)
         val stateOnlyNonZero = viewModel.uiState.first { it.persons.isNotEmpty() }
@@ -100,8 +99,9 @@ class PersonsViewModelTest {
             )
         )
 
-        val viewModel = PersonsViewModel(application)
-        viewModel.loadPersons()
+        val viewModel = PersonsViewModel(
+            PersonRepository(database.personDao())
+        )
         viewModel.uiState.first { it.persons.size == 2 }
 
         // Search for "Alice"

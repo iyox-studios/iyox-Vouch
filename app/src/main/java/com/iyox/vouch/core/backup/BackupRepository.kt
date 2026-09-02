@@ -5,23 +5,18 @@ import android.net.Uri
 import androidx.room.withTransaction
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import com.google.gson.JsonDeserializationContext
-import com.google.gson.JsonDeserializer
-import com.google.gson.JsonElement
-import com.google.gson.JsonPrimitive
-import com.google.gson.JsonSerializationContext
-import com.google.gson.JsonSerializer
 import com.google.gson.reflect.TypeToken
 import com.iyox.vouch.core.data.AppDatabase
 import com.iyox.vouch.core.data.VouchRepository
 import com.iyox.vouch.core.model.Person
 import com.iyox.vouch.core.model.VouchPersonCrossRef
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.InputStreamReader
 import java.io.OutputStreamWriter
-import java.lang.reflect.Type
-import java.sql.Timestamp
+import javax.inject.Inject
+import javax.inject.Singleton
 
 sealed interface BackupImportResult {
     data class BackupSuccess(val count: Int) : BackupImportResult
@@ -31,30 +26,14 @@ sealed interface BackupImportResult {
 class InvalidSignatureException(message: String = "Invalid app signature") : IllegalArgumentException(message)
 class UnsupportedBackupTypeException(type: String) : IllegalArgumentException("Unsupported backup type: $type")
 
-class BackupRepository private constructor(private val context: Context) {
+@Singleton
+class BackupRepository @Inject constructor(
+    @ApplicationContext private val context: Context,
+    private val database: AppDatabase,
+    private val vouchRepository: VouchRepository
+) {
 
-    private val database = AppDatabase.getDatabase(context)
-    private val vouchRepository = VouchRepository.getInstance(context)
-
-    val gson: Gson = GsonBuilder()
-        .registerTypeAdapter(Timestamp::class.java, object : JsonSerializer<Timestamp>,
-            JsonDeserializer<Timestamp> {
-            override fun serialize(
-                src: Timestamp,
-                typeOfSrc: Type,
-                context: JsonSerializationContext
-            ): JsonElement {
-                return JsonPrimitive(src.time)
-            }
-
-            override fun deserialize(
-                json: JsonElement,
-                typeOfT: Type,
-                context: JsonDeserializationContext
-            ): Timestamp {
-                return Timestamp(json.asLong)
-            }
-        })
+    private val gson: Gson = GsonBuilder()
         .setPrettyPrinting()
         .create()
 
@@ -89,7 +68,7 @@ class BackupRepository private constructor(private val context: Context) {
 
                             Result.success(
                                 BackupPreview(
-                                    uri = uri,
+                                    uri = uri.toString(),
                                     type = envelope.type,
                                     version = envelope.version,
                                     vouchCount = vouches.size,
@@ -99,15 +78,16 @@ class BackupRepository private constructor(private val context: Context) {
                         }
                         IyoxEnvelope.TYPE_SINGLE -> {
                             val singleVouch = gson.fromJson(envelope.data, ExportVouch::class.java)
-                            val uniquePersons = singleVouch?.persons
-                                ?.map { it.name.trim() }
-                                ?.filter { it.isNotBlank() }
-                                ?.distinct()
-                                ?.size ?: 0
+                                ?: return@withContext Result.failure(IllegalArgumentException("Invalid or empty single vouch payload"))
+                            val uniquePersons = singleVouch.persons
+                                .map { it.name.trim() }
+                                .filter { it.isNotBlank() }
+                                .distinct()
+                                .size
 
                             Result.success(
                                 BackupPreview(
-                                    uri = uri,
+                                    uri = uri.toString(),
                                     type = envelope.type,
                                     version = envelope.version,
                                     vouchCount = 1,
@@ -196,7 +176,7 @@ class BackupRepository private constructor(private val context: Context) {
                                 ?: emptyList()
 
                             database.withTransaction {
-                                database.vouchDataDao().deleteAll()
+                                database.vouchDao().deleteAll()
                                 database.personDao().deleteAll()
 
                                 val allNames = vouches.flatMap { it.persons }
@@ -211,9 +191,8 @@ class BackupRepository private constructor(private val context: Context) {
 
                                 val allCrossRefs = mutableListOf<VouchPersonCrossRef>()
                                 vouches.forEach { export ->
-                                    val newVouchId = database.vouchDataDao()
-                                        .insert(export.vouch.copy(id = 0))
-                                        .toInt()
+                                    val newVouchId = database.vouchDao()
+                                        .insert(export.vouch.copy(id = 0L))
 
                                     val crossRefs = export.persons.mapNotNull { personAmount ->
                                         val normalizedName = personAmount.name.trim()
@@ -229,16 +208,47 @@ class BackupRepository private constructor(private val context: Context) {
                                 }
 
                                 if (allCrossRefs.isNotEmpty()) {
-                                    database.vouchDataDao().insertCrossRefs(allCrossRefs)
+                                    database.vouchDao().insertCrossRefs(allCrossRefs)
                                 }
                             }
 
-                            vouchRepository.notifyDataChanged()
                             Result.success(BackupImportResult.BackupSuccess(vouches.size))
                         }
                         IyoxEnvelope.TYPE_SINGLE -> {
                             val singleVouch = gson.fromJson(envelope.data, ExportVouch::class.java)
-                            // Future: handle single vouch import
+                                ?: return@withContext Result.failure(IllegalArgumentException("Invalid or empty single vouch payload"))
+
+                            database.withTransaction {
+                                val allNames = singleVouch.persons
+                                    .map { it.name.trim() }
+                                    .filter { it.isNotBlank() }
+                                    .distinct()
+
+                                if (allNames.isNotEmpty()) {
+                                    database.personDao().insertAll(allNames.map { Person(name = it) })
+                                }
+
+                                val personMap = database.personDao().getByNames(allNames).associateBy { it.name }
+
+                                val newVouchId = database.vouchDao()
+                                    .insert(singleVouch.vouch.copy(id = 0L))
+
+                                val crossRefs = singleVouch.persons.mapNotNull { personAmount ->
+                                    val normalizedName = personAmount.name.trim()
+                                    val storedPerson = personMap[normalizedName] ?: return@mapNotNull null
+                                    VouchPersonCrossRef(
+                                        vouchId = newVouchId,
+                                        personId = storedPerson.id,
+                                        amount = personAmount.amount,
+                                        settled = personAmount.settled
+                                    )
+                                }
+
+                                if (crossRefs.isNotEmpty()) {
+                                    database.vouchDao().insertCrossRefs(crossRefs)
+                                }
+                            }
+
                             Result.success(BackupImportResult.SingleSuccess(singleVouch))
                         }
                         else -> {
@@ -255,26 +265,12 @@ class BackupRepository private constructor(private val context: Context) {
     suspend fun deleteAllData(): Result<Unit> = withContext(Dispatchers.IO) {
         try {
             database.withTransaction {
-                database.vouchDataDao().deleteAll()
+                database.vouchDao().deleteAll()
                 database.personDao().deleteAll()
             }
-            vouchRepository.notifyDataChanged()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
-        }
-    }
-
-    companion object {
-        @Volatile
-        private var INSTANCE: BackupRepository? = null
-
-        fun getInstance(context: Context): BackupRepository {
-            return INSTANCE ?: synchronized(this) {
-                val instance = BackupRepository(context.applicationContext)
-                INSTANCE = instance
-                instance
-            }
         }
     }
 }

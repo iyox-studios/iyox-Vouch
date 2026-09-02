@@ -4,31 +4,17 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import androidx.room.TypeConverter
-import androidx.room.TypeConverters
 import com.iyox.vouch.core.model.Person
-import com.iyox.vouch.core.model.PersonDao
 import com.iyox.vouch.core.model.Vouch
-import com.iyox.vouch.core.model.VouchDao
 import com.iyox.vouch.core.model.VouchPersonCrossRef
-import java.sql.Timestamp
-
-class TimestampConverter {
-    @TypeConverter
-    fun fromTimestamp(value: Long?): Timestamp? = value?.let { Timestamp(it) }
-
-    @TypeConverter
-    fun timestampToLong(timestamp: Timestamp?): Long? = timestamp?.time
-}
 
 @Database(
     entities = [Vouch::class, Person::class, VouchPersonCrossRef::class],
     version = 1,
-    exportSchema = false
+    exportSchema = false // Schema export disabled due to upstream Room FieldBundle serializer binary incompatibility with Kotlin 2.x
 )
-@TypeConverters(TimestampConverter::class)
 abstract class AppDatabase : RoomDatabase() {
-    abstract fun vouchDataDao(): VouchDao
+    abstract fun vouchDao(): VouchDao
     abstract fun personDao(): PersonDao
 
     companion object {

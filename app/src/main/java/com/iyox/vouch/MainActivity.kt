@@ -18,8 +18,11 @@ import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.fragment.app.FragmentActivity
 import com.iyox.vouch.core.utils.LocalVibrationManager
+import com.iyox.vouch.core.utils.PreferenceKeys
 import com.iyox.vouch.core.utils.VibrationManager
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : FragmentActivity() {
 
     private var isAuthenticated = false
@@ -41,8 +44,8 @@ class MainActivity : FragmentActivity() {
             handleIntentData(intent)
         }
 
-        val prefs = getSharedPreferences("settings", MODE_PRIVATE)
-        val biometricEnabled = prefs.getBoolean("biometric_enabled", false)
+        val prefs = getSharedPreferences(PreferenceKeys.PREFS_SETTINGS, MODE_PRIVATE)
+        val biometricEnabled = prefs.getBoolean(PreferenceKeys.KEY_BIOMETRIC_ENABLED, false)
 
         if (biometricEnabled && !isAuthenticated) {
             authenticateUser()
@@ -55,8 +58,8 @@ class MainActivity : FragmentActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         isIntentConsumed = false
-        val prefs = getSharedPreferences("settings", MODE_PRIVATE)
-        val biometricEnabled = prefs.getBoolean("biometric_enabled", false)
+        val prefs = getSharedPreferences(PreferenceKeys.PREFS_SETTINGS, MODE_PRIVATE)
+        val biometricEnabled = prefs.getBoolean(PreferenceKeys.KEY_BIOMETRIC_ENABLED, false)
 
         if (biometricEnabled && !isAuthenticated) {
             authenticateUser()
@@ -116,8 +119,8 @@ class MainActivity : FragmentActivity() {
     }
 
     private fun applyStoredTheme() {
-        val prefs = getSharedPreferences("settings", MODE_PRIVATE)
-        val theme = prefs.getInt("theme", UiModeManager.MODE_NIGHT_AUTO)
+        val prefs = getSharedPreferences(PreferenceKeys.PREFS_SETTINGS, MODE_PRIVATE)
+        val theme = prefs.getInt(PreferenceKeys.KEY_THEME, UiModeManager.MODE_NIGHT_AUTO)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val uiModeManager = getSystemService(UI_MODE_SERVICE) as UiModeManager
             uiModeManager.setApplicationNightMode(theme)

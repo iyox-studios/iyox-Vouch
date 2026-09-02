@@ -13,16 +13,12 @@
     <string name="screen_settings">Settings</string>
     <string name="screen_settled_space">Settled Space</string>
     <string name="title_person_settled_space">Settled: %1$s</string>
-    <string name="title_add_vouch">Add &vouch;</string>
-    <string name="title_edit_vouch">Edit &vouch;</string>
-    <string name="title_view_person">View Person</string>
     <string name="title_select_currency">Select Currency</string>
     <string name="title_select_language">Select Language</string>
     <string name="title_select_theme">Select Theme</string>
     <string name="title_select_color_theme">Select Color</string>
     <string name="title_settle_person">Settle Person?</string>
     <string name="title_rename_person">Rename Person</string>
-    <string name="title_add_group_vouch">Add &group_vouch;</string>
 
     <string name="biometric_title">Biometric Authentication</string>
     <string name="biometric_subtitle">Authenticate to access the app</string>
@@ -39,8 +35,6 @@
     <string name="theme_system">System</string>
     <string name="theme_error">Error</string>
     <string name="settings_color_theme">Colors</string>
-    <string name="settings_dynamic_colors">Dynamic Colors</string>
-    <string name="settings_dynamic_colors_subtitle">Use system colors (Android 12+)</string>
     <string name="color_theme_dynamic">Dynamic</string>
     <string name="color_theme_purple">Purple</string>
     <string name="color_theme_blue">Blue</string>
@@ -49,14 +43,11 @@
     <string name="color_theme_orange">Orange</string>
     <string name="color_theme_rose">Rose</string>
     <string name="settings_currency">Currency</string>
-    <string name="settings_currency_subtitle">App-wide currency for all &vouches;</string>
     <string name="settings_biometric_auth">Biometric Authentication</string>
     <string name="settings_biometric_auth_subtitle">Require biometric authentication to open app</string>
     <string name="settings_section_data">Data</string>
     <string name="settings_export_data">Export</string>
-    <string name="settings_export_data_subtitle">Save your data to a file</string>
     <string name="settings_import_data">Import</string>
-    <string name="settings_import_data_subtitle">Restore data from a file</string>
     <string name="settings_app_version">App Version</string>
 
     <string name="action_save">Save</string>
@@ -69,11 +60,9 @@
     <string name="action_add_vouch">&vouch;</string>
     <string name="action_add_group_vouch">&group_vouch;</string>
     <string name="action_continue">Continue</string>
-    <string name="action_create">Create</string>
     <string name="action_add_person">Add Person</string>
     <string name="title_group_participants">Participants</string>
     <string name="cd_view_participants">View group participants</string>
-    <string name="action_rename">Rename</string>
 
     <string name="placeholder_amount">0.00</string>
     <string name="label_person">Person</string>
@@ -84,7 +73,6 @@
     <string name="label_total_balance">Total Balance</string>
     <string name="label_difference_paid">Difference has been paid</string>
     <string name="label_unknown">Unknown</string>
-    <string name="label_amount">Amount</string>
     <string name="label_settled">Settled</string>
 
     <string name="filter_unsettled">Unsettled</string>
@@ -102,7 +90,6 @@
     <string name="empty_search_title">No results found</string>
     <string name="empty_search_subtitle">No items matching \"%1$s\"</string>
 
-    <string name="empty_vouches_prompt">Tap + to add a new &vouch;</string>
     <string name="empty_vouches_title">No &vouches; yet</string>
     <string name="empty_vouches_subtitle">Tap + to add a single or &group_vouch;</string>
     <string name="empty_person_vouches">No &vouches; for this person</string>
@@ -112,15 +99,12 @@
     <string name="empty_settled_vouches_title">No settled &vouches;</string>
     <string name="empty_settled_vouches_subtitle">&vouches; that are marked as settled will appear here.</string>
     <string name="empty_person_settled_vouches">No settled &vouches; for %1$s</string>
-    <string name="settled_space_hero_title">Settled History</string>
-    <string name="settled_space_total_resolved">Total Resolved</string>
     <string name="action_view_settled_space">Settled</string>
     <string name="action_view_settled_history">Settled History (%1$d)</string>
     <string name="action_show_all_settled">Show all settled</string>
     <string name="all_settled_title">All settled up!</string>
     <string name="all_settled_subtitle">No active &vouches; with %1$s</string>
     <string name="all_settled_global_subtitle">You have no active &vouches; right now</string>
-    <string name="cd_settled_space">Settled</string>
 
     <plurals name="vouch_count">
         <item quantity="one">%1$d &vouch;</item>
@@ -141,18 +125,22 @@
     <string name="msg_person_renamed">Person renamed</string>
     <string name="msg_rename_failed">Failed to rename person</string>
     <string name="msg_vouches_netted">&vouches; netted</string>
+    <string name="vouch_description_netting">Netting</string>
     <string name="msg_save_failed">Failed to save &vouch;</string>
     <string name="msg_delete_failed">Failed to delete &vouch;</string>
     <string name="msg_settle_failed">Failed to update &vouch;</string>
     <string name="error_person_already_exists">A person with this name already exists</string>
     <string name="msg_all_data_deleted">All data deleted</string>
     <string name="msg_delete_data_failed">Failed to delete data</string>
+    <string name="msg_operation_failed">Operation failed</string>
+    <string name="error_group_min_members">Group must have at least 2 members</string>
+    <string name="error_invalid_total_amount">Invalid total amount</string>
+    <string name="error_invalid_member_amount">Invalid member amount</string>
 
     <string name="settle_person_message_with_detail">All &vouches; with this person (given and received) will be settled.\n%1$s.</string>
     <string name="settle_person_message_no_detail">All &vouches; with this person (given and received) will be settled.</string>
     <string name="settle_person_you_owe">You currently owe %1$s %2$s</string>
     <string name="settle_person_owes_you">%1$s currently owes you %2$s</string>
-    <string name="settle_person_error">Something went wrong</string>
 
     <string name="toast_export_success">Export successful</string>
     <string name="toast_export_failed">Export failed</string>
@@ -174,47 +162,31 @@
     <string name="cd_back">Back</string>
     <string name="cd_add_vouch">Add &vouch;</string>
     <string name="cd_selected">Selected</string>
-    <string name="cd_home">Home</string>
-    <string name="cd_auto_settle_vouches">Auto-Settle &vouches;</string>
-    <string name="cd_settle_person">Settle Person</string>
     <string name="cd_rename_person">Rename Person</string>
     <string name="cd_export_vouch_list">Export &vouch;-List</string>
 
     <string name="share_vouch_summary_title">Share &vouch; Summary</string>
     <string name="vouch_summary_label">&vouch; Summary</string>
-    <string name="title_split_group_vouch">Split with Members</string>
-    <string name="title_distribution">Distribution</string>
-    <string name="group_vouch_step_details">Details</string>
-    <string name="group_vouch_step_members">Split</string>
     <string name="group_vouch_split_summary">Total to Split</string>
-    <string name="group_vouch_allocated">Assigned: %1$s / %2$s</string>
     <string name="group_vouch_remaining">Remaining: %1$s</string>
     <string name="group_vouch_overallocated">Over-allocated: %1$s</string>
     <string name="group_vouch_balanced">Exact split matched</string>
-    <string name="group_vouch_per_person">%1$s / person</string>
     <string name="group_vouch_custom_split">Custom</string>
     <string name="group_vouch_equal_split">Equal</string>
     <string name="group_vouch_reset_equal">Redistribute</string>
-    <string name="group_vouch_add_member_placeholder">Search or enter name&#8230;</string>
-    <string name="group_vouch_create_cta">Create &group_vouch; (%1$d)</string>
     <string name="group_vouch_empty_members_title">Add people to split with</string>
     <string name="group_vouch_empty_members_subtitle">Search existing contacts or type a new name to split the amount.</string>
     <string name="group_vouch_self_member">Me</string>
 
     <string name="format_vouch_date">MMM dd, yyyy</string>
-    <string name="amount_euro">%1$s€</string>
     <string name="settings_lang_en">English</string>
     <string name="settings_lang_de">Deutsch</string>
-    <string name="action_share">Share</string>
 
     <!-- Onboarding / App Guide -->
-    <string name="screen_onboarding">App Guide</string>
     <string name="onboarding_skip">Skip</string>
     <string name="onboarding_next">Next</string>
     <string name="onboarding_back">Back</string>
     <string name="onboarding_get_started">Go</string>
-    <string name="onboarding_select_currency">Select Currency</string>
-    <string name="onboarding_currency_description">Choose your default currency. You can change this anytime in Settings.</string>
 
     <string name="onboarding_welcome_badge">Welcome</string>
     <string name="onboarding_welcome_title">Welcome to\n&app_name;</string>
@@ -236,13 +208,10 @@
     <string name="onboarding_slide2_title">This is a &group_vouch;</string>
     <string name="onboarding_slide2_subtitle">A &group_vouch; splits a shared expense across multiple people, equally or with custom amounts.</string>
     <string name="onboarding_slide2_sample_desc">Weekend road trip</string>
-    <string name="onboarding_slide2_sample_status">3 People</string>
     <string name="onboarding_slide2_hint">An individual entry is automatically created for each person, making it easy to track and settle.</string>
 
     <string name="onboarding_slide3_title">Person Detail &amp; Quick Actions</string>
     <string name="onboarding_slide3_subtitle">Here you see the total balance for a person and can quickly add &vouches;, settle up, or share a summary.</string>
-    <string name="onboarding_slide3_sample_name">Sarah Connor</string>
-    <string name="onboarding_slide3_sample_status">3 &vouches;</string>
     <string name="onboarding_slide3_hint">Open any person to view their full history, calculate net balances, or share a summary.</string>
     <string name="onboarding_action_add_title">Add &vouch;</string>
     <string name="onboarding_action_add_desc">Quickly create a new &vouch; for this person, whether lent or borrowed.</string>
@@ -254,7 +223,6 @@
 
     <string name="onboarding_slide4_title">Choose your Default Currency</string>
     <string name="onboarding_slide4_subtitle">Select your preferred currency for the app. You can change this anytime in Settings.</string>
-    <string name="onboarding_slide4_security_note">Biometric Lock and Dark Theme are available anytime in Settings.</string>
 
     <string name="settings_onboarding_guide">App Guide &amp; Tour</string>
     <string name="settings_onboarding_guide_subtitle">Replay</string>

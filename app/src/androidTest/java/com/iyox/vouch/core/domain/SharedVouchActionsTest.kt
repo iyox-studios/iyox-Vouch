@@ -26,42 +26,38 @@ class SharedVouchActionsTest {
     private lateinit var context: Context
     private lateinit var repository: VouchRepository
     private lateinit var database: AppDatabase
+    private lateinit var actions: SharedVouchActions
 
     @Before
     fun setUp() = runTest {
         context = ApplicationProvider.getApplicationContext()
         database = AppDatabase.getDatabase(context)
-        repository = VouchRepository.getInstance(context)
+        repository = VouchRepository(database, database.vouchDao(), database.personDao())
+        actions = SharedVouchActions(repository)
 
-        database.vouchDataDao().deleteAll()
+        database.vouchDao().deleteAll()
         database.personDao().deleteAll()
-        repository.notifyDataChanged()
     }
 
     @After
     fun tearDown() = runTest {
-        database.vouchDataDao().deleteAll()
+        database.vouchDao().deleteAll()
         database.personDao().deleteAll()
-        repository.notifyDataChanged()
     }
 
     @Test
-    fun testAddVouch_invokesCallback() = runTest {
-        var callbackInvoked = 0
-        val actions = SharedVouchActions(repository) { callbackInvoked++ }
-
+    fun testAddVouch() = runTest {
         val vouch = VouchWithPerson(
             vouch = Vouch(amount = 1000L, description = "Test"),
             persons = listOf(PersonWithAmount(Person(name = "Alice"), 1000L))
         )
 
         actions.addVouch(vouch)
-        assertEquals(1, callbackInvoked)
         assertEquals(1, repository.getAll().size)
     }
 
     @Test
-    fun testDeleteVouch_invokesCallback() = runTest {
+    fun testDeleteVouch() = runTest {
         val vouch = repository.insert(
             VouchWithPerson(
                 vouch = Vouch(amount = 1000L),
@@ -69,16 +65,12 @@ class SharedVouchActionsTest {
             )
         )
 
-        var callbackInvoked = 0
-        val actions = SharedVouchActions(repository) { callbackInvoked++ }
-
         actions.deleteVouch(vouch.vouch.id)
-        assertEquals(1, callbackInvoked)
         assertNull(repository.getById(vouch.vouch.id))
     }
 
     @Test
-    fun testDeletePersonFromVouch_invokesCallback() = runTest {
+    fun testDeletePersonFromVouch() = runTest {
         val vouch = repository.insert(
             VouchWithPerson(
                 vouch = Vouch(amount = 2000L),
@@ -90,11 +82,7 @@ class SharedVouchActionsTest {
         )
         val aliceId = vouch.persons.find { it.person.name == "Alice" }!!.person.id
 
-        var callbackInvoked = 0
-        val actions = SharedVouchActions(repository) { callbackInvoked++ }
-
         actions.deletePersonFromVouch(vouch.vouch.id, aliceId)
-        assertEquals(1, callbackInvoked)
 
         val updated = repository.getById(vouch.vouch.id)
         assertEquals(1, updated?.persons?.size)
@@ -102,7 +90,7 @@ class SharedVouchActionsTest {
     }
 
     @Test
-    fun testRestoreVouch_invokesCallback() = runTest {
+    fun testRestoreVouch() = runTest {
         val vouch = repository.insert(
             VouchWithPerson(
                 vouch = Vouch(amount = 1000L),
@@ -111,16 +99,12 @@ class SharedVouchActionsTest {
         )
         repository.delete(vouch.vouch.id)
 
-        var callbackInvoked = 0
-        val actions = SharedVouchActions(repository) { callbackInvoked++ }
-
         actions.restoreVouch(vouch)
-        assertEquals(1, callbackInvoked)
         assertNotNull(repository.getById(vouch.vouch.id))
     }
 
     @Test
-    fun testSettleAndUnsettleVouch_invokesCallback() = runTest {
+    fun testSettleAndUnsettleVouch() = runTest {
         val vouch = repository.insert(
             VouchWithPerson(
                 vouch = Vouch(amount = 1000L),
@@ -128,20 +112,15 @@ class SharedVouchActionsTest {
             )
         )
 
-        var callbackInvoked = 0
-        val actions = SharedVouchActions(repository) { callbackInvoked++ }
-
         actions.settleVouch(vouch)
-        assertEquals(1, callbackInvoked)
-        assertTrue(database.vouchDataDao().getSettlementsForVouch(vouch.vouch.id)[0].settled)
+        assertTrue(database.vouchDao().getSettlementsForVouch(vouch.vouch.id)[0].settled)
 
         actions.unSettleVouch(vouch)
-        assertEquals(2, callbackInvoked)
-        assertFalse(database.vouchDataDao().getSettlementsForVouch(vouch.vouch.id)[0].settled)
+        assertFalse(database.vouchDao().getSettlementsForVouch(vouch.vouch.id)[0].settled)
     }
 
     @Test
-    fun testSetVouchPersonSettlement_invokesCallback() = runTest {
+    fun testSetVouchPersonSettlement() = runTest {
         val vouch = repository.insert(
             VouchWithPerson(
                 vouch = Vouch(amount = 2000L),
@@ -153,13 +132,9 @@ class SharedVouchActionsTest {
         )
         val aliceId = vouch.persons.find { it.person.name == "Alice" }!!.person.id
 
-        var callbackInvoked = 0
-        val actions = SharedVouchActions(repository) { callbackInvoked++ }
-
         actions.setVouchPersonSettlement(vouch.vouch.id, aliceId, true)
-        assertEquals(1, callbackInvoked)
 
-        val settlements = database.vouchDataDao().getSettlementsForVouch(vouch.vouch.id)
+        val settlements = database.vouchDao().getSettlementsForVouch(vouch.vouch.id)
         assertTrue(settlements.find { it.personId == aliceId }!!.settled)
     }
 }

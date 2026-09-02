@@ -64,10 +64,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.iyox.vouch.R
 import com.iyox.vouch.core.currency.CurrencyManager
 import com.iyox.vouch.core.model.PersonTotal
+import com.iyox.vouch.core.model.VouchTypeFilter
 import com.iyox.vouch.core.model.VouchWithPerson
 import com.iyox.vouch.core.model.isSettledForPerson
 import com.iyox.vouch.core.utils.rememberToastManager
@@ -83,6 +84,7 @@ import kotlinx.coroutines.android.awaitFrame
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
+import kotlin.math.abs
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -90,12 +92,11 @@ fun PersonScreen(
     personName: String,
     onNavigateBack: () -> Unit,
     onNavigateToAddVouch: (String) -> Unit = {},
-    onNavigateToEditVouch: (Int, Boolean) -> Unit = { _, _ -> },
+    onNavigateToEditVouch: (Long, Boolean) -> Unit = { _, _ -> },
     onNavigateToPerson: (String) -> Unit = {},
     onNavigateToSettledSpace: (String) -> Unit = {}
 ) {
-    val viewModel: PersonViewModel = viewModel(factory = PersonViewModel.factory(personName))
-    val personUiState by viewModel.uiState.collectAsState()
+    val viewModel: PersonViewModel = hiltViewModel()
     val state by viewModel.uiState.collectAsState()
     val exportLayer = rememberGraphicsLayer()
 
@@ -109,6 +110,7 @@ fun PersonScreen(
     val msgRenameFailed = stringResource(R.string.msg_rename_failed)
     val msgPersonAlreadyExists = stringResource(R.string.error_person_already_exists)
     val msgVouchesNetted = stringResource(R.string.msg_vouches_netted)
+    val nettingDescription = stringResource(R.string.vouch_description_netting)
     val msgSettleFailed = stringResource(R.string.msg_settle_failed)
     val actionUndo = stringResource(R.string.action_undo)
     val vouchSummaryLabel = stringResource(R.string.vouch_summary_label)
@@ -219,7 +221,7 @@ fun PersonScreen(
                             searchQuery = state.searchQuery,
                             onClearSearch = { viewModel.setSearchQuery("") }
                         )
-                    } else if (state.settledCount > 0 && state.showOnlyGiven == 0) {
+                    } else if (state.settledCount > 0 && state.showOnlyGiven == VouchTypeFilter.ALL) {
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
@@ -296,8 +298,12 @@ fun PersonScreen(
                         sharedVouchActions = viewModel.sharedActions,
                         onEdit = onNavigateToEditVouch,
                         onNavigateToPerson = onNavigateToPerson,
-                        isSettled = { vouch -> vouch.isSettledForPerson(currentPersonName) },
-                        groupSingleContextPersonId = personUiState.personData?.person?.id
+                        isSettled = { vouch ->
+                            state.personData?.person?.id?.let { pid ->
+                                vouch.isSettledForPerson(pid)
+                            } ?: vouch.isSettledForPerson(currentPersonName)
+                        },
+                        groupSingleContextPersonId = state.personData?.person?.id
                     )
                 }
             }
@@ -371,7 +377,7 @@ fun PersonScreen(
                             message = msgVouchesNetted,
                             actionLabel = actionUndo,
                             errorMessage = msgSettleFailed,
-                            performAction = { viewModel.netVouches() },
+                            performAction = { viewModel.netVouches(nettingDescription) },
                             undoAction = { (settled, nettingVouch) ->
                                 viewModel.undoNetVouches(settled, nettingVouch)
                             }
@@ -506,13 +512,13 @@ fun SettlePersonDialog(
                     totalAmount < 0L -> stringResource(
                         R.string.settle_person_you_owe,
                         personName,
-                        CurrencyManager.formatAmountWithSymbol(kotlin.math.abs(totalAmount))
+                        CurrencyManager.formatAmountWithSymbol(abs(totalAmount))
                     )
 
                     totalAmount > 0L -> stringResource(
                         R.string.settle_person_owes_you,
                         personName,
-                        CurrencyManager.formatAmountWithSymbol(kotlin.math.abs(totalAmount))
+                        CurrencyManager.formatAmountWithSymbol(abs(totalAmount))
                     )
 
                     else -> ""

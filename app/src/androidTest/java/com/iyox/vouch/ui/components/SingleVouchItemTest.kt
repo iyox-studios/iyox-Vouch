@@ -16,7 +16,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.sql.Timestamp
 
 @RunWith(AndroidJUnit4::class)
 class SingleVouchItemTest {
@@ -34,7 +33,7 @@ class SingleVouchItemTest {
                 amount = 2550L,
                 description = "Coffee & Bakery",
                 given = true,
-                timestamp = Timestamp(1700000000000L)
+                timestamp = 1700000000000L
             ),
             persons = listOf(PersonWithAmount(Person(id = 1, name = "Alice"), 2550L))
         )

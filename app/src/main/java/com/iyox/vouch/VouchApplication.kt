@@ -7,18 +7,21 @@ import android.os.LocaleList
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.edit
 import com.iyox.vouch.core.currency.CurrencyManager
-import com.iyox.vouch.core.data.AppDatabase
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import com.iyox.vouch.core.data.PersonRepository
+import com.iyox.vouch.core.utils.PreferenceKeys
+import dagger.hilt.android.HiltAndroidApp
+import javax.inject.Inject
 
+@HiltAndroidApp
 class VouchApplication : Application() {
-    @OptIn(DelicateCoroutinesApi::class)
+
+    @Inject lateinit var currencyManager: CurrencyManager
+    @Inject
+    lateinit var personRepository: PersonRepository
+
     override fun onCreate() {
         super.onCreate()
-        CurrencyManager.init(this)
-        // Pre-warm the Room database so the first screen open has no cold-start penalty
-        GlobalScope.launch { AppDatabase.getDatabase(this@VouchApplication).vouchDataDao().getAll() }
+        personRepository.warmUp()
         migrateLegacyLocalesIfNeeded()
     }
 
@@ -27,7 +30,7 @@ class VouchApplication : Application() {
             return
         }
 
-        val prefs = getSharedPreferences("settings", MODE_PRIVATE)
+        val prefs = getSharedPreferences(PreferenceKeys.PREFS_SETTINGS, MODE_PRIVATE)
         if (prefs.getBoolean("locales_migrated_33", false)) {
             return
         }

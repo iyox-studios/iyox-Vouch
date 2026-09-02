@@ -177,24 +177,6 @@ fun VouchSearchBar(
 }
 
 /**
- * Alias for [VouchSearchBar].
- */
-@Composable
-fun ExpressiveSearchField(
-    query: String,
-    onQueryChange: (String) -> Unit,
-    onClose: () -> Unit,
-    placeholderText: String,
-    modifier: Modifier = Modifier
-) = VouchSearchBar(
-    query = query,
-    onQueryChange = onQueryChange,
-    onClose = onClose,
-    placeholderText = placeholderText,
-    modifier = modifier
-)
-
-/**
  * Reusable animated row container that displays filter chips/buttons in the default state,
  * and overlays the [VouchSearchBar] and close X button across the row when search is activated.
  */

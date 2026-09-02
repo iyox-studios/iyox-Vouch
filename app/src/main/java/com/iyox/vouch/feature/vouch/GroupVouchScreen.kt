@@ -63,7 +63,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -83,18 +82,14 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.iyox.vouch.R
 import com.iyox.vouch.core.currency.CurrencyManager
 import com.iyox.vouch.core.model.Person
 import com.iyox.vouch.core.model.PersonTotal
 import com.iyox.vouch.core.utils.rememberToastManager
 import com.iyox.vouch.ui.components.VouchBackButton
-import kotlinx.coroutines.launch
 import kotlin.math.abs
-
-private const val STEP_DETAILS = 1
-private const val STEP_MEMBERS = 2
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -102,13 +97,9 @@ fun GroupVouchScreen(
     vouchId: Long? = null,
     edit: Boolean = false,
     onNavigateBack: () -> Unit,
-    viewModel: GroupVouchViewModel = viewModel(
-        factory = GroupVouchViewModel.factory(vouchId),
-        key = "GroupVouch_$vouchId"
-    )
+    viewModel: GroupVouchViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val coroutineScope = rememberCoroutineScope()
     val toastManager = rememberToastManager()
     val focusManager = LocalFocusManager.current
     val amountFocusRequester = remember { FocusRequester() }
@@ -116,8 +107,10 @@ fun GroupVouchScreen(
     val msgSaveFailed = stringResource(R.string.msg_save_failed)
     val actionUndo = stringResource(R.string.action_undo)
 
-    LaunchedEffect(vouchId, edit) {
-        viewModel.loadVouch(vouchId)
+    LaunchedEffect(vouchId) {
+        if (vouchId != null) {
+            viewModel.loadVouch(vouchId)
+        }
     }
 
     BackHandler(enabled = uiState.step == STEP_MEMBERS) {
@@ -126,7 +119,10 @@ fun GroupVouchScreen(
 
     LaunchedEffect(uiState.step, uiState.isLoading) {
         if (uiState.step == STEP_DETAILS && !uiState.isLoading && !edit) {
-            amountFocusRequester.requestFocus()
+            try {
+                amountFocusRequester.requestFocus()
+            } catch (_: Exception) {
+            }
         }
     }
 
@@ -134,6 +130,12 @@ fun GroupVouchScreen(
         if (uiState.saveSuccess) {
             viewModel.resetSaveSuccess()
             onNavigateBack()
+        }
+    }
+
+    LaunchedEffect(uiState.errorMessageRes) {
+        uiState.errorMessageRes?.let { resId ->
+            toastManager.showError(resId)
         }
     }
 
@@ -158,7 +160,7 @@ fun GroupVouchScreen(
                                         message = msgGroupVouchCreated,
                                         actionLabel = actionUndo,
                                         errorMessage = msgSaveFailed,
-                                        performAction = { viewModel.saveGroupVouches() },
+                                        performAction = { viewModel.saveGroupVouchesDirect() },
                                         undoAction = { savedVouch ->
                                             if (savedVouch != null) {
                                                 viewModel.sharedActions.deleteVouch(savedVouch.vouch.id)
@@ -166,13 +168,7 @@ fun GroupVouchScreen(
                                         }
                                     )
                                 } else {
-                                    coroutineScope.launch {
-                                        try {
-                                            viewModel.saveGroupVouches()
-                                        } catch (e: Exception) {
-                                            toastManager.showError(msgSaveFailed)
-                                        }
-                                    }
+                                    viewModel.saveGroupVouches()
                                 }
                             },
                             enabled = uiState.members.count { !it.isSelf } >= 2
