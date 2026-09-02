@@ -23,6 +23,12 @@ class VouchApplication : Application() {
     /** Application-scoped coroutine scope — cancelled when the process dies. */
     val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
+    /**
+     * Eagerly injected singletons:
+     * - [currencyManager] ensures [CurrencyManager.INSTANCE] is available globally on app startup.
+     * - [personRepository] and [vouchRepository] start eager collection of reactive StateFlow caches in RAM
+     *   for instant 0ms loads across all screens.
+     */
     @Inject lateinit var currencyManager: CurrencyManager
     @Inject lateinit var personRepository: PersonRepository
     @Inject lateinit var vouchRepository: VouchRepository

@@ -82,10 +82,20 @@ fun VouchList(
                     false to false -> sharedVouchActions.settleVouch(vouch)
                 }
             }
-            val undoSettleAction: suspend (Unit) -> Unit = if (settled) {
-                { _ -> sharedVouchActions.settleVouch(vouch) }
-            } else {
-                { _ -> sharedVouchActions.unSettleVouch(vouch) }
+            val undoSettleAction: suspend (Unit) -> Unit = {
+                if (groupSingleContextPersonId != null) {
+                    sharedVouchActions.setVouchPersonSettlement(
+                        vouchId = vouch.vouch.id,
+                        personId = groupSingleContextPersonId,
+                        settled = settled
+                    )
+                } else {
+                    if (settled) {
+                        sharedVouchActions.settleVouch(vouch)
+                    } else {
+                        sharedVouchActions.unSettleVouch(vouch)
+                    }
+                }
             }
 
 

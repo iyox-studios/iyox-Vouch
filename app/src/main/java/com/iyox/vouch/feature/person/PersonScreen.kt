@@ -296,7 +296,11 @@ fun PersonScreen(
                         sharedVouchActions = viewModel.sharedActions,
                         onEdit = onNavigateToEditVouch,
                         onNavigateToPerson = onNavigateToPerson,
-                        isSettled = { vouch -> vouch.isSettledForPerson(currentPersonName) },
+                        isSettled = { vouch ->
+                            state.personData?.person?.id?.let { pid ->
+                                vouch.isSettledForPerson(pid)
+                            } ?: vouch.isSettledForPerson(currentPersonName)
+                        },
                         groupSingleContextPersonId = state.personData?.person?.id
                     )
                 }

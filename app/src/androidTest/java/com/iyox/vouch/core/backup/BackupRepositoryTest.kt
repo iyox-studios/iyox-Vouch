@@ -13,6 +13,7 @@ import com.iyox.vouch.core.model.VouchWithPerson
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -187,5 +188,55 @@ class BackupRepositoryTest {
         val deleteResult = backupRepository.deleteAllData()
         assertTrue(deleteResult.isSuccess)
         assertEquals(0, vouchRepository.getAll().size)
+    }
+
+    @Test
+    fun testImportSingleVouchData() = runTest {
+        val file = File(tempDir, "single_test.iyxv")
+        val singleExport = ExportVouch(
+            vouch = Vouch(
+                amount = 1200L,
+                description = "Lunch with Dave",
+                given = true,
+                timestamp = 1700000000000L
+            ),
+            persons = listOf(ExportPersonAmount(name = "Dave", amount = 1200L, settled = false))
+        )
+        val dataElement = com.google.gson.Gson().toJsonTree(singleExport)
+        val envelope = IyoxEnvelope(
+            appSignature = IyoxEnvelope.APP_SIGNATURE,
+            type = IyoxEnvelope.TYPE_SINGLE,
+            version = IyoxEnvelope.VERSION_1_0,
+            data = dataElement
+        )
+        FileOutputStream(file).use {
+            it.write(com.google.gson.Gson().toJson(envelope).toByteArray())
+        }
+
+        // Preview
+        val previewResult = backupRepository.readPreview(Uri.fromFile(file))
+        assertTrue(previewResult.isSuccess)
+        val preview = previewResult.getOrNull()
+        assertNotNull(preview)
+        assertEquals(1, preview?.vouchCount)
+        assertEquals(1, preview?.personCount)
+        assertEquals(IyoxEnvelope.TYPE_SINGLE, preview?.type)
+
+        // Import
+        val importResult = backupRepository.importData(Uri.fromFile(file))
+        assertTrue(importResult.isSuccess)
+        val resultObj = importResult.getOrNull()
+        assertTrue(resultObj is BackupImportResult.SingleSuccess)
+
+        // Verify inserted into database
+        val allVouches = vouchRepository.getAll()
+        assertEquals(1, allVouches.size)
+        val inserted = allVouches.first()
+        assertEquals("Lunch with Dave", inserted.vouch.description)
+        assertEquals(1200L, inserted.vouch.amount)
+        assertTrue(inserted.vouch.given)
+        assertEquals(1, inserted.persons.size)
+        assertEquals("Dave", inserted.persons[0].person.name)
+        assertFalse(inserted.persons[0].settled)
     }
 }

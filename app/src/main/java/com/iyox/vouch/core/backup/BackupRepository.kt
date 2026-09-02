@@ -78,11 +78,12 @@ class BackupRepository @Inject constructor(
                         }
                         IyoxEnvelope.TYPE_SINGLE -> {
                             val singleVouch = gson.fromJson(envelope.data, ExportVouch::class.java)
-                            val uniquePersons = singleVouch?.persons
-                                ?.map { it.name.trim() }
-                                ?.filter { it.isNotBlank() }
-                                ?.distinct()
-                                ?.size ?: 0
+                                ?: return@withContext Result.failure(IllegalArgumentException("Invalid or empty single vouch payload"))
+                            val uniquePersons = singleVouch.persons
+                                .map { it.name.trim() }
+                                .filter { it.isNotBlank() }
+                                .distinct()
+                                .size
 
                             Result.success(
                                 BackupPreview(
