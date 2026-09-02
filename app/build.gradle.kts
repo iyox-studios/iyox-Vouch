@@ -43,6 +43,15 @@ android {
     buildFeatures {
         compose = true
     }
+    androidResources {
+        generateLocaleConfig = true
+        localeFilters += listOf("en-rUS", "de-rDE")
+    }
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+        }
+    }
 }
 
 kotlin {
