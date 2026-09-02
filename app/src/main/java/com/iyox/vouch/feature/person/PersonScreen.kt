@@ -95,7 +95,6 @@ fun PersonScreen(
     onNavigateToSettledSpace: (String) -> Unit = {}
 ) {
     val viewModel: PersonViewModel = hiltViewModel()
-    val personUiState by viewModel.uiState.collectAsState()
     val state by viewModel.uiState.collectAsState()
     val exportLayer = rememberGraphicsLayer()
 
@@ -297,7 +296,7 @@ fun PersonScreen(
                         onEdit = onNavigateToEditVouch,
                         onNavigateToPerson = onNavigateToPerson,
                         isSettled = { vouch -> vouch.isSettledForPerson(currentPersonName) },
-                        groupSingleContextPersonId = personUiState.personData?.person?.id
+                        groupSingleContextPersonId = state.personData?.person?.id
                     )
                 }
             }

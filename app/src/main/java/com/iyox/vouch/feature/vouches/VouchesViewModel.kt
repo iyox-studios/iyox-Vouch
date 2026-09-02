@@ -107,9 +107,4 @@ class VouchesViewModel @Inject constructor(
     fun toggleSortedBy() {
         _sortedBy.value = _sortedBy.value.next(supportsPerson = true)
     }
-
-    fun getDisplayedVouches(
-        showOnlyGiven: VouchTypeFilter,
-        activeVouches: List<VouchWithPerson>
-    ): List<VouchWithPerson> = activeVouches.filterByGiven(showOnlyGiven)
 }

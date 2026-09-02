@@ -63,8 +63,7 @@ class PersonsViewModelTest {
         repository.setVouchSettled(v2.vouch.id, true)
 
         val viewModel = PersonsViewModel(
-            com.iyox.vouch.core.data.PersonRepository(database.personDao()),
-            repository
+            com.iyox.vouch.core.data.PersonRepository(database.personDao())
         )
         viewModel.loadPersons()
 
@@ -103,8 +102,7 @@ class PersonsViewModelTest {
         )
 
         val viewModel = PersonsViewModel(
-            com.iyox.vouch.core.data.PersonRepository(database.personDao()),
-            repository
+            com.iyox.vouch.core.data.PersonRepository(database.personDao())
         )
         viewModel.loadPersons()
         viewModel.uiState.first { it.persons.size == 2 }
