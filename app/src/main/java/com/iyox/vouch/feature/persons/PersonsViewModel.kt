@@ -22,7 +22,7 @@ data class PersonsUiState(
 
 @HiltViewModel
 class PersonsViewModel @Inject constructor(
-    private val repository: PersonRepository
+    repository: PersonRepository
 ) : ViewModel() {
 
     private val _showOnlyNonZero = MutableStateFlow(true)

@@ -34,7 +34,7 @@ data class SettledSpaceUiState(
 @HiltViewModel
 class SettledSpaceViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val repository: VouchRepository
+    repository: VouchRepository
 ) : ViewModel() {
 
     private val initialPersonName: String? = savedStateHandle["personName"]

@@ -157,7 +157,7 @@ class PersonViewModel @Inject constructor(
         )
     )
 
-    fun loadPerson(name: String, shouldShowLoading: Boolean = false) {
+    fun loadPerson(name: String) {
         _personName.value = name
     }
 

@@ -70,6 +70,7 @@ class ImportConfirmationDialogTest {
         importButton.assertIsEnabled()
         importButton.performClick()
         assertEquals(true, confirmed)
+        assertEquals(false, dismissed)
     }
 
     @Test

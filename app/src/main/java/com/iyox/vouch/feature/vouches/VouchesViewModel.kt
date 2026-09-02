@@ -30,7 +30,7 @@ data class VouchesUiState(
 
 @HiltViewModel
 class VouchesViewModel @Inject constructor(
-    private val repository: VouchRepository
+    repository: VouchRepository
 ) : ViewModel() {
 
     val sharedActions = SharedVouchActions(repository)

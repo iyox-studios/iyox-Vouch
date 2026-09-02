@@ -134,7 +134,6 @@ fun OnboardingScreen(
         bottomBar = {
             OnboardingBottomNavigation(
                 currentPage = pagerState.currentPage,
-                pageCount = PAGE_COUNT,
                 onBack = {
                     haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
                     coroutineScope.launch {
@@ -177,7 +176,7 @@ fun OnboardingScreen(
 @Composable
 private fun OnboardingBottomNavigation(
     currentPage: Int,
-    pageCount: Int,
+    pageCount: Int = PAGE_COUNT,
     onBack: () -> Unit,
     onNext: () -> Unit,
     modifier: Modifier = Modifier
