@@ -88,6 +88,7 @@ import com.iyox.vouch.core.currency.CurrencyManager
 import com.iyox.vouch.core.model.Person
 import com.iyox.vouch.core.model.PersonTotal
 import com.iyox.vouch.core.utils.rememberToastManager
+import com.iyox.vouch.ui.components.PersonAvatar
 import com.iyox.vouch.ui.components.VouchBackButton
 import kotlin.math.abs
 

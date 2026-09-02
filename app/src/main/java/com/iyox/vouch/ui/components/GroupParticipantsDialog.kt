@@ -41,7 +41,6 @@ import androidx.compose.ui.unit.dp
 import com.iyox.vouch.R
 import com.iyox.vouch.core.currency.CurrencyManager
 import com.iyox.vouch.core.model.PersonWithAmount
-import com.iyox.vouch.feature.vouch.PersonAvatar
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable

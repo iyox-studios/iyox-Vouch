@@ -43,9 +43,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.iyox.vouch.R
 import com.iyox.vouch.core.currency.CurrencyManager
-import com.iyox.vouch.feature.vouch.PersonAvatar
 import com.iyox.vouch.ui.components.EmptySearchContent
 import com.iyox.vouch.ui.components.PageHeader
+import com.iyox.vouch.ui.components.PersonAvatar
 import com.iyox.vouch.ui.components.PersonsFilterRow
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)

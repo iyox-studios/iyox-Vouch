@@ -36,7 +36,7 @@ import androidx.compose.ui.unit.sp
 import com.iyox.vouch.R
 import com.iyox.vouch.core.currency.CurrencyManager
 import com.iyox.vouch.core.model.VouchWithPerson
-import com.iyox.vouch.feature.vouch.PersonAvatar
+import com.iyox.vouch.ui.components.PersonAvatar
 import java.text.SimpleDateFormat
 import java.util.Locale
 
