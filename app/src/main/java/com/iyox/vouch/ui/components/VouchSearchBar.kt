@@ -4,8 +4,6 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -196,12 +194,8 @@ fun ExpandableFilterSearchRow(
     AnimatedContent(
         targetState = isSearchActive && onSearchQueryChange != null,
         transitionSpec = {
-            (fadeIn(animationSpec = tween(220, delayMillis = 30)) +
-                    slideInHorizontally(animationSpec = tween(250)) { width -> width / 4 })
-                .togetherWith(
-                    fadeOut(animationSpec = tween(150)) +
-                            slideOutHorizontally(animationSpec = tween(150)) { width -> -width / 4 }
-                )
+            fadeIn(animationSpec = tween(150))
+                .togetherWith(fadeOut(animationSpec = tween(100)))
         },
         label = "ExpandableFilterSearchRowAnimation",
         modifier = modifier
