@@ -51,15 +51,26 @@ class PersonsViewModel @Inject constructor(
     val uiState: StateFlow<PersonsUiState> = combine(
         repository.getPersonsTotalFlow(), _showOnlyNonZero, _searchQuery
     ) { personsList, showOnlyNonZero, searchQuery ->
-        computeState(personsList, showOnlyNonZero, searchQuery, isLoading = false)
+        if (personsList == null) {
+            PersonsUiState(
+                persons = emptyList(),
+                showOnlyNonZero = showOnlyNonZero,
+                searchQuery = searchQuery,
+                isLoading = true
+            )
+        } else {
+            computeState(personsList, showOnlyNonZero, searchQuery, isLoading = false)
+        }
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.Eagerly,
-        initialValue = computeState(
-            repository.personsTotalFlow.value,
-            _showOnlyNonZero.value,
-            _searchQuery.value,
-            isLoading = repository.personsTotalFlow.value.isEmpty()
+        initialValue = repository.personsTotalFlow.value?.let {
+            computeState(it, _showOnlyNonZero.value, _searchQuery.value, isLoading = false)
+        } ?: PersonsUiState(
+            persons = emptyList(),
+            showOnlyNonZero = _showOnlyNonZero.value,
+            searchQuery = _searchQuery.value,
+            isLoading = true
         )
     )
 

@@ -20,18 +20,27 @@ class PersonRepository @Inject constructor(
 ) {
 
     /**
-     * Hot, reactive StateFlow of all person totals, eagerly held in RAM by [externalScope]
-     * for instant 0ms screen rendering and search.
+     * Reactive, hot StateFlow of all person totals, eagerly held in RAM by [externalScope]
+     * for instant 0ms screen rendering on tab navigation.
+     * Initialized to null until SQLite finishes the first load.
      */
-    val personsTotalFlow: StateFlow<List<PersonTotal>> =
+    val personsTotalFlow: StateFlow<List<PersonTotal>?> =
         personDao.getPersonsTotalAllFlow()
             .stateIn(
                 scope = externalScope,
                 started = SharingStarted.Eagerly,
-                initialValue = emptyList()
+                initialValue = null
             )
 
-    fun getPersonsTotalFlow(): Flow<List<PersonTotal>> = personsTotalFlow
+    fun getPersonsTotalFlow(): Flow<List<PersonTotal>?> = personsTotalFlow
+
+    /**
+     * Explicit warm-up hook called during application startup to prime the in-memory cache
+     * before the user navigates to the People tab, enabling 0ms instant tab transitions.
+     */
+    fun warmUp() {
+        personsTotalFlow
+    }
 
     suspend fun getPersonTotal(nameQuery: String? = null): List<PersonTotal> {
         return if (nameQuery.isNullOrEmpty()) {

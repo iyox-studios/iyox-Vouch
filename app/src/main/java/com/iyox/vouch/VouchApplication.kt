@@ -7,6 +7,7 @@ import android.os.LocaleList
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.edit
 import com.iyox.vouch.core.currency.CurrencyManager
+import com.iyox.vouch.core.data.PersonRepository
 import com.iyox.vouch.core.utils.PreferenceKeys
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
@@ -15,9 +16,12 @@ import javax.inject.Inject
 class VouchApplication : Application() {
 
     @Inject lateinit var currencyManager: CurrencyManager
+    @Inject
+    lateinit var personRepository: PersonRepository
 
     override fun onCreate() {
         super.onCreate()
+        personRepository.warmUp()
         migrateLegacyLocalesIfNeeded()
     }
 

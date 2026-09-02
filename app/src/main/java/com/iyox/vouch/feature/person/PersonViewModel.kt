@@ -111,13 +111,7 @@ class PersonViewModel @Inject constructor(
                 vouchCount = activeVouches.size
             )
         } else {
-            personRepository.personsTotalFlow.value.find {
-                it.person.name.equals(
-                    name,
-                    ignoreCase = true
-                )
-            }
-                ?: PersonTotal(Person(name = name), 0L, 0)
+            PersonTotal(Person(name = name), 0L, 0)
         }
 
         return PersonUiState(
