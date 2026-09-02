@@ -108,6 +108,7 @@ fun PersonScreen(
     val msgRenameFailed = stringResource(R.string.msg_rename_failed)
     val msgPersonAlreadyExists = stringResource(R.string.error_person_already_exists)
     val msgVouchesNetted = stringResource(R.string.msg_vouches_netted)
+    val nettingDescription = stringResource(R.string.vouch_description_netting)
     val msgSettleFailed = stringResource(R.string.msg_settle_failed)
     val actionUndo = stringResource(R.string.action_undo)
     val vouchSummaryLabel = stringResource(R.string.vouch_summary_label)
@@ -370,7 +371,7 @@ fun PersonScreen(
                             message = msgVouchesNetted,
                             actionLabel = actionUndo,
                             errorMessage = msgSettleFailed,
-                            performAction = { viewModel.netVouches() },
+                            performAction = { viewModel.netVouches(nettingDescription) },
                             undoAction = { (settled, nettingVouch) ->
                                 viewModel.undoNetVouches(settled, nettingVouch)
                             }

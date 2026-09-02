@@ -52,7 +52,7 @@ class PersonViewModelTest {
 
     private fun createViewModel(personName: String): PersonViewModel {
         val savedStateHandle = SavedStateHandle(mapOf("personName" to personName))
-        return PersonViewModel(savedStateHandle, repository, personRepository, application)
+        return PersonViewModel(savedStateHandle, repository, personRepository)
     }
 
     @Test
@@ -181,7 +181,7 @@ class PersonViewModelTest {
         viewModel.loadPerson("Dave")
         viewModel.uiState.first { !it.isLoading && it.vouches.size == 2 }
 
-        val (settled, nettingVouch) = viewModel.netVouches()
+        val (settled, nettingVouch) = viewModel.netVouches(application.getString(com.iyox.vouch.R.string.vouch_description_netting))
         assertEquals(2, settled.size)
         assertNotNull(nettingVouch)
         assertEquals(2000L, nettingVouch?.vouch?.amount)
