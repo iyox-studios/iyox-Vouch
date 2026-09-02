@@ -22,11 +22,14 @@ import androidx.compose.material.icons.outlined.Group
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,6 +43,7 @@ import com.iyox.vouch.core.currency.CurrencyManager
 import com.iyox.vouch.core.model.PersonWithAmount
 import com.iyox.vouch.feature.vouch.PersonAvatar
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun GroupParticipantsDialog(
     persons: List<PersonWithAmount>,
@@ -52,7 +56,7 @@ fun GroupParticipantsDialog(
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
         icon = {
             Surface(
-                shape = CircleShape,
+                shape = MaterialShapes.Cookie9Sided.toShape(),
                 color = MaterialTheme.colorScheme.primaryContainer,
                 modifier = Modifier.size(48.dp)
             ) {
@@ -137,23 +141,12 @@ fun GroupParticipantsDialog(
                                     color = MaterialTheme.colorScheme.surfaceContainerHighest,
                                     modifier = Modifier.padding(end = 6.dp)
                                 ) {
-                                    Row(
-                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Filled.CheckCircle,
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.primary,
-                                            modifier = Modifier.size(12.dp)
-                                        )
-                                        Text(
-                                            text = stringResource(R.string.label_settled),
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    }
+                                    Icon(
+                                        imageVector = Icons.Filled.CheckCircle,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(12.dp)
+                                    )
                                 }
                             }
 
