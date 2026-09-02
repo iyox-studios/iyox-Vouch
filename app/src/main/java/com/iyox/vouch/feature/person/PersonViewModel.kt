@@ -15,6 +15,7 @@ import com.iyox.vouch.core.model.VouchTypeFilter
 import com.iyox.vouch.core.model.VouchWithPerson
 import com.iyox.vouch.core.utils.VouchFilterUtils.filterSearchAndSort
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -48,7 +49,8 @@ data class PersonSettlementChange(
 class PersonViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val vouchRepository: VouchRepository,
-    private val personRepository: PersonRepository
+    private val personRepository: PersonRepository,
+    @ApplicationContext private val context: Context? = null
 ) : ViewModel() {
 
     private val initialPersonName: String = savedStateHandle.get<String>("personName") ?: ""
@@ -254,7 +256,7 @@ class PersonViewModel @Inject constructor(
                 VouchWithPerson(
                     vouch = Vouch(
                         amount = abs(diff),
-                        description = com.iyox.vouch.core.utils.VouchConstants.TAG_NETTING,
+                        description = context?.getString(com.iyox.vouch.R.string.vouch_description_netting) ?: "Netting",
                         given = diff > 0L
                     ),
                     persons = listOf(

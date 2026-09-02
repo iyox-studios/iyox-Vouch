@@ -141,12 +141,17 @@
     <string name="msg_person_renamed">Person renamed</string>
     <string name="msg_rename_failed">Failed to rename person</string>
     <string name="msg_vouches_netted">&vouches; netted</string>
+    <string name="vouch_description_netting">Netting</string>
     <string name="msg_save_failed">Failed to save &vouch;</string>
     <string name="msg_delete_failed">Failed to delete &vouch;</string>
     <string name="msg_settle_failed">Failed to update &vouch;</string>
     <string name="error_person_already_exists">A person with this name already exists</string>
     <string name="msg_all_data_deleted">All data deleted</string>
     <string name="msg_delete_data_failed">Failed to delete data</string>
+    <string name="msg_operation_failed">Operation failed</string>
+    <string name="error_group_min_members">Group must have at least 2 members</string>
+    <string name="error_invalid_total_amount">Invalid total amount</string>
+    <string name="error_invalid_member_amount">Invalid member amount</string>
 
     <string name="settle_person_message_with_detail">All &vouches; with this person (given and received) will be settled.\n%1$s.</string>
     <string name="settle_person_message_no_detail">All &vouches; with this person (given and received) will be settled.</string>
