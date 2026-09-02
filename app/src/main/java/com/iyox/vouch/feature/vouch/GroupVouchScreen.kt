@@ -109,8 +109,10 @@ fun GroupVouchScreen(
     val msgSaveFailed = stringResource(R.string.msg_save_failed)
     val actionUndo = stringResource(R.string.action_undo)
 
-    LaunchedEffect(vouchId, edit) {
-        viewModel.loadVouch(vouchId)
+    LaunchedEffect(vouchId) {
+        if (vouchId != null) {
+            viewModel.loadVouch(vouchId)
+        }
     }
 
     BackHandler(enabled = uiState.step == STEP_MEMBERS) {
@@ -130,6 +132,12 @@ fun GroupVouchScreen(
         if (uiState.saveSuccess) {
             viewModel.resetSaveSuccess()
             onNavigateBack()
+        }
+    }
+
+    LaunchedEffect(uiState.errorMessageRes) {
+        uiState.errorMessageRes?.let { resId ->
+            toastManager.showError(resId)
         }
     }
 

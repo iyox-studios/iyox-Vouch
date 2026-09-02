@@ -86,6 +86,10 @@ class SingleVouchViewModel @Inject constructor(
     fun loadVouch(id: Long?, prefilledPersonName: String?) {
         searchJob?.cancel()
 
+        if (id != null && id == editingVouchId && originalVouch != null) {
+            return
+        }
+
         if (id == null) {
             editingVouchId = null
             originalVouch = null

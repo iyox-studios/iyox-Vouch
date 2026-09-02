@@ -41,7 +41,7 @@ data class GroupVouchUiState(
     val suggestedPersons: List<PersonTotal> = emptyList(),
     val members: List<GroupMemberInput> = emptyList(),
     val saveSuccess: Boolean = false,
-    val errorMessage: String? = null,
+    @androidx.annotation.StringRes val errorMessageRes: Int? = null,
     val isLoading: Boolean = false
 )
 
@@ -98,6 +98,9 @@ class GroupVouchViewModel @Inject constructor(
 
     fun loadVouch(id: Long?) {
         searchJob?.cancel()
+        if (id != null && id == editingVouchId && originalVouch != null) {
+            return
+        }
         if (id == null) {
             editingVouchId = null
             originalVouch = null
@@ -162,13 +165,13 @@ class GroupVouchViewModel @Inject constructor(
     fun continueToMembers() {
         val parsed = currencyManager.parseToMinorUnits(_uiState.value.amount)
         if (parsed != null && parsed > 0) {
-            _uiState.update { it.copy(step = STEP_MEMBERS, errorMessage = null) }
+            _uiState.update { it.copy(step = STEP_MEMBERS, errorMessageRes = null) }
             recomputeDefaultSplitAmounts()
         }
     }
 
     fun backToDetails() {
-        _uiState.update { it.copy(step = STEP_DETAILS, errorMessage = null) }
+        _uiState.update { it.copy(step = STEP_DETAILS, errorMessageRes = null) }
     }
 
     fun onPersonQueryChange(query: String) {
@@ -296,12 +299,12 @@ class GroupVouchViewModel @Inject constructor(
         val currentState = _uiState.value
         val totalAmount = currencyManager.parseToMinorUnits(currentState.amount)
         if (totalAmount == null) {
-            _uiState.update { it.copy(saveSuccess = false, errorMessage = "Invalid total amount") }
+            _uiState.update { it.copy(saveSuccess = false, errorMessageRes = com.iyox.vouch.R.string.error_invalid_total_amount) }
             return null
         }
         val nonSelfMembers = currentState.members.filterNot { it.isSelf }
         if (nonSelfMembers.size < 2) {
-            _uiState.update { it.copy(saveSuccess = false, errorMessage = "Group must have at least 2 members") }
+            _uiState.update { it.copy(saveSuccess = false, errorMessageRes = com.iyox.vouch.R.string.error_group_min_members) }
             return null
         }
 
@@ -314,7 +317,7 @@ class GroupVouchViewModel @Inject constructor(
                 defaultSplit
             }
             if (amount == null) {
-                _uiState.update { it.copy(saveSuccess = false, errorMessage = "Invalid member amount") }
+                _uiState.update { it.copy(saveSuccess = false, errorMessageRes = com.iyox.vouch.R.string.error_invalid_member_amount) }
                 return null
             }
             otherMemberAmounts += member.personName to amount
@@ -351,7 +354,7 @@ class GroupVouchViewModel @Inject constructor(
             )
             savedVouch = repository.insert(vouch)
         }
-        _uiState.update { it.copy(saveSuccess = true, errorMessage = null) }
+        _uiState.update { it.copy(saveSuccess = true, errorMessageRes = null) }
         return savedVouch
     }
 

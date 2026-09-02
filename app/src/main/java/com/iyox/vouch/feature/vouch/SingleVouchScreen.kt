@@ -48,8 +48,10 @@ fun SingleVouchScreen(
     val msgSaveFailed = stringResource(R.string.msg_save_failed)
     val actionUndo = stringResource(R.string.action_undo)
 
-    LaunchedEffect(vouchId, edit, prefilledPersonName) {
-        viewModel.loadVouch(vouchId, prefilledPersonName)
+    LaunchedEffect(vouchId) {
+        if (vouchId != null) {
+            viewModel.loadVouch(vouchId, prefilledPersonName)
+        }
     }
 
     LaunchedEffect(uiState.isLoading) {
