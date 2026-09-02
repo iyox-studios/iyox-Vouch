@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -62,15 +61,6 @@ class VouchRepository @Inject constructor(
                 persons = personsByVouchId[vouch.id]?.map { it.toPersonWithAmount() } ?: emptyList()
             )
         }
-    }
-
-    /**
-     * Emits whenever the underlying vouches data changes. Maintained for backwards compatibility.
-     */
-    val dataUpdates: Flow<Unit> = vouchesFlow.map { }
-
-    fun notifyDataChanged() {
-        // No-op: Room's InvalidationTracker automatically notifies all active Flow collectors.
     }
 
     suspend fun getAll(): List<VouchWithPerson> {
@@ -123,7 +113,6 @@ class VouchRepository @Inject constructor(
                 persons = vouchDataDao.getPersonsForVouch(newVouchId)
             )
         }
-        notifyDataChanged()
         return result
     }
 
@@ -132,7 +121,6 @@ class VouchRepository @Inject constructor(
             vouchDataDao.deleteById(vouchId) //also deletes cross refs by cascade
             personDataDao.deletePersonsWithoutVouches()
         }
-        notifyDataChanged()
     }
 
     suspend fun deletePersonFromVouch(vouchId: Long, personId: Long) {
@@ -150,7 +138,6 @@ class VouchRepository @Inject constructor(
             }
             personDataDao.deletePersonsWithoutVouches()
         }
-        notifyDataChanged()
     }
 
     suspend fun restoreVouch(vouchWithPerson: VouchWithPerson) {
@@ -173,7 +160,6 @@ class VouchRepository @Inject constructor(
             }
             personDataDao.deletePersonsWithoutVouches()
         }
-        notifyDataChanged()
     }
 
     suspend fun update(newVouch: VouchWithPerson) {
@@ -182,28 +168,24 @@ class VouchRepository @Inject constructor(
             upsertCrossRefs(newVouch.vouch.id, newVouch.persons, deleteExisting = true)
             personDataDao.deletePersonsWithoutVouches()
         }
-        notifyDataChanged()
     }
 
     suspend fun setVouchSettled(vouchId: Long, settled: Boolean) {
         database.withTransaction {
             vouchDataDao.updateCrossRefsSettledByVouchId(vouchId, settled)
         }
-        notifyDataChanged()
     }
 
     suspend fun setPersonSettlement(vouchId: Long, personId: Long, settled: Boolean) {
         database.withTransaction {
             vouchDataDao.updateCrossRefSettlement(vouchId, personId, settled)
         }
-        notifyDataChanged()
     }
 
     suspend fun setPersonSettled(personId: Long, settled: Boolean) {
         database.withTransaction {
             vouchDataDao.updateCrossRefsSettledByPersonId(personId, settled)
         }
-        notifyDataChanged()
     }
 
     suspend fun setPersonSettlements(personId: Long, vouchIds: List<Long>, settled: Boolean) {
@@ -211,7 +193,6 @@ class VouchRepository @Inject constructor(
         database.withTransaction {
             vouchDataDao.updateCrossRefsSettledForPerson(personId, vouchIds, settled)
         }
-        notifyDataChanged()
     }
 
     private suspend fun upsertCrossRefs(

@@ -42,14 +42,12 @@ class BackupRepositoryTest {
 
         database.vouchDataDao().deleteAll()
         database.personDao().deleteAll()
-        vouchRepository.notifyDataChanged()
     }
 
     @After
     fun tearDown() = runTest {
         database.vouchDataDao().deleteAll()
         database.personDao().deleteAll()
-        vouchRepository.notifyDataChanged()
         tempDir.deleteRecursively()
     }
 
@@ -93,7 +91,6 @@ class BackupRepositoryTest {
         // 4. Clear current database
         database.vouchDataDao().deleteAll()
         database.personDao().deleteAll()
-        vouchRepository.notifyDataChanged()
         assertEquals(0, vouchRepository.getAll().size)
 
         // 5. Import back from file

@@ -35,14 +35,12 @@ class SettledSpaceViewModelTest {
 
         database.vouchDataDao().deleteAll()
         database.personDao().deleteAll()
-        repository.notifyDataChanged()
     }
 
     @After
     fun tearDown() = runTest {
         database.vouchDataDao().deleteAll()
         database.personDao().deleteAll()
-        repository.notifyDataChanged()
     }
 
     private fun createViewModel(personName: String? = null): SettledSpaceViewModel {

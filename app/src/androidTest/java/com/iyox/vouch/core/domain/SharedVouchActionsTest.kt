@@ -35,14 +35,12 @@ class SharedVouchActionsTest {
 
         database.vouchDataDao().deleteAll()
         database.personDao().deleteAll()
-        repository.notifyDataChanged()
     }
 
     @After
     fun tearDown() = runTest {
         database.vouchDataDao().deleteAll()
         database.personDao().deleteAll()
-        repository.notifyDataChanged()
     }
 
     @Test

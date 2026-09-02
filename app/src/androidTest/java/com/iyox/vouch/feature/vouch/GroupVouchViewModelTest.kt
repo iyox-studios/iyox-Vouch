@@ -38,14 +38,12 @@ class GroupVouchViewModelTest {
 
         database.vouchDataDao().deleteAll()
         database.personDao().deleteAll()
-        repository.notifyDataChanged()
     }
 
     @After
     fun tearDown() = runTest {
         database.vouchDataDao().deleteAll()
         database.personDao().deleteAll()
-        repository.notifyDataChanged()
     }
 
     private fun createViewModel(vouchId: Long? = null): GroupVouchViewModel {

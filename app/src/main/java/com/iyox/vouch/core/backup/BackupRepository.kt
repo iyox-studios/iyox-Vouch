@@ -212,7 +212,6 @@ class BackupRepository @Inject constructor(
                                 }
                             }
 
-                            vouchRepository.notifyDataChanged()
                             Result.success(BackupImportResult.BackupSuccess(vouches.size))
                         }
                         IyoxEnvelope.TYPE_SINGLE -> {
@@ -228,6 +227,7 @@ class BackupRepository @Inject constructor(
                                 if (allNames.isNotEmpty()) {
                                     database.personDao().insertAll(allNames.map { Person(name = it) })
                                 }
+
                                 val personMap = database.personDao().getByNames(allNames).associateBy { it.name }
 
                                 val newVouchId = database.vouchDao()
@@ -249,7 +249,6 @@ class BackupRepository @Inject constructor(
                                 }
                             }
 
-                            vouchRepository.notifyDataChanged()
                             Result.success(BackupImportResult.SingleSuccess(singleVouch))
                         }
                         else -> {
@@ -269,7 +268,6 @@ class BackupRepository @Inject constructor(
                 database.vouchDataDao().deleteAll()
                 database.personDao().deleteAll()
             }
-            vouchRepository.notifyDataChanged()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
