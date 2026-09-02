@@ -21,7 +21,6 @@ import androidx.compose.ui.unit.dp
 import com.iyox.vouch.R
 import com.iyox.vouch.core.model.VouchSortOrder
 import com.iyox.vouch.core.model.VouchTypeFilter
-import com.iyox.vouch.feature.vouch.PersonAvatar
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
