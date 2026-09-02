@@ -75,4 +75,4 @@ Adding or updating translations requires no coding, just some git knowledge:
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under the project's GPL v3.0 license.
+By contributing, you agree that your contributions will be licensed under the project's **[GNU General Public License v3.0](LICENSE)**
