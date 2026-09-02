@@ -12,6 +12,8 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.iyox.vouch.R
 import com.iyox.vouch.ui.theme.IyoxVouchTheme
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -49,6 +51,8 @@ class OnboardingScreenTest {
 
         // Next button click (use exact match with click action to avoid matching hint text)
         composeTestRule.onNode(hasText(nextAction, substring = false) and hasClickAction()).performClick()
+        assertFalse(finished)
+        assertNull(selectedCurrency)
     }
 
     @Test

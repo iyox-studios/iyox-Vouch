@@ -7,11 +7,8 @@ import com.iyox.vouch.core.model.Person
 import com.iyox.vouch.core.model.PersonWithAmount
 import com.iyox.vouch.core.model.Vouch
 import com.iyox.vouch.core.model.VouchWithPerson
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.withTimeoutOrNull
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -21,8 +18,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
 
 @RunWith(AndroidJUnit4::class)
 class VouchRepositoryTest {
@@ -35,19 +30,17 @@ class VouchRepositoryTest {
     fun setUp() = runTest {
         context = ApplicationProvider.getApplicationContext()
         database = AppDatabase.getDatabase(context)
-        repository = VouchRepository.getInstance(context)
+        repository = VouchRepository(database, database.vouchDao(), database.personDao())
 
         // Clear all data before each test
-        database.vouchDataDao().deleteAll()
+        database.vouchDao().deleteAll()
         database.personDao().deleteAll()
-        repository.notifyDataChanged()
     }
 
     @After
     fun tearDown() = runTest {
-        database.vouchDataDao().deleteAll()
+        database.vouchDao().deleteAll()
         database.personDao().deleteAll()
-        repository.notifyDataChanged()
     }
 
     @Test
@@ -134,12 +127,7 @@ class VouchRepositoryTest {
         val fromDb = repository.getById(inserted.vouch.id)
         assertNotNull(fromDb)
         assertEquals(1234L, fromDb?.vouch?.amount)
-
-        // Pre-warm cache via getAll()
-        repository.getAll()
-        val fromCache = repository.getCachedVouchById(inserted.vouch.id)
-        assertNotNull(fromCache)
-        assertEquals("Snack", fromCache?.vouch?.description)
+        assertEquals("Snack", fromDb?.vouch?.description)
     }
 
     @Test
@@ -250,11 +238,11 @@ class VouchRepositoryTest {
         )
 
         repository.setVouchSettled(inserted.vouch.id, true)
-        val settlements = database.vouchDataDao().getSettlementsForVouch(inserted.vouch.id)
+        val settlements = database.vouchDao().getSettlementsForVouch(inserted.vouch.id)
         assertTrue(settlements[0].settled)
 
         repository.setVouchSettled(inserted.vouch.id, false)
-        val settlementsUnsettled = database.vouchDataDao().getSettlementsForVouch(inserted.vouch.id)
+        val settlementsUnsettled = database.vouchDao().getSettlementsForVouch(inserted.vouch.id)
         assertFalse(settlementsUnsettled[0].settled)
     }
 
@@ -275,7 +263,7 @@ class VouchRepositoryTest {
 
         repository.setPersonSettlement(inserted.vouch.id, aliceId, true)
 
-        val settlements = database.vouchDataDao().getSettlementsForVouch(inserted.vouch.id)
+        val settlements = database.vouchDao().getSettlementsForVouch(inserted.vouch.id)
         assertTrue(settlements.find { it.personId == aliceId }!!.settled)
         assertFalse(settlements.find { it.personId == bobId }!!.settled)
     }
@@ -298,23 +286,37 @@ class VouchRepositoryTest {
         val aliceId = v1.persons[0].person.id
         repository.setPersonSettlements(aliceId, listOf(v1.vouch.id, v2.vouch.id), true)
 
-        assertTrue(database.vouchDataDao().getSettlementsForVouch(v1.vouch.id)[0].settled)
-        assertTrue(database.vouchDataDao().getSettlementsForVouch(v2.vouch.id)[0].settled)
+        assertTrue(database.vouchDao().getSettlementsForVouch(v1.vouch.id)[0].settled)
+        assertTrue(database.vouchDao().getSettlementsForVouch(v2.vouch.id)[0].settled)
     }
 
     @Test
-    fun testNotifyDataChanged_emitsFlow() {
-        val latch = CountDownLatch(1)
-        val job = kotlinx.coroutines.CoroutineScope(Dispatchers.IO).launch {
-            repository.dataUpdates.collect {
-                latch.countDown()
-            }
-        }
+    fun testVouchesFlow_reactsToInserts() = runTest {
+        val initialList = repository.vouchesFlow.first()
+        assertTrue(initialList.isEmpty())
 
-        Thread.sleep(50)
-        repository.notifyDataChanged()
-        val success = latch.await(2, TimeUnit.SECONDS)
-        job.cancel()
-        assertTrue(success)
+        val input = VouchWithPerson(
+            vouch = Vouch(amount = 2500L, description = "Dinner", given = true),
+            persons = listOf(PersonWithAmount(person = Person(name = "Alice"), amount = 2500L))
+        )
+        repository.insert(input)
+
+        val updatedList = repository.vouchesFlow.first { it.isNotEmpty() }
+        assertEquals(1, updatedList.size)
+        assertEquals(2500L, updatedList[0].vouch.amount)
+        assertEquals("Alice", updatedList[0].persons[0].person.name)
+    }
+
+    @Test
+    fun testGetVouchesByPersonNameFlow() = runTest {
+        val input = VouchWithPerson(
+            vouch = Vouch(amount = 1500L, description = "Lunch", given = true),
+            persons = listOf(PersonWithAmount(person = Person(name = "Bob"), amount = 1500L))
+        )
+        repository.insert(input)
+
+        val bobVouches = repository.getVouchesByPersonNameFlow("Bob").first { it.isNotEmpty() }
+        assertEquals(1, bobVouches.size)
+        assertEquals("Bob", bobVouches[0].persons[0].person.name)
     }
 }

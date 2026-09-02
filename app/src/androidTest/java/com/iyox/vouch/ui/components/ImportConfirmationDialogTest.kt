@@ -1,7 +1,6 @@
 package com.iyox.vouch.ui.components
 
 import android.content.Context
-import android.net.Uri
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
@@ -31,7 +30,7 @@ class ImportConfirmationDialogTest {
     @Test
     fun testImportConfirmationDialog_flow() {
         val preview = BackupPreview(
-            uri = Uri.parse("file:///dummy.iyxv"),
+            uri = "file:///dummy.iyxv",
             type = IyoxEnvelope.TYPE_BACKUP,
             version = "1.0",
             vouchCount = 5,
@@ -71,12 +70,13 @@ class ImportConfirmationDialogTest {
         importButton.assertIsEnabled()
         importButton.performClick()
         assertEquals(true, confirmed)
+        assertEquals(false, dismissed)
     }
 
     @Test
     fun testImportConfirmationDialog_cancel() {
         val preview = BackupPreview(
-            uri = Uri.parse("file:///dummy.iyxv"),
+            uri = "file:///dummy.iyxv",
             type = IyoxEnvelope.TYPE_BACKUP,
             version = "1.0",
             vouchCount = 2,

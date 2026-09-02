@@ -1,10 +1,12 @@
 package com.iyox.vouch.feature.vouch
 
 import android.app.Application
+import androidx.lifecycle.SavedStateHandle
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.iyox.vouch.core.currency.CurrencyManager
 import com.iyox.vouch.core.data.AppDatabase
+import com.iyox.vouch.core.data.PersonRepository
 import com.iyox.vouch.core.data.VouchRepository
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -22,29 +24,38 @@ class GroupVouchViewModelTest {
 
     private lateinit var application: Application
     private lateinit var repository: VouchRepository
+    private lateinit var personRepository: PersonRepository
+    private lateinit var currencyManager: CurrencyManager
     private lateinit var database: AppDatabase
 
     @Before
     fun setUp() = runTest {
         application = ApplicationProvider.getApplicationContext()
         database = AppDatabase.getDatabase(application)
-        repository = VouchRepository.getInstance(application)
+        repository = VouchRepository(database, database.vouchDao(), database.personDao())
+        personRepository = PersonRepository(database.personDao())
+        currencyManager = CurrencyManager(application)
 
-        database.vouchDataDao().deleteAll()
+        database.vouchDao().deleteAll()
         database.personDao().deleteAll()
-        repository.notifyDataChanged()
     }
 
     @After
     fun tearDown() = runTest {
-        database.vouchDataDao().deleteAll()
+        database.vouchDao().deleteAll()
         database.personDao().deleteAll()
-        repository.notifyDataChanged()
+    }
+
+    private fun createViewModel(vouchId: Long? = null): GroupVouchViewModel {
+        val args = mutableMapOf<String, Any?>()
+        if (vouchId != null) args["vouchId"] = vouchId
+        val savedStateHandle = SavedStateHandle(args)
+        return GroupVouchViewModel(savedStateHandle, repository, personRepository, currencyManager)
     }
 
     @Test
     fun testStepNavigation() {
-        val viewModel = GroupVouchViewModel(application)
+        val viewModel = createViewModel()
         assertEquals(1, viewModel.uiState.value.step)
 
         // Invalid amount cannot continue
@@ -64,24 +75,24 @@ class GroupVouchViewModelTest {
 
     @Test
     fun testAddMembersAndEqualSplit() {
-        val viewModel = GroupVouchViewModel(application)
+        val viewModel = createViewModel()
         viewModel.onAmountChange("60")
         viewModel.continueToMembers()
 
         viewModel.addMember("Alice")
         assertEquals(1, viewModel.uiState.value.members.size)
-        assertEquals(CurrencyManager.formatAmount(6000L), viewModel.uiState.value.members[0].amount)
+        assertEquals(currencyManager.formatAmount(6000L), viewModel.uiState.value.members[0].amount)
 
         viewModel.addMember("Bob")
         assertEquals(2, viewModel.uiState.value.members.size)
-        assertEquals(CurrencyManager.formatAmount(3000L), viewModel.uiState.value.members[0].amount)
-        assertEquals(CurrencyManager.formatAmount(3000L), viewModel.uiState.value.members[1].amount)
+        assertEquals(currencyManager.formatAmount(3000L), viewModel.uiState.value.members[0].amount)
+        assertEquals(currencyManager.formatAmount(3000L), viewModel.uiState.value.members[1].amount)
 
         viewModel.addMember("Charlie")
         assertEquals(3, viewModel.uiState.value.members.size)
-        assertEquals(CurrencyManager.formatAmount(2000L), viewModel.uiState.value.members[0].amount)
-        assertEquals(CurrencyManager.formatAmount(2000L), viewModel.uiState.value.members[1].amount)
-        assertEquals(CurrencyManager.formatAmount(2000L), viewModel.uiState.value.members[2].amount)
+        assertEquals(currencyManager.formatAmount(2000L), viewModel.uiState.value.members[0].amount)
+        assertEquals(currencyManager.formatAmount(2000L), viewModel.uiState.value.members[1].amount)
+        assertEquals(currencyManager.formatAmount(2000L), viewModel.uiState.value.members[2].amount)
 
         // Duplicate member is ignored
         viewModel.addMember("alice")
@@ -90,7 +101,7 @@ class GroupVouchViewModelTest {
 
     @Test
     fun testCustomSplitAndRebalancing() {
-        val viewModel = GroupVouchViewModel(application)
+        val viewModel = createViewModel()
         viewModel.onAmountChange("60")
         viewModel.continueToMembers()
 
@@ -110,21 +121,21 @@ class GroupVouchViewModelTest {
         assertTrue(alice.isCustom)
         assertEquals("40", alice.amount)
         assertFalse(bob.isCustom)
-        assertEquals(CurrencyManager.formatAmount(1000L), bob.amount)
+        assertEquals(currencyManager.formatAmount(1000L), bob.amount)
         assertFalse(charlie.isCustom)
-        assertEquals(CurrencyManager.formatAmount(1000L), charlie.amount)
+        assertEquals(currencyManager.formatAmount(1000L), charlie.amount)
 
         // Reset Alice to equal split
         viewModel.resetMemberToEqualSplit("Alice")
         val resetState = viewModel.uiState.value
-        assertEquals(CurrencyManager.formatAmount(2000L), resetState.members[0].amount)
-        assertEquals(CurrencyManager.formatAmount(2000L), resetState.members[1].amount)
-        assertEquals(CurrencyManager.formatAmount(2000L), resetState.members[2].amount)
+        assertEquals(currencyManager.formatAmount(2000L), resetState.members[0].amount)
+        assertEquals(currencyManager.formatAmount(2000L), resetState.members[1].amount)
+        assertEquals(currencyManager.formatAmount(2000L), resetState.members[2].amount)
     }
 
     @Test
     fun testAddSelfMember() {
-        val viewModel = GroupVouchViewModel(application)
+        val viewModel = createViewModel()
         viewModel.onAmountChange("60")
         viewModel.continueToMembers()
 
@@ -135,12 +146,12 @@ class GroupVouchViewModelTest {
         val state = viewModel.uiState.value
         assertEquals(3, state.members.size)
         assertTrue(state.members.any { it.isSelf && it.personName == "Me" })
-        assertEquals(CurrencyManager.formatAmount(2000L), state.members.find { it.isSelf }?.amount)
+        assertEquals(currencyManager.formatAmount(2000L), state.members.find { it.isSelf }?.amount)
     }
 
     @Test
     fun testSaveGroupVouch_validationAndTotal() = runTest {
-        val viewModel = GroupVouchViewModel(application)
+        val viewModel = createViewModel()
         viewModel.onAmountChange("90")
         viewModel.onDescriptionChange("Group Dinner")
         viewModel.continueToMembers()
@@ -167,7 +178,7 @@ class GroupVouchViewModelTest {
 
     @Test
     fun testRemoveMember() {
-        val viewModel = GroupVouchViewModel(application)
+        val viewModel = createViewModel()
         viewModel.onAmountChange("40")
         viewModel.continueToMembers()
 
@@ -178,7 +189,7 @@ class GroupVouchViewModelTest {
 
         viewModel.removeMember("Charlie")
         assertEquals(2, viewModel.uiState.value.members.size)
-        assertEquals(CurrencyManager.formatAmount(2000L), viewModel.uiState.value.members[0].amount)
-        assertEquals(CurrencyManager.formatAmount(2000L), viewModel.uiState.value.members[1].amount)
+        assertEquals(currencyManager.formatAmount(2000L), viewModel.uiState.value.members[0].amount)
+        assertEquals(currencyManager.formatAmount(2000L), viewModel.uiState.value.members[1].amount)
     }
 }

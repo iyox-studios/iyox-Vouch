@@ -67,12 +67,6 @@ fun GroupVouchSingleItem(
     }
     val deleteLabel = stringResource(R.string.action_delete)
     val personAmount = vouch.persons.find { it.person == person }?.amount ?: 0L
-    val settledAmount = vouch.persons.filter { it.settled }.sumOf { it.amount }
-    val progressRatio =
-        if (vouch.vouch.amount > 0L) (settledAmount.toFloat() / vouch.vouch.amount.toFloat()).coerceIn(
-            0f,
-            1f
-        ) else 0f
     val hasDescription = vouch.vouch.description.isNotBlank()
     val descriptionText = if (hasDescription) {
         vouch.vouch.description

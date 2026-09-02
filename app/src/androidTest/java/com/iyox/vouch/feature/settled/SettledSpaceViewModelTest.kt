@@ -1,6 +1,7 @@
 package com.iyox.vouch.feature.settled
 
 import android.app.Application
+import androidx.lifecycle.SavedStateHandle
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.iyox.vouch.core.data.AppDatabase
@@ -8,6 +9,8 @@ import com.iyox.vouch.core.data.VouchRepository
 import com.iyox.vouch.core.model.Person
 import com.iyox.vouch.core.model.PersonWithAmount
 import com.iyox.vouch.core.model.Vouch
+import com.iyox.vouch.core.model.VouchSortOrder
+import com.iyox.vouch.core.model.VouchTypeFilter
 import com.iyox.vouch.core.model.VouchWithPerson
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -28,31 +31,36 @@ class SettledSpaceViewModelTest {
     fun setUp() = runTest {
         application = ApplicationProvider.getApplicationContext()
         database = AppDatabase.getDatabase(application)
-        repository = VouchRepository.getInstance(application)
+        repository = VouchRepository(database, database.vouchDao(), database.personDao())
 
-        database.vouchDataDao().deleteAll()
+        database.vouchDao().deleteAll()
         database.personDao().deleteAll()
-        repository.notifyDataChanged()
     }
 
     @After
     fun tearDown() = runTest {
-        database.vouchDataDao().deleteAll()
+        database.vouchDao().deleteAll()
         database.personDao().deleteAll()
-        repository.notifyDataChanged()
+    }
+
+    private fun createViewModel(personName: String? = null): SettledSpaceViewModel {
+        val args = mutableMapOf<String, Any?>()
+        if (personName != null) args["personName"] = personName
+        val savedStateHandle = SavedStateHandle(args)
+        return SettledSpaceViewModel(savedStateHandle, repository)
     }
 
     @Test
     fun testGlobalSettledSpace() = runTest {
         // Vouch 1: Settled Given (2000)
-        val v1 = repository.insert(
+        repository.insert(
             VouchWithPerson(
                 vouch = Vouch(amount = 2000L, given = true),
                 persons = listOf(PersonWithAmount(Person(name = "Alice"), 2000L, settled = true))
             )
         )
         // Vouch 2: Settled Received (1000)
-        val v2 = repository.insert(
+        repository.insert(
             VouchWithPerson(
                 vouch = Vouch(amount = 1000L, given = false),
                 persons = listOf(PersonWithAmount(Person(name = "Bob"), 1000L, settled = true))
@@ -66,7 +74,7 @@ class SettledSpaceViewModelTest {
             )
         )
 
-        val viewModel = SettledSpaceViewModel(application, null)
+        val viewModel = createViewModel(null)
         viewModel.loadVouches()
 
         val state = viewModel.uiState.first { it.vouches.size == 2 && it.settledCount == 2 }
@@ -80,7 +88,7 @@ class SettledSpaceViewModelTest {
     @Test
     fun testPersonSpecificSettledSpace() = runTest {
         // Vouch with Alice settled, Bob unsettled
-        val v1 = repository.insert(
+        repository.insert(
             VouchWithPerson(
                 vouch = Vouch(amount = 3000L, given = true),
                 persons = listOf(
@@ -90,7 +98,7 @@ class SettledSpaceViewModelTest {
             )
         )
 
-        val viewModel = SettledSpaceViewModel(application, "Alice")
+        val viewModel = createViewModel("Alice")
         viewModel.loadVouches()
 
         val state = viewModel.uiState.first { it.vouches.size == 1 && it.settledCount == 1 }
@@ -115,41 +123,59 @@ class SettledSpaceViewModelTest {
 
     @Test
     fun testFilterAndSortToggles() = runTest {
-        val viewModel = SettledSpaceViewModel(application)
+        val viewModel = createViewModel()
 
-        assertEquals(0, viewModel.uiState.value.showOnlyGiven)
+        assertEquals(VouchTypeFilter.ALL, viewModel.uiState.value.showOnlyGiven)
         viewModel.toggleShowOnlyGiven()
-        assertEquals(1, viewModel.uiState.first { it.showOnlyGiven == 1 }.showOnlyGiven)
+        assertEquals(
+            VouchTypeFilter.GIVEN,
+            viewModel.uiState.first { it.showOnlyGiven == VouchTypeFilter.GIVEN }.showOnlyGiven
+        )
         viewModel.toggleShowOnlyGiven()
-        assertEquals(2, viewModel.uiState.first { it.showOnlyGiven == 2 }.showOnlyGiven)
+        assertEquals(
+            VouchTypeFilter.RECEIVED,
+            viewModel.uiState.first { it.showOnlyGiven == VouchTypeFilter.RECEIVED }.showOnlyGiven
+        )
         viewModel.toggleShowOnlyGiven()
-        assertEquals(0, viewModel.uiState.first { it.showOnlyGiven == 0 }.showOnlyGiven)
+        assertEquals(
+            VouchTypeFilter.ALL,
+            viewModel.uiState.first { it.showOnlyGiven == VouchTypeFilter.ALL }.showOnlyGiven
+        )
 
-        assertEquals(0, viewModel.uiState.value.sortedBy)
+        assertEquals(VouchSortOrder.DATE, viewModel.uiState.value.sortedBy)
         viewModel.toggleSortedBy()
-        assertEquals(1, viewModel.uiState.first { it.sortedBy == 1 }.sortedBy)
+        assertEquals(
+            VouchSortOrder.AMOUNT,
+            viewModel.uiState.first { it.sortedBy == VouchSortOrder.AMOUNT }.sortedBy
+        )
         viewModel.toggleSortedBy()
-        assertEquals(2, viewModel.uiState.first { it.sortedBy == 2 }.sortedBy)
+        assertEquals(
+            VouchSortOrder.PERSON,
+            viewModel.uiState.first { it.sortedBy == VouchSortOrder.PERSON }.sortedBy
+        )
         viewModel.toggleSortedBy()
-        assertEquals(0, viewModel.uiState.first { it.sortedBy == 0 }.sortedBy)
+        assertEquals(
+            VouchSortOrder.DATE,
+            viewModel.uiState.first { it.sortedBy == VouchSortOrder.DATE }.sortedBy
+        )
     }
 
     @Test
     fun testSearchQuery() = runTest {
-        val v1 = repository.insert(
+        repository.insert(
             VouchWithPerson(
                 vouch = Vouch(amount = 2000L, description = "Birthday Gift", given = true),
                 persons = listOf(PersonWithAmount(Person(name = "Alice"), 2000L, settled = true))
             )
         )
-        val v2 = repository.insert(
+        repository.insert(
             VouchWithPerson(
                 vouch = Vouch(amount = 1000L, description = "Train Ticket", given = false),
                 persons = listOf(PersonWithAmount(Person(name = "Bob"), 1000L, settled = true))
             )
         )
 
-        val viewModel = SettledSpaceViewModel(application, null)
+        val viewModel = createViewModel(null)
         viewModel.loadVouches()
         viewModel.uiState.first { it.vouches.size == 2 }
 

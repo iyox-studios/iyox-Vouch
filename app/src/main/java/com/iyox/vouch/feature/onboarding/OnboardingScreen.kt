@@ -57,6 +57,7 @@ import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -85,7 +86,6 @@ import com.iyox.vouch.ui.components.PageHeader
 import com.iyox.vouch.ui.components.VouchBalanceHeroCard
 import com.iyox.vouch.ui.components.vouches.SingleVouchItem
 import kotlinx.coroutines.launch
-import java.sql.Timestamp
 import java.util.Locale
 
 private const val PAGE_COUNT = 5
@@ -134,7 +134,6 @@ fun OnboardingScreen(
         bottomBar = {
             OnboardingBottomNavigation(
                 currentPage = pagerState.currentPage,
-                pageCount = PAGE_COUNT,
                 onBack = {
                     haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
                     coroutineScope.launch {
@@ -177,7 +176,7 @@ fun OnboardingScreen(
 @Composable
 private fun OnboardingBottomNavigation(
     currentPage: Int,
-    pageCount: Int,
+    pageCount: Int = PAGE_COUNT,
     onBack: () -> Unit,
     onNext: () -> Unit,
     modifier: Modifier = Modifier
@@ -386,7 +385,7 @@ private fun VouchesSlide() {
     val sampleDesc = stringResource(R.string.onboarding_slide1_sample_desc)
 
     var canSettle by remember { mutableStateOf(true) }
-    var itemKey by remember { mutableStateOf(0) }
+    var itemKey by remember { mutableIntStateOf(0) }
 
     val sampleVouch = remember(sampleName, sampleDesc) {
         VouchWithPerson(
@@ -395,7 +394,7 @@ private fun VouchesSlide() {
                 amount = 2500L,
                 description = sampleDesc,
                 given = true,
-                timestamp = Timestamp(System.currentTimeMillis())
+                timestamp = System.currentTimeMillis()
             ),
             persons = listOf(
                 PersonWithAmount(

@@ -60,6 +60,7 @@ class SettlePersonDialogTest {
         // Click Settle button (use exact match with hasClickAction to avoid matching dialog title)
         composeTestRule.onNode(hasText(settleAction, substring = false) and hasClickAction()).performClick()
         assertEquals(true, confirmedWithFullySettle)
+        assertEquals(false, dismissed)
     }
 
     @Test

@@ -157,7 +157,7 @@ fun SettingsScreen(
         contract = ActivityResultContracts.OpenDocument()
     ) { uri ->
         if (uri != null) {
-            viewModel.importData(uri)
+            viewModel.requestImport(uri)
         }
     }
 

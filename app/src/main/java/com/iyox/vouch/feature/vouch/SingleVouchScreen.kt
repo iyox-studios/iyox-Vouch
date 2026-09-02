@@ -17,18 +17,16 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.iyox.vouch.R
 import com.iyox.vouch.core.utils.rememberToastManager
 import com.iyox.vouch.ui.components.VouchBackButton
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,14 +35,10 @@ fun SingleVouchScreen(
     prefilledPersonName: String? = null,
     onNavigateBack: () -> Unit,
     edit: Boolean = false,
-    viewModel: SingleVouchViewModel = viewModel(
-        factory = SingleVouchViewModel.factory(vouchId, prefilledPersonName),
-        key = "SingleVouch_${vouchId}_$prefilledPersonName"
-    )
+    viewModel: SingleVouchViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    val coroutineScope = rememberCoroutineScope()
     val toastManager = rememberToastManager()
     val focusManager = LocalFocusManager.current
     val amountFocusRequester = remember { FocusRequester() }
@@ -52,13 +46,18 @@ fun SingleVouchScreen(
     val msgSaveFailed = stringResource(R.string.msg_save_failed)
     val actionUndo = stringResource(R.string.action_undo)
 
-    LaunchedEffect(vouchId, edit, prefilledPersonName) {
-        viewModel.loadVouch(vouchId, prefilledPersonName)
+    LaunchedEffect(vouchId) {
+        if (vouchId != null) {
+            viewModel.loadVouch(vouchId, prefilledPersonName)
+        }
     }
 
     LaunchedEffect(uiState.isLoading) {
         if (!uiState.isLoading && !edit) {
-            amountFocusRequester.requestFocus()
+            try {
+                amountFocusRequester.requestFocus()
+            } catch (_: Exception) {
+            }
         }
     }
 
@@ -82,7 +81,7 @@ fun SingleVouchScreen(
                                     message = msgVouchCreated,
                                     actionLabel = actionUndo,
                                     errorMessage = msgSaveFailed,
-                                    performAction = { viewModel.saveVouch() },
+                                    performAction = { viewModel.saveVouchDirect() },
                                     undoAction = { savedVouch ->
                                         if (savedVouch != null) {
                                             viewModel.sharedActions.deleteVouch(savedVouch.vouch.id)
@@ -90,13 +89,7 @@ fun SingleVouchScreen(
                                     }
                                 )
                             } else {
-                                coroutineScope.launch {
-                                    try {
-                                        viewModel.saveVouch()
-                                    } catch (e: Exception) {
-                                        toastManager.showError(msgSaveFailed)
-                                    }
-                                }
+                                viewModel.saveVouch()
                             }
                         },
                     ) {

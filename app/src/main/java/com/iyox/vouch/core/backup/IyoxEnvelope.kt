@@ -1,6 +1,5 @@
 package com.iyox.vouch.core.backup
 
-import android.net.Uri
 import com.google.gson.JsonElement
 import com.google.gson.annotations.SerializedName
 import com.iyox.vouch.core.model.Vouch
@@ -43,7 +42,7 @@ data class ExportVouch(
 )
 
 data class BackupPreview(
-    val uri: Uri,
+    val uri: String,
     val type: String,
     val version: String,
     val vouchCount: Int,

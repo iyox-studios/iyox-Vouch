@@ -5,9 +5,7 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.iyox.vouch.core.model.Person
-import com.iyox.vouch.core.model.PersonDao
 import com.iyox.vouch.core.model.Vouch
-import com.iyox.vouch.core.model.VouchDao
 import com.iyox.vouch.core.model.VouchPersonCrossRef
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -20,7 +18,6 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.IOException
-import java.sql.Timestamp
 
 @RunWith(AndroidJUnit4::class)
 class VouchDaoTest {
@@ -35,7 +32,7 @@ class VouchDaoTest {
         database = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java)
             .allowMainThreadQueries()
             .build()
-        vouchDao = database.vouchDataDao()
+        vouchDao = database.vouchDao()
         personDao = database.personDao()
     }
 
@@ -48,7 +45,7 @@ class VouchDaoTest {
     @Test
     fun insertAndGetById() = runTest {
         val vouch = Vouch(amount = 1500L, description = "Lunch", given = true)
-        val id = vouchDao.insert(vouch).toInt()
+        val id = vouchDao.insert(vouch)
         assertTrue(id > 0)
 
         val retrieved = vouchDao.getById(id)
@@ -60,7 +57,7 @@ class VouchDaoTest {
 
     @Test
     fun updateVouch() = runTest {
-        val id = vouchDao.insert(Vouch(amount = 1000L, description = "Initial")).toInt()
+        val id = vouchDao.insert(Vouch(amount = 1000L, description = "Initial"))
         val original = vouchDao.getById(id)!!
 
         vouchDao.update(original.copy(amount = 2000L, description = "Updated", given = false))
@@ -74,7 +71,7 @@ class VouchDaoTest {
 
     @Test
     fun deleteVouchEntity() = runTest {
-        val id = vouchDao.insert(Vouch(amount = 1000L)).toInt()
+        val id = vouchDao.insert(Vouch(amount = 1000L))
         val vouch = vouchDao.getById(id)!!
 
         vouchDao.delete(vouch)
@@ -83,7 +80,7 @@ class VouchDaoTest {
 
     @Test
     fun deleteById() = runTest {
-        val id = vouchDao.insert(Vouch(amount = 1000L)).toInt()
+        val id = vouchDao.insert(Vouch(amount = 1000L))
         vouchDao.deleteById(id)
         assertNull(vouchDao.getById(id))
     }
@@ -100,8 +97,8 @@ class VouchDaoTest {
 
     @Test
     fun cascadeDelete_whenVouchDeleted_crossRefsDeleted() = runTest {
-        val personId = personDao.insert(Person(name = "Alice")).toInt()
-        val vouchId = vouchDao.insert(Vouch(amount = 1000L)).toInt()
+        val personId = personDao.insert(Person(name = "Alice"))
+        val vouchId = vouchDao.insert(Vouch(amount = 1000L))
 
         vouchDao.insertCrossRefs(listOf(VouchPersonCrossRef(vouchId = vouchId, personId = personId, amount = 1000L)))
         assertEquals(1, vouchDao.getPersonsForVouch(vouchId).size)
@@ -113,8 +110,8 @@ class VouchDaoTest {
 
     @Test
     fun cascadeDelete_whenPersonDeleted_crossRefsDeleted() = runTest {
-        val personId = personDao.insert(Person(name = "Bob")).toInt()
-        val vouchId = vouchDao.insert(Vouch(amount = 1000L)).toInt()
+        val personId = personDao.insert(Person(name = "Bob"))
+        val vouchId = vouchDao.insert(Vouch(amount = 1000L))
 
         vouchDao.insertCrossRefs(listOf(VouchPersonCrossRef(vouchId = vouchId, personId = personId, amount = 1000L)))
         assertEquals(1, vouchDao.getPersonsForVouch(vouchId).size)
@@ -126,12 +123,12 @@ class VouchDaoTest {
 
     @Test
     fun getVouchesByPersonName_orderedByTimestampDesc() = runTest {
-        val aliceId = personDao.insert(Person(name = "Alice")).toInt()
-        val bobId = personDao.insert(Person(name = "Bob")).toInt()
+        val aliceId = personDao.insert(Person(name = "Alice"))
+        val bobId = personDao.insert(Person(name = "Bob"))
 
-        val v1 = vouchDao.insert(Vouch(amount = 1000L, timestamp = Timestamp(1000L))).toInt()
-        val v2 = vouchDao.insert(Vouch(amount = 2000L, timestamp = Timestamp(3000L))).toInt()
-        val v3 = vouchDao.insert(Vouch(amount = 3000L, timestamp = Timestamp(2000L))).toInt()
+        val v1 = vouchDao.insert(Vouch(amount = 1000L, timestamp = 1000L))
+        val v2 = vouchDao.insert(Vouch(amount = 2000L, timestamp = 3000L))
+        val v3 = vouchDao.insert(Vouch(amount = 3000L, timestamp = 2000L))
 
         vouchDao.insertCrossRefs(
             listOf(
@@ -149,9 +146,9 @@ class VouchDaoTest {
 
     @Test
     fun getPersonsForVouch_and_getSettlementsForVouch() = runTest {
-        val p1 = personDao.insert(Person(name = "Alice")).toInt()
-        val p2 = personDao.insert(Person(name = "Bob")).toInt()
-        val v1 = vouchDao.insert(Vouch(amount = 3000L)).toInt()
+        val p1 = personDao.insert(Person(name = "Alice"))
+        val p2 = personDao.insert(Person(name = "Bob"))
+        val v1 = vouchDao.insert(Vouch(amount = 3000L))
 
         vouchDao.insertCrossRefs(
             listOf(
@@ -173,8 +170,8 @@ class VouchDaoTest {
 
     @Test
     fun updateCrossRefSettlement() = runTest {
-        val p1 = personDao.insert(Person(name = "Alice")).toInt()
-        val v1 = vouchDao.insert(Vouch(amount = 1000L)).toInt()
+        val p1 = personDao.insert(Person(name = "Alice"))
+        val v1 = vouchDao.insert(Vouch(amount = 1000L))
 
         vouchDao.insertCrossRefs(listOf(VouchPersonCrossRef(vouchId = v1, personId = p1, amount = 1000L, settled = false)))
         assertFalse(vouchDao.getSettlementsForVouch(v1)[0].settled)
@@ -188,9 +185,9 @@ class VouchDaoTest {
 
     @Test
     fun updateCrossRefsSettledByVouchId() = runTest {
-        val p1 = personDao.insert(Person(name = "Alice")).toInt()
-        val p2 = personDao.insert(Person(name = "Bob")).toInt()
-        val v1 = vouchDao.insert(Vouch(amount = 2000L)).toInt()
+        val p1 = personDao.insert(Person(name = "Alice"))
+        val p2 = personDao.insert(Person(name = "Bob"))
+        val v1 = vouchDao.insert(Vouch(amount = 2000L))
 
         vouchDao.insertCrossRefs(
             listOf(
@@ -206,10 +203,10 @@ class VouchDaoTest {
 
     @Test
     fun updateCrossRefsSettledForPerson() = runTest {
-        val p1 = personDao.insert(Person(name = "Alice")).toInt()
-        val v1 = vouchDao.insert(Vouch(amount = 1000L)).toInt()
-        val v2 = vouchDao.insert(Vouch(amount = 2000L)).toInt()
-        val v3 = vouchDao.insert(Vouch(amount = 3000L)).toInt()
+        val p1 = personDao.insert(Person(name = "Alice"))
+        val v1 = vouchDao.insert(Vouch(amount = 1000L))
+        val v2 = vouchDao.insert(Vouch(amount = 2000L))
+        val v3 = vouchDao.insert(Vouch(amount = 3000L))
 
         vouchDao.insertCrossRefs(
             listOf(
@@ -229,9 +226,9 @@ class VouchDaoTest {
 
     @Test
     fun updateCrossRefsSettledByPersonId() = runTest {
-        val p1 = personDao.insert(Person(name = "Alice")).toInt()
-        val v1 = vouchDao.insert(Vouch(amount = 1000L)).toInt()
-        val v2 = vouchDao.insert(Vouch(amount = 2000L)).toInt()
+        val p1 = personDao.insert(Person(name = "Alice"))
+        val v1 = vouchDao.insert(Vouch(amount = 1000L))
+        val v2 = vouchDao.insert(Vouch(amount = 2000L))
 
         vouchDao.insertCrossRefs(
             listOf(

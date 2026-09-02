@@ -1,52 +1,57 @@
 package com.iyox.vouch.feature.vouches
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.iyox.vouch.core.data.VouchRepository
 import com.iyox.vouch.core.domain.SharedVouchActions
+import com.iyox.vouch.core.model.VouchSortOrder
+import com.iyox.vouch.core.model.VouchTypeFilter
 import com.iyox.vouch.core.model.VouchWithPerson
 import com.iyox.vouch.core.model.isSettled
-import com.iyox.vouch.core.utils.VouchFilterUtils.filterByGiven
 import com.iyox.vouch.core.utils.VouchFilterUtils.filterSearchAndSort
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 data class VouchesUiState(
     val vouches: List<VouchWithPerson> = emptyList(),
     val settledCount: Int = 0,
-    val showOnlyGiven: Int = 0,
-    val sortedBy: Int = 0,
+    val showOnlyGiven: VouchTypeFilter = VouchTypeFilter.ALL,
+    val sortedBy: VouchSortOrder = VouchSortOrder.DATE,
     val searchQuery: String = "",
     val totalGiven: Long = 0L,
     val totalOwed: Long = 0L,
     val netTotal: Long = 0L
 )
 
-class VouchesViewModel(application: Application) : AndroidViewModel(application) {
-    private val repository = VouchRepository.getInstance(application)
+@HiltViewModel
+class VouchesViewModel @Inject constructor(
+    repository: VouchRepository
+) : ViewModel() {
 
-    val sharedActions = SharedVouchActions(repository) { loadVouches() }
+    val sharedActions = SharedVouchActions(repository)
 
-    private val _vouches = MutableStateFlow(repository.getCachedVouches() ?: emptyList())
-    private val _showOnlyGiven = MutableStateFlow(0)
-    private val _sortedBy = MutableStateFlow(0)
+    private val _showOnlyGiven = MutableStateFlow(VouchTypeFilter.ALL)
+    private val _sortedBy = MutableStateFlow(VouchSortOrder.DATE)
     private val _searchQuery = MutableStateFlow("")
 
-    val uiState: StateFlow<VouchesUiState> = combine(
-        _vouches, _showOnlyGiven, _sortedBy, _searchQuery
-    ) { allVouches, showOnlyGiven, sortedBy, searchQuery ->
+    private fun computeState(
+        allVouches: List<VouchWithPerson>,
+        showOnlyGiven: VouchTypeFilter,
+        sortedBy: VouchSortOrder,
+        searchQuery: String
+    ): VouchesUiState {
         val activeVouches = allVouches.filter { !it.isSettled() }
         val settledCount = allVouches.count { it.isSettled() }
 
         val displayed = activeVouches.filterSearchAndSort(
-            showOnlyGiven = showOnlyGiven,
+            typeFilter = showOnlyGiven,
             searchQuery = searchQuery,
-            sortedBy = sortedBy
+            sortOrder = sortedBy
         )
 
         var totalGiven = 0L
@@ -63,7 +68,7 @@ class VouchesViewModel(application: Application) : AndroidViewModel(application)
             }
         }
 
-        VouchesUiState(
+        return VouchesUiState(
             vouches = displayed,
             settledCount = settledCount,
             showOnlyGiven = showOnlyGiven,
@@ -73,38 +78,32 @@ class VouchesViewModel(application: Application) : AndroidViewModel(application)
             totalOwed = totalOwed,
             netTotal = totalGiven - totalOwed
         )
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, VouchesUiState())
-
-
-    init {
-        loadVouches()
-        viewModelScope.launch {
-            repository.dataUpdates.collect {
-                loadVouches()
-            }
-        }
     }
 
-    fun loadVouches() {
-        viewModelScope.launch {
-            _vouches.value = repository.getAll()
-        }
-    }
+    val uiState: StateFlow<VouchesUiState> = combine(
+        repository.vouchesFlow, _showOnlyGiven, _sortedBy, _searchQuery
+    ) { allVouches, showOnlyGiven, sortedBy, searchQuery ->
+        computeState(allVouches, showOnlyGiven, sortedBy, searchQuery)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Eagerly,
+        initialValue = computeState(
+            repository.vouchesFlow.value,
+            _showOnlyGiven.value,
+            _sortedBy.value,
+            _searchQuery.value
+        )
+    )
 
     fun setSearchQuery(query: String) {
         _searchQuery.value = query
     }
 
     fun toggleShowOnlyGiven() {
-        _showOnlyGiven.value = (_showOnlyGiven.value + 1) % 3
+        _showOnlyGiven.value = _showOnlyGiven.value.next()
     }
 
     fun toggleSortedBy() {
-        _sortedBy.value = (_sortedBy.value + 1) % 3
+        _sortedBy.value = _sortedBy.value.next(supportsPerson = true)
     }
-
-    fun getDisplayedVouches(
-        showOnlyGiven: Int,
-        activeVouches: List<VouchWithPerson>
-    ): List<VouchWithPerson> = activeVouches.filterByGiven(showOnlyGiven)
 }

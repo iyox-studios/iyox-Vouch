@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.google.gson.Gson
 import com.iyox.vouch.core.data.AppDatabase
 import com.iyox.vouch.core.data.VouchRepository
 import com.iyox.vouch.core.model.Person
@@ -13,6 +14,7 @@ import com.iyox.vouch.core.model.VouchWithPerson
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -34,20 +36,18 @@ class BackupRepositoryTest {
     fun setUp() = runTest {
         context = ApplicationProvider.getApplicationContext()
         database = AppDatabase.getDatabase(context)
-        vouchRepository = VouchRepository.getInstance(context)
-        backupRepository = BackupRepository.getInstance(context)
+        vouchRepository = VouchRepository(database, database.vouchDao(), database.personDao())
+        backupRepository = BackupRepository(context, database, vouchRepository)
         tempDir = File(context.cacheDir, "backup_test").apply { mkdirs() }
 
-        database.vouchDataDao().deleteAll()
+        database.vouchDao().deleteAll()
         database.personDao().deleteAll()
-        vouchRepository.notifyDataChanged()
     }
 
     @After
     fun tearDown() = runTest {
-        database.vouchDataDao().deleteAll()
+        database.vouchDao().deleteAll()
         database.personDao().deleteAll()
-        vouchRepository.notifyDataChanged()
         tempDir.deleteRecursively()
     }
 
@@ -89,9 +89,8 @@ class BackupRepositoryTest {
         assertEquals(IyoxEnvelope.TYPE_BACKUP, preview?.type)
 
         // 4. Clear current database
-        database.vouchDataDao().deleteAll()
+        database.vouchDao().deleteAll()
         database.personDao().deleteAll()
-        vouchRepository.notifyDataChanged()
         assertEquals(0, vouchRepository.getAll().size)
 
         // 5. Import back from file
@@ -187,5 +186,55 @@ class BackupRepositoryTest {
         val deleteResult = backupRepository.deleteAllData()
         assertTrue(deleteResult.isSuccess)
         assertEquals(0, vouchRepository.getAll().size)
+    }
+
+    @Test
+    fun testImportSingleVouchData() = runTest {
+        val file = File(tempDir, "single_test.iyxv")
+        val singleExport = ExportVouch(
+            vouch = Vouch(
+                amount = 1200L,
+                description = "Lunch with Dave",
+                given = true,
+                timestamp = 1700000000000L
+            ),
+            persons = listOf(ExportPersonAmount(name = "Dave", amount = 1200L, settled = false))
+        )
+        val dataElement = Gson().toJsonTree(singleExport)
+        val envelope = IyoxEnvelope(
+            appSignature = IyoxEnvelope.APP_SIGNATURE,
+            type = IyoxEnvelope.TYPE_SINGLE,
+            version = IyoxEnvelope.VERSION_1_0,
+            data = dataElement
+        )
+        FileOutputStream(file).use {
+            it.write(Gson().toJson(envelope).toByteArray())
+        }
+
+        // Preview
+        val previewResult = backupRepository.readPreview(Uri.fromFile(file))
+        assertTrue(previewResult.isSuccess)
+        val preview = previewResult.getOrNull()
+        assertNotNull(preview)
+        assertEquals(1, preview?.vouchCount)
+        assertEquals(1, preview?.personCount)
+        assertEquals(IyoxEnvelope.TYPE_SINGLE, preview?.type)
+
+        // Import
+        val importResult = backupRepository.importData(Uri.fromFile(file))
+        assertTrue(importResult.isSuccess)
+        val resultObj = importResult.getOrNull()
+        assertTrue(resultObj is BackupImportResult.SingleSuccess)
+
+        // Verify inserted into database
+        val allVouches = vouchRepository.getAll()
+        assertEquals(1, allVouches.size)
+        val inserted = allVouches.first()
+        assertEquals("Lunch with Dave", inserted.vouch.description)
+        assertEquals(1200L, inserted.vouch.amount)
+        assertTrue(inserted.vouch.given)
+        assertEquals(1, inserted.persons.size)
+        assertEquals("Dave", inserted.persons[0].person.name)
+        assertFalse(inserted.persons[0].settled)
     }
 }

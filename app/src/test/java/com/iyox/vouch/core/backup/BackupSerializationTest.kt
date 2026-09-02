@@ -2,12 +2,6 @@ package com.iyox.vouch.core.backup
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import com.google.gson.JsonDeserializationContext
-import com.google.gson.JsonDeserializer
-import com.google.gson.JsonElement
-import com.google.gson.JsonPrimitive
-import com.google.gson.JsonSerializationContext
-import com.google.gson.JsonSerializer
 import com.google.gson.reflect.TypeToken
 import com.iyox.vouch.core.model.Vouch
 import org.junit.Assert.assertEquals
@@ -16,8 +10,6 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import java.lang.reflect.Type
-import java.sql.Timestamp
 
 class BackupSerializationTest {
 
@@ -26,32 +18,12 @@ class BackupSerializationTest {
     @Before
     fun setUp() {
         gson = GsonBuilder()
-            .registerTypeAdapter(Timestamp::class.java, object : JsonSerializer<Timestamp>, JsonDeserializer<Timestamp> {
-                override fun serialize(src: Timestamp, typeOfSrc: Type, context: JsonSerializationContext): JsonElement {
-                    return JsonPrimitive(src.time)
-                }
-
-                override fun deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): Timestamp {
-                    return Timestamp(json.asLong)
-                }
-            })
             .create()
     }
 
     @Test
-    fun testTimestampSerializationAndDeserialization() {
-        val now = System.currentTimeMillis()
-        val timestamp = Timestamp(now)
-        val json = gson.toJson(timestamp)
-        assertEquals(now.toString(), json)
-
-        val deserialized = gson.fromJson(json, Timestamp::class.java)
-        assertEquals(now, deserialized.time)
-    }
-
-    @Test
     fun testExportVouchSerialization() {
-        val timestamp = Timestamp(1700000000000L)
+        val timestamp = 1700000000000L
         val exportVouch = ExportVouch(
             vouch = Vouch(
                 id = 1,
@@ -79,7 +51,7 @@ class BackupSerializationTest {
         assertEquals(exportVouch.vouch.amount, deserialized.vouch.amount)
         assertEquals(exportVouch.vouch.description, deserialized.vouch.description)
         assertEquals(exportVouch.vouch.given, deserialized.vouch.given)
-        assertEquals(exportVouch.vouch.timestamp.time, deserialized.vouch.timestamp.time)
+        assertEquals(exportVouch.vouch.timestamp, deserialized.vouch.timestamp)
         assertEquals(2, deserialized.persons.size)
         assertEquals("Alice", deserialized.persons[0].name)
         assertEquals(1500L, deserialized.persons[0].amount)

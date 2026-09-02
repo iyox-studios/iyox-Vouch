@@ -7,6 +7,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.SnackbarVisuals
 import androidx.compose.runtime.Composable
+import com.iyox.vouch.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -43,15 +44,6 @@ class ToastManager(
                 )
             )
         }
-    }
-
-    fun show(
-        @StringRes messageRes: Int,
-        type: ToastType = ToastType.INFO,
-        duration: SnackbarDuration = SnackbarDuration.Short
-    ) {
-        val message = context?.getString(messageRes) ?: return
-        show(message, type, duration)
     }
 
     fun showInfo(
@@ -111,18 +103,21 @@ class ToastManager(
 
     fun <T> executeWithUndo(
         message: String,
-        actionLabel: String = "Undo",
+        actionLabel: String? = null,
         errorMessage: String? = null,
         performAction: suspend () -> T,
         undoAction: suspend (T) -> Unit
     ) {
+        val resolvedActionLabel = actionLabel ?: context?.getString(R.string.action_undo) ?: "Undo"
+        val defaultError =
+            errorMessage ?: context?.getString(R.string.msg_operation_failed) ?: "Operation failed"
         coroutineScope.launch {
             try {
                 val resultData = performAction() ?: return@launch
                 snackbarHostState.currentSnackbarData?.dismiss()
                 val visuals = VouchSnackbarVisuals(
                     message = message,
-                    actionLabel = actionLabel,
+                    actionLabel = resolvedActionLabel,
                     duration = SnackbarDuration.Short,
                     type = ToastType.INFO
                 )
@@ -131,11 +126,11 @@ class ToastManager(
                     try {
                         undoAction(resultData)
                     } catch (e: Exception) {
-                        showError(errorMessage ?: "Operation failed")
+                        showError(defaultError)
                     }
                 }
             } catch (e: Exception) {
-                showError(errorMessage ?: "Operation failed")
+                showError(defaultError)
             }
         }
     }

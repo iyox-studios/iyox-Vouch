@@ -11,16 +11,12 @@
     <string name="screen_settings">Einstellungen</string>
     <string name="screen_settled_space">Erledigt</string>
     <string name="title_person_settled_space">Erledigt: %1$s</string>
-    <string name="title_add_vouch">&vouch; hinzufügen</string>
-    <string name="title_edit_vouch">&vouch; bearbeiten</string>
-    <string name="title_view_person">Person ansehen</string>
     <string name="title_select_currency">Währung auswählen</string>
     <string name="title_select_language">Sprache auswählen</string>
     <string name="title_select_theme">Design auswählen</string>
     <string name="title_select_color_theme">Farbe auswählen</string>
     <string name="title_settle_person">Person begleichen?</string>
     <string name="title_rename_person">Person umbenennen</string>
-    <string name="title_add_group_vouch">&group_vouch; hinzufügen</string>
 
     <string name="biometric_title">Biometrische Authentifizierung</string>
     <string name="biometric_subtitle">Authentifiziere dich, um auf die App zuzugreifen</string>
@@ -37,8 +33,6 @@
     <string name="theme_system">System</string>
     <string name="theme_error">Fehler</string>
     <string name="settings_color_theme">Farben</string>
-    <string name="settings_dynamic_colors">Dynamische Farben</string>
-    <string name="settings_dynamic_colors_subtitle">Systemfarben verwenden (Android 12+)</string>
     <string name="color_theme_dynamic">Dynamisch</string>
     <string name="color_theme_purple">Lila</string>
     <string name="color_theme_blue">Blau</string>
@@ -47,14 +41,11 @@
     <string name="color_theme_orange">Orange</string>
     <string name="color_theme_rose">Rosa</string>
     <string name="settings_currency">Währung</string>
-    <string name="settings_currency_subtitle">App-weite Währung für alle &vouches;</string>
     <string name="settings_biometric_auth">Biometrische Authentifizierung</string>
     <string name="settings_biometric_auth_subtitle">Biometrische Entsperrung beim Öffnen anfordern</string>
     <string name="settings_section_data">Daten</string>
     <string name="settings_export_data">Exportieren</string>
-    <string name="settings_export_data_subtitle">Deine Daten in eine Datei speichern</string>
     <string name="settings_import_data">Importieren</string>
-    <string name="settings_import_data_subtitle">Daten aus einer Datei wiederherstellen</string>
     <string name="settings_app_version">App-Version</string>
 
     <string name="action_save">Speichern</string>
@@ -67,11 +58,9 @@
     <string name="action_add_vouch">&vouch;</string>
     <string name="action_add_group_vouch">&group_vouch;</string>
     <string name="action_continue">Weiter</string>
-    <string name="action_create">Erstellen</string>
     <string name="action_add_person">Person hinzufügen</string>
     <string name="title_group_participants">Beteiligte Personen</string>
     <string name="cd_view_participants">Beteiligte Personen anzeigen</string>
-    <string name="action_rename">Umbenennen</string>
 
     <string name="placeholder_amount">0,00</string>
     <string name="label_person">Person</string>
@@ -82,7 +71,6 @@
     <string name="label_total_balance">Gesamtsaldo</string>
     <string name="label_difference_paid">Differenz wurde bezahlt</string>
     <string name="label_unknown">Unbekannt</string>
-    <string name="label_amount">Betrag</string>
     <string name="label_settled">Ausgeglichen</string>
 
     <string name="filter_unsettled">Offen</string>
@@ -100,7 +88,6 @@
     <string name="empty_search_title">Keine Ergebnisse gefunden</string>
     <string name="empty_search_subtitle">Keine Einträge für „%1$s“ gefunden</string>
 
-    <string name="empty_vouches_prompt">Tippe auf +, um einen neuen &vouch; hinzuzufügen</string>
     <string name="empty_vouches_title">Noch keine &vouches;</string>
     <string name="empty_vouches_subtitle">Tippe auf +, um einen neuen Einzel- oder &group_vouch; hinzuzufügen</string>
     <string name="empty_person_vouches">Keine &vouches; für diese Person</string>
@@ -110,15 +97,12 @@
     <string name="empty_settled_vouches_title">Keine erledigten &vouches;</string>
     <string name="empty_settled_vouches_subtitle">&vouches;, die beglichen wurden, erscheinen hier.</string>
     <string name="empty_person_settled_vouches">Keine beglichenen &vouches; für %1$s</string>
-    <string name="settled_space_hero_title">Erledigter Verlauf</string>
-    <string name="settled_space_total_resolved">Gesamt beglichen</string>
     <string name="action_view_settled_space">Erledigt</string>
     <string name="action_view_settled_history">Beglichene &vouches; (%1$d)</string>
     <string name="action_show_all_settled">Alle erledigten anzeigen</string>
     <string name="all_settled_title">Alles beglichen!</string>
     <string name="all_settled_subtitle">Keine offenen &vouches; mit %1$s</string>
     <string name="all_settled_global_subtitle">Du hast aktuell keine offenen &vouches;</string>
-    <string name="cd_settled_space">Erledigt</string>
 
     <plurals name="vouch_count">
         <item quantity="one">%1$d &vouch;</item>
@@ -139,18 +123,22 @@
     <string name="msg_person_renamed">Person umbenannt</string>
     <string name="msg_rename_failed">Person konnte nicht umbenannt werden</string>
     <string name="msg_vouches_netted">&vouches; verrechnet</string>
+    <string name="vouch_description_netting">Verrechnung</string>
     <string name="msg_save_failed">&vouch; konnte nicht gespeichert werden</string>
     <string name="msg_delete_failed">&vouch; konnte nicht gelöscht werden</string>
     <string name="msg_settle_failed">&vouch; konnte nicht aktualisiert werden</string>
     <string name="error_person_already_exists">Eine Person mit diesem Namen existiert bereits</string>
     <string name="msg_all_data_deleted">Alle Daten gelöscht</string>
     <string name="msg_delete_data_failed">Daten konnten nicht gelöscht werden</string>
+    <string name="msg_operation_failed">Vorgang fehlgeschlagen</string>
+    <string name="error_group_min_members">Gruppe muss mindestens 2 Mitglieder haben</string>
+    <string name="error_invalid_total_amount">Ungültiger Gesamtbetrag</string>
+    <string name="error_invalid_member_amount">Ungültiger Mitgliedsbetrag</string>
 
     <string name="settle_person_message_with_detail">Alle &vouches; mit dieser Person (gegeben und erhalten) werden beglichen.\n%1$s.</string>
     <string name="settle_person_message_no_detail">Alle &vouches; mit dieser Person (gegeben und erhalten) werden beglichen.</string>
     <string name="settle_person_you_owe">Du schuldest %1$s derzeit %2$s</string>
     <string name="settle_person_owes_you">%1$s schuldet dir derzeit %2$s</string>
-    <string name="settle_person_error">Etwas ist schiefgelaufen</string>
 
     <string name="toast_export_success">Export erfolgreich</string>
     <string name="toast_export_failed">Export fehlgeschlagen</string>
@@ -172,47 +160,31 @@
     <string name="cd_back">Zurück</string>
     <string name="cd_add_vouch">&vouch; hinzufügen</string>
     <string name="cd_selected">Ausgewählt</string>
-    <string name="cd_home">Start</string>
-    <string name="cd_auto_settle_vouches">&vouches; automatisch begleichen</string>
-    <string name="cd_settle_person">Person begleichen</string>
     <string name="cd_rename_person">Person umbenennen</string>
     <string name="cd_export_vouch_list">&vouch;-Übersicht exportieren</string>
 
     <string name="share_vouch_summary_title">&vouch;-Übersicht teilen</string>
     <string name="vouch_summary_label">&vouch;-Übersicht</string>
-    <string name="title_split_group_vouch">Aufteilung auf Mitglieder</string>
-    <string name="title_distribution">Aufteilung</string>
-    <string name="group_vouch_step_details">Details</string>
-    <string name="group_vouch_step_members">Aufteilung</string>
     <string name="group_vouch_split_summary">Gesamtbetrag</string>
-    <string name="group_vouch_allocated">Zugewiesen: %1$s / %2$s</string>
     <string name="group_vouch_remaining">Verbleibend: %1$s</string>
     <string name="group_vouch_overallocated">Überbucht: %1$s</string>
     <string name="group_vouch_balanced">Betrag exakt aufgeteilt</string>
-    <string name="group_vouch_per_person">%1$s / Person</string>
     <string name="group_vouch_custom_split">Individuell</string>
     <string name="group_vouch_equal_split">Gleichmäßig</string>
     <string name="group_vouch_reset_equal">Neu verteilen</string>
-    <string name="group_vouch_add_member_placeholder">Name suchen oder eingeben&#8230;</string>
-    <string name="group_vouch_create_cta">&group_vouch; erstellen (%1$d)</string>
     <string name="group_vouch_empty_members_title">Personen zum Aufteilen hinzufügen</string>
     <string name="group_vouch_empty_members_subtitle">Suche vorhandene Personen oder tippe einen neuen Namen ein, um den Betrag aufzuteilen.</string>
     <string name="group_vouch_self_member">Ich</string>
 
     <string name="format_vouch_date">dd. MMM yyyy</string>
-    <string name="amount_euro">%1$s€</string>
     <string name="settings_lang_en">English</string>
     <string name="settings_lang_de">Deutsch</string>
-    <string name="action_share">Teilen</string>
 
     <!-- Onboarding / App Guide -->
-    <string name="screen_onboarding">Einführung</string>
     <string name="onboarding_skip">Überspringen</string>
     <string name="onboarding_next">Weiter</string>
     <string name="onboarding_back">Zurück</string>
     <string name="onboarding_get_started">Los</string>
-    <string name="onboarding_select_currency">Währung auswählen</string>
-    <string name="onboarding_currency_description">Wähle deine Standardwährung. Du kannst sie jederzeit in den Einstellungen ändern.</string>
 
     <string name="onboarding_welcome_badge">Willkommen</string>
     <string name="onboarding_welcome_title">Willkommen bei\n&app_name;</string>
@@ -234,13 +206,10 @@
     <string name="onboarding_slide2_title">Das ist ein &group_vouch;</string>
     <string name="onboarding_slide2_subtitle">Ein &group_vouch; teilt eine Gesamtausgabe auf mehrere Personen auf, wahlweise gleichmäßig oder mit individuellen Beträgen.</string>
     <string name="onboarding_slide2_sample_desc">Wochenendausflug</string>
-    <string name="onboarding_slide2_sample_status">3 Personen</string>
     <string name="onboarding_slide2_hint">Für jede Person wird automatisch ein eigener Eintrag erstellt, damit du jeden Anteil einzeln im Blick behältst.</string>
 
     <string name="onboarding_slide3_title">Personen-Detail &amp; Aktionen</string>
     <string name="onboarding_slide3_subtitle">Hier siehst du den Gesamtsaldo einer Person und kannst schnell neue &vouches; anlegen, Salden begleichen oder eine Übersicht teilen.</string>
-    <string name="onboarding_slide3_sample_name">Sarah Connor</string>
-    <string name="onboarding_slide3_sample_status">3 &vouches;</string>
     <string name="onboarding_slide3_hint">Öffne eine Person für den gesamten Verlauf, Netto-Verrechnungen oder zum Teilen von Übersichten.</string>
     <string name="onboarding_action_add_title">&vouch; hinzufügen</string>
     <string name="onboarding_action_add_desc">Erstelle direkt einen neuen &vouch; für diese Person, egal ob geliehen oder verliehen.</string>
@@ -252,7 +221,6 @@
 
     <string name="onboarding_slide4_title">Wähle deine Standardwährung</string>
     <string name="onboarding_slide4_subtitle">Wähle deine bevorzugte Währung für die App aus. Du kannst sie jederzeit in den Einstellungen ändern.</string>
-    <string name="onboarding_slide4_security_note">Biometrische Sperre und Dark Mode sind jederzeit in den Einstellungen verfügbar.</string>
 
     <string name="settings_onboarding_guide">App-Einführung &amp; Tour</string>
     <string name="settings_onboarding_guide_subtitle">Erneut anzeigen</string>

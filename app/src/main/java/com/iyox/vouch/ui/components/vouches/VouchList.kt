@@ -37,10 +37,10 @@ fun VouchList(
     listState: LazyListState,
     innerPadding: PaddingValues,
     sharedVouchActions: SharedVouchActions,
-    onEdit: (Int, Boolean) -> Unit,
+    onEdit: (Long, Boolean) -> Unit,
     onNavigateToPerson: (String) -> Unit = {},
     isSettled: (VouchWithPerson) -> Boolean = { it.isSettled() },
-    groupSingleContextPersonId: Int? = null,
+    groupSingleContextPersonId: Long? = null,
     contentPadding: PaddingValues = PaddingValues(16.dp)
 ) {
     val toastManager = rememberToastManager()
@@ -82,10 +82,20 @@ fun VouchList(
                     false to false -> sharedVouchActions.settleVouch(vouch)
                 }
             }
-            val undoSettleAction: suspend (Unit) -> Unit = if (settled) {
-                { _ -> sharedVouchActions.settleVouch(vouch) }
-            } else {
-                { _ -> sharedVouchActions.unSettleVouch(vouch) }
+            val undoSettleAction: suspend (Unit) -> Unit = {
+                if (groupSingleContextPersonId != null) {
+                    sharedVouchActions.setVouchPersonSettlement(
+                        vouchId = vouch.vouch.id,
+                        personId = groupSingleContextPersonId,
+                        settled = settled
+                    )
+                } else {
+                    if (settled) {
+                        sharedVouchActions.settleVouch(vouch)
+                    } else {
+                        sharedVouchActions.unSettleVouch(vouch)
+                    }
+                }
             }
 
 
@@ -148,7 +158,7 @@ fun VouchList(
                             onPersonClick = onNavigateToPerson
                         )
                     }
-                } else { // TODO: maybe interface
+                } else {
                     SingleVouchItem(
                         vouch = vouch,
                         canSettle = !settled,
