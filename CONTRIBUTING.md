@@ -19,18 +19,20 @@ To build the project locally:
 
 ## Running Tests
 
-This project has both local unit tests and instrumented/UI tests:
+This project contains both local JVM tests and on-device instrumented tests:
 
-- **Local unit tests** (run on JVM, no device needed):
+- **Local unit tests** (runs on JVM without an emulator):
   ```bash
   ./gradlew test
   ```
-- **Instrumented and UI tests** (Room DAO tests, Compose UI tests, and integration tests in
-  `androidTest`):
-  These require a running Android emulator or connected device:
+  *(or `./gradlew testDebugUnitTest`)*
+
+- **Instrumented and UI tests** (Room DAO tests, Compose UI tests, and integration tests in `androidTest`):
+  Requires a running Android emulator or connected device:
   ```bash
-  ./gradlew connectedDebugAndroidTest
+  ./gradlew connectedCheck
   ```
+  *(or `./gradlew connectedDebugAndroidTest`, or right-click `androidTest` in Android Studio and select "Run 'All Tests'")*
 
 Make sure your changes don't break existing tests before submitting a pull request.
 
