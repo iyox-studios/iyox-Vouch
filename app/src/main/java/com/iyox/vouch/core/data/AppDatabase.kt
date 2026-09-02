@@ -17,9 +17,6 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun vouchDao(): VouchDao
     abstract fun personDao(): PersonDao
 
-    // Backwards compatibility alias
-    fun vouchDataDao(): VouchDao = vouchDao()
-
     companion object {
         @Volatile
         private var INSTANCE: AppDatabase? = null

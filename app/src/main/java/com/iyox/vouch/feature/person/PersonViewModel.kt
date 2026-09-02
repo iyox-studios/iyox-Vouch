@@ -57,7 +57,7 @@ class PersonViewModel @Inject constructor(
     private val _sortedBy = MutableStateFlow(VouchSortOrder.DATE)
     private val _searchQuery = MutableStateFlow("")
 
-    val sharedActions = SharedVouchActions(vouchRepository) {}
+    val sharedActions = SharedVouchActions(vouchRepository)
 
     private fun getInitialPersonVouches(name: String): List<VouchWithPerson> {
         return vouchRepository.vouchesFlow.value.filter { v ->
@@ -171,42 +171,6 @@ class PersonViewModel @Inject constructor(
 
     fun toggleSortedBy() {
         _sortedBy.value = _sortedBy.value.next(supportsPerson = false)
-    }
-
-    fun onSettleOrUnsettleVouch(vouch: VouchWithPerson, settled: Boolean) {
-        viewModelScope.launch {
-            val personId =
-                vouch.persons.firstOrNull { it.person.name == _personName.value }?.person?.id
-            if (personId != null) {
-                vouchRepository.setPersonSettlement(vouch.vouch.id, personId, settled)
-            }
-        }
-    }
-
-    fun onSettleOrUnsettleAll(settled: Boolean): List<PersonSettlementChange> {
-        val personId = uiState.value.personData?.person?.id ?: return emptyList()
-        val targetVouches = if (settled) uiState.value.vouches else uiState.value.settledVouches
-        val changes = targetVouches.mapNotNull { v ->
-            val pid = v.persons.firstOrNull { it.person.name == _personName.value }?.person?.id
-                ?: personId
-            PersonSettlementChange(vouchId = v.vouch.id, personId = pid)
-        }
-        viewModelScope.launch {
-            vouchRepository.setPersonSettlements(personId, changes.map { it.vouchId }, settled)
-        }
-        return changes
-    }
-
-    fun undoSettlementChanges(changes: List<PersonSettlementChange>, revertToSettled: Boolean) {
-        if (changes.isEmpty()) return
-        viewModelScope.launch {
-            val personId = changes.first().personId
-            vouchRepository.setPersonSettlements(
-                personId,
-                changes.map { it.vouchId },
-                revertToSettled
-            )
-        }
     }
 
     suspend fun renamePerson(newName: String): Result<Unit> {

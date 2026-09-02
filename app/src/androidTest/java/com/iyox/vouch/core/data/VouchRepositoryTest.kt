@@ -30,16 +30,16 @@ class VouchRepositoryTest {
     fun setUp() = runTest {
         context = ApplicationProvider.getApplicationContext()
         database = AppDatabase.getDatabase(context)
-        repository = VouchRepository(database, database.vouchDataDao(), database.personDao())
+        repository = VouchRepository(database, database.vouchDao(), database.personDao())
 
         // Clear all data before each test
-        database.vouchDataDao().deleteAll()
+        database.vouchDao().deleteAll()
         database.personDao().deleteAll()
     }
 
     @After
     fun tearDown() = runTest {
-        database.vouchDataDao().deleteAll()
+        database.vouchDao().deleteAll()
         database.personDao().deleteAll()
     }
 
@@ -238,11 +238,11 @@ class VouchRepositoryTest {
         )
 
         repository.setVouchSettled(inserted.vouch.id, true)
-        val settlements = database.vouchDataDao().getSettlementsForVouch(inserted.vouch.id)
+        val settlements = database.vouchDao().getSettlementsForVouch(inserted.vouch.id)
         assertTrue(settlements[0].settled)
 
         repository.setVouchSettled(inserted.vouch.id, false)
-        val settlementsUnsettled = database.vouchDataDao().getSettlementsForVouch(inserted.vouch.id)
+        val settlementsUnsettled = database.vouchDao().getSettlementsForVouch(inserted.vouch.id)
         assertFalse(settlementsUnsettled[0].settled)
     }
 
@@ -263,7 +263,7 @@ class VouchRepositoryTest {
 
         repository.setPersonSettlement(inserted.vouch.id, aliceId, true)
 
-        val settlements = database.vouchDataDao().getSettlementsForVouch(inserted.vouch.id)
+        val settlements = database.vouchDao().getSettlementsForVouch(inserted.vouch.id)
         assertTrue(settlements.find { it.personId == aliceId }!!.settled)
         assertFalse(settlements.find { it.personId == bobId }!!.settled)
     }
@@ -286,8 +286,8 @@ class VouchRepositoryTest {
         val aliceId = v1.persons[0].person.id
         repository.setPersonSettlements(aliceId, listOf(v1.vouch.id, v2.vouch.id), true)
 
-        assertTrue(database.vouchDataDao().getSettlementsForVouch(v1.vouch.id)[0].settled)
-        assertTrue(database.vouchDataDao().getSettlementsForVouch(v2.vouch.id)[0].settled)
+        assertTrue(database.vouchDao().getSettlementsForVouch(v1.vouch.id)[0].settled)
+        assertTrue(database.vouchDao().getSettlementsForVouch(v2.vouch.id)[0].settled)
     }
 
     @Test

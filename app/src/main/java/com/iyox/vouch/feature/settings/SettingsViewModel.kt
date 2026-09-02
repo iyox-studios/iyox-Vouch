@@ -10,6 +10,7 @@ import android.os.LocaleList
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.edit
+import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.iyox.vouch.R
@@ -227,7 +228,7 @@ class SettingsViewModel @Inject constructor(
     fun confirmImport(preview: BackupPreview) {
         _pendingImportPreview.value = null
         viewModelScope.launch {
-            val result = backupRepository.importData(Uri.parse(preview.uri))
+            val result = backupRepository.importData(preview.uri.toUri())
             if (result.isSuccess) {
                 _toastEvents.emit(ToastEvent.Info(R.string.toast_import_success))
             } else {

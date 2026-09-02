@@ -176,7 +176,7 @@ class BackupRepository @Inject constructor(
                                 ?: emptyList()
 
                             database.withTransaction {
-                                database.vouchDataDao().deleteAll()
+                                database.vouchDao().deleteAll()
                                 database.personDao().deleteAll()
 
                                 val allNames = vouches.flatMap { it.persons }
@@ -265,7 +265,7 @@ class BackupRepository @Inject constructor(
     suspend fun deleteAllData(): Result<Unit> = withContext(Dispatchers.IO) {
         try {
             database.withTransaction {
-                database.vouchDataDao().deleteAll()
+                database.vouchDao().deleteAll()
                 database.personDao().deleteAll()
             }
             Result.success(Unit)

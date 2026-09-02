@@ -70,8 +70,4 @@ class PersonsViewModel @Inject constructor(
     fun toggleShowOnlyNonZero() {
         _showOnlyNonZero.value = !_showOnlyNonZero.value
     }
-
-    fun loadPersons() {
-        // No-op: repository.getPersonsTotalFlow() automatically updates reactively from Room.
-    }
 }

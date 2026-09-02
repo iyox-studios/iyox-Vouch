@@ -62,7 +62,7 @@ class GroupVouchViewModel @Inject constructor(
         else -> null
     }
 
-    val sharedActions = SharedVouchActions(repository) {}
+    val sharedActions = SharedVouchActions(repository)
 
     private var searchJob: Job? = null
     private var editingVouchId: Long? = null
@@ -235,18 +235,6 @@ class GroupVouchViewModel @Inject constructor(
     fun removeMember(member: GroupMemberInput) {
         _uiState.update { state ->
             val members = state.members.filterNot { it.personName == member.personName }
-            state.copy(members = members)
-        }
-        recomputeDefaultSplitAmounts()
-    }
-
-    fun toggleMemberCustom(index: Int) {
-        _uiState.update { state ->
-            val members = state.members.toMutableList()
-            if (index in members.indices) {
-                val current = members[index]
-                members[index] = current.copy(isCustom = !current.isCustom)
-            }
             state.copy(members = members)
         }
         recomputeDefaultSplitAmounts()

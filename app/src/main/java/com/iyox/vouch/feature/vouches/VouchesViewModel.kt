@@ -33,7 +33,7 @@ class VouchesViewModel @Inject constructor(
     private val repository: VouchRepository
 ) : ViewModel() {
 
-    val sharedActions = SharedVouchActions(repository) {}
+    val sharedActions = SharedVouchActions(repository)
 
     private val _showOnlyGiven = MutableStateFlow(VouchTypeFilter.ALL)
     private val _sortedBy = MutableStateFlow(VouchSortOrder.DATE)

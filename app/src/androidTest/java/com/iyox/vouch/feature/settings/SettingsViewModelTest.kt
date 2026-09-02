@@ -32,7 +32,7 @@ class SettingsViewModelTest {
         val prefs = application.getSharedPreferences("settings", Context.MODE_PRIVATE)
         prefs.edit().clear().commit()
         val database = AppDatabase.getDatabase(application)
-        val vouchRepository = VouchRepository(database, database.vouchDataDao(), database.personDao())
+        val vouchRepository = VouchRepository(database, database.vouchDao(), database.personDao())
         val backupRepository = BackupRepository(application, database, vouchRepository)
         currencyManager = CurrencyManager(application)
         viewModel = SettingsViewModel(application, backupRepository, currencyManager)

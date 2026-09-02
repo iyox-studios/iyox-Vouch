@@ -39,7 +39,7 @@ class SettledSpaceViewModel @Inject constructor(
 
     private val initialPersonName: String? = savedStateHandle["personName"]
 
-    val sharedActions = SharedVouchActions(repository) {}
+    val sharedActions = SharedVouchActions(repository)
 
     private val _selectedPersonName = MutableStateFlow(initialPersonName)
     private val _showOnlyGiven = MutableStateFlow(VouchTypeFilter.ALL)

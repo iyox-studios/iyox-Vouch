@@ -30,15 +30,15 @@ class PersonsViewModelTest {
     fun setUp() = runTest {
         val context: Application = ApplicationProvider.getApplicationContext()
         database = AppDatabase.getDatabase(context)
-        repository = VouchRepository(database, database.vouchDataDao(), database.personDao())
+        repository = VouchRepository(database, database.vouchDao(), database.personDao())
 
-        database.vouchDataDao().deleteAll()
+        database.vouchDao().deleteAll()
         database.personDao().deleteAll()
     }
 
     @After
     fun tearDown() = runTest {
-        database.vouchDataDao().deleteAll()
+        database.vouchDao().deleteAll()
         database.personDao().deleteAll()
     }
 
@@ -64,7 +64,6 @@ class PersonsViewModelTest {
         val viewModel = PersonsViewModel(
             PersonRepository(database.personDao())
         )
-        viewModel.loadPersons()
 
         // By default showOnlyNonZero is true -> wait for loaded persons (only Alice)
         val stateOnlyNonZero = viewModel.uiState.first { it.persons.isNotEmpty() }
@@ -103,7 +102,6 @@ class PersonsViewModelTest {
         val viewModel = PersonsViewModel(
             PersonRepository(database.personDao())
         )
-        viewModel.loadPersons()
         viewModel.uiState.first { it.persons.size == 2 }
 
         // Search for "Alice"

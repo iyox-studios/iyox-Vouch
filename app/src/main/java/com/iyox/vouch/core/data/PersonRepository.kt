@@ -49,10 +49,6 @@ class PersonRepository @Inject constructor(
         return personDao.getPersonTotalByName(name)
     }
 
-    suspend fun getPersonById(id: Long): Person? {
-        return personDao.getById(id)
-    }
-
     suspend fun getPersonByName(name: String): Person? {
         return personDao.getByName(name)
     }
@@ -77,12 +73,5 @@ class PersonRepository @Inject constructor(
 
         personDao.update(current.copy(name = trimmed))
         return Result.success(Unit)
-    }
-
-    suspend fun renamePersonByName(oldName: String, newName: String): Result<Unit> {
-        val trimmedOld = oldName.trim()
-        val person = personDao.getByName(trimmedOld)
-            ?: return Result.failure(NoSuchElementException("Person not found"))
-        return renamePerson(person.id, newName)
     }
 }

@@ -57,6 +57,7 @@ import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -385,7 +386,7 @@ private fun VouchesSlide() {
     val sampleDesc = stringResource(R.string.onboarding_slide1_sample_desc)
 
     var canSettle by remember { mutableStateOf(true) }
-    var itemKey by remember { mutableStateOf(0) }
+    var itemKey by remember { mutableIntStateOf(0) }
 
     val sampleVouch = remember(sampleName, sampleDesc) {
         VouchWithPerson(

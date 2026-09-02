@@ -158,7 +158,7 @@ fun VouchList(
                             onPersonClick = onNavigateToPerson
                         )
                     }
-                } else { // TODO: maybe interface
+                } else {
                     SingleVouchItem(
                         vouch = vouch,
                         canSettle = !settled,

@@ -87,8 +87,6 @@ class CurrencyManager @Inject constructor(
         @Volatile
         private var INSTANCE: CurrencyManager? = null
 
-        fun getInstance(): CurrencyManager? = INSTANCE
-
         val supportedCurrencies: List<Currency> = listOf(
             Currency.getInstance("EUR"),
             Currency.getInstance("USD"),

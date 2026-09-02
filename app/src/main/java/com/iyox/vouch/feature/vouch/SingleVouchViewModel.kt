@@ -47,7 +47,7 @@ class SingleVouchViewModel @Inject constructor(
     }
     private val initialPersonName: String? = savedStateHandle["personName"]
 
-    val sharedActions = SharedVouchActions(repository) {}
+    val sharedActions = SharedVouchActions(repository)
 
     private var searchJob: Job? = null
     private var editingVouchId: Long? = null

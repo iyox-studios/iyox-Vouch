@@ -36,17 +36,17 @@ class BackupRepositoryTest {
     fun setUp() = runTest {
         context = ApplicationProvider.getApplicationContext()
         database = AppDatabase.getDatabase(context)
-        vouchRepository = VouchRepository(database, database.vouchDataDao(), database.personDao())
+        vouchRepository = VouchRepository(database, database.vouchDao(), database.personDao())
         backupRepository = BackupRepository(context, database, vouchRepository)
         tempDir = File(context.cacheDir, "backup_test").apply { mkdirs() }
 
-        database.vouchDataDao().deleteAll()
+        database.vouchDao().deleteAll()
         database.personDao().deleteAll()
     }
 
     @After
     fun tearDown() = runTest {
-        database.vouchDataDao().deleteAll()
+        database.vouchDao().deleteAll()
         database.personDao().deleteAll()
         tempDir.deleteRecursively()
     }
@@ -89,7 +89,7 @@ class BackupRepositoryTest {
         assertEquals(IyoxEnvelope.TYPE_BACKUP, preview?.type)
 
         // 4. Clear current database
-        database.vouchDataDao().deleteAll()
+        database.vouchDao().deleteAll()
         database.personDao().deleteAll()
         assertEquals(0, vouchRepository.getAll().size)
 

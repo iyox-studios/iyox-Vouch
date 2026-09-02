@@ -37,17 +37,17 @@ class SingleVouchViewModelTest {
     fun setUp() = runTest {
         application = ApplicationProvider.getApplicationContext()
         database = AppDatabase.getDatabase(application)
-        repository = VouchRepository(database, database.vouchDataDao(), database.personDao())
+        repository = VouchRepository(database, database.vouchDao(), database.personDao())
         personRepository = PersonRepository(database.personDao())
         currencyManager = CurrencyManager(application)
 
-        database.vouchDataDao().deleteAll()
+        database.vouchDao().deleteAll()
         database.personDao().deleteAll()
     }
 
     @After
     fun tearDown() = runTest {
-        database.vouchDataDao().deleteAll()
+        database.vouchDao().deleteAll()
         database.personDao().deleteAll()
     }
 
