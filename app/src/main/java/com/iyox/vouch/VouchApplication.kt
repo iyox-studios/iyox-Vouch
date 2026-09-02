@@ -8,6 +8,8 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.edit
 import com.iyox.vouch.core.currency.CurrencyManager
 import com.iyox.vouch.core.data.AppDatabase
+import com.iyox.vouch.core.data.PersonRepository
+import com.iyox.vouch.core.data.VouchRepository
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -22,6 +24,8 @@ class VouchApplication : Application() {
     val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     @Inject lateinit var currencyManager: CurrencyManager
+    @Inject lateinit var personRepository: PersonRepository
+    @Inject lateinit var vouchRepository: VouchRepository
 
     override fun onCreate() {
         super.onCreate()
@@ -29,7 +33,9 @@ class VouchApplication : Application() {
         // Uses a supervised applicationScope instead of GlobalScope so it is properly
         // associated with the app's lifetime.
         applicationScope.launch {
-            AppDatabase.getDatabase(this@VouchApplication).vouchDao().getAll()
+            val db = AppDatabase.getDatabase(this@VouchApplication)
+            db.vouchDao().getAll()
+            db.personDao().getPersonsTotalAll()
         }
         migrateLegacyLocalesIfNeeded()
     }

@@ -17,7 +17,8 @@ import javax.inject.Inject
 data class PersonsUiState(
     val persons: List<PersonTotal> = emptyList(),
     val showOnlyNonZero: Boolean = true,
-    val searchQuery: String = ""
+    val searchQuery: String = "",
+    val isLoading: Boolean = false
 )
 
 @HiltViewModel
@@ -31,7 +32,8 @@ class PersonsViewModel @Inject constructor(
     private fun computeState(
         personsList: List<PersonTotal>,
         showOnlyNonZero: Boolean,
-        searchQuery: String
+        searchQuery: String,
+        isLoading: Boolean = false
     ): PersonsUiState {
         val filtered = if (showOnlyNonZero) {
             personsList.filter { it.vouchCount > 0 }
@@ -42,21 +44,23 @@ class PersonsViewModel @Inject constructor(
         return PersonsUiState(
             persons = searched,
             showOnlyNonZero = showOnlyNonZero,
-            searchQuery = searchQuery
+            searchQuery = searchQuery,
+            isLoading = isLoading
         )
     }
 
     val uiState: StateFlow<PersonsUiState> = combine(
         repository.getPersonsTotalFlow(), _showOnlyNonZero, _searchQuery
     ) { personsList, showOnlyNonZero, searchQuery ->
-        computeState(personsList, showOnlyNonZero, searchQuery)
+        computeState(personsList, showOnlyNonZero, searchQuery, isLoading = false)
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.Eagerly,
         initialValue = computeState(
             repository.personsTotalFlow.value,
             _showOnlyNonZero.value,
-            _searchQuery.value
+            _searchQuery.value,
+            isLoading = repository.personsTotalFlow.value.isEmpty()
         )
     )
 

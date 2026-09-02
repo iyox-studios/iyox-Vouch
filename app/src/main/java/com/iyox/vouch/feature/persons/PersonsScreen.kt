@@ -70,7 +70,13 @@ fun PersonsScreen(
             }
         }
     ) { innerPadding ->
-        if (uiState.persons.isEmpty()) {
+        if (uiState.isLoading && uiState.persons.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = innerPadding.calculateTopPadding())
+            )
+        } else if (uiState.persons.isEmpty()) {
             if (uiState.searchQuery.isNotBlank()) {
                 EmptySearchContent(
                     searchQuery = uiState.searchQuery,

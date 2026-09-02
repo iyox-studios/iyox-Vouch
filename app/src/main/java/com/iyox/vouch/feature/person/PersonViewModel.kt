@@ -72,7 +72,8 @@ class PersonViewModel @Inject constructor(
         personVouches: List<VouchWithPerson>,
         showOnlyGiven: VouchTypeFilter,
         sortOrder: VouchSortOrder,
-        searchQuery: String
+        searchQuery: String,
+        isLoading: Boolean = false
     ): PersonUiState {
         val activeVouches = mutableListOf<VouchWithPerson>()
         val settledVouches = mutableListOf<VouchWithPerson>()
@@ -131,7 +132,7 @@ class PersonViewModel @Inject constructor(
             showOnlyGiven = showOnlyGiven,
             sortedBy = sortOrder,
             searchQuery = searchQuery,
-            isLoading = false
+            isLoading = isLoading
         )
     }
 
@@ -143,7 +144,7 @@ class PersonViewModel @Inject constructor(
             _sortedBy,
             _searchQuery
         ) { personVouches, showOnlyGiven, sortedBy, searchQuery ->
-            buildState(name, personVouches, showOnlyGiven, sortedBy, searchQuery)
+            buildState(name, personVouches, showOnlyGiven, sortedBy, searchQuery, isLoading = false)
         }
     }.stateIn(
         scope = viewModelScope,
@@ -153,7 +154,8 @@ class PersonViewModel @Inject constructor(
             getInitialPersonVouches(initialPersonName),
             _showOnlyGiven.value,
             _sortedBy.value,
-            _searchQuery.value
+            _searchQuery.value,
+            isLoading = getInitialPersonVouches(initialPersonName).isEmpty()
         )
     )
 
