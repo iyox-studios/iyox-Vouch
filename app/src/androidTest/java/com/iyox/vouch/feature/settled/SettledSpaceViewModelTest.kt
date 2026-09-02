@@ -9,6 +9,8 @@ import com.iyox.vouch.core.data.VouchRepository
 import com.iyox.vouch.core.model.Person
 import com.iyox.vouch.core.model.PersonWithAmount
 import com.iyox.vouch.core.model.Vouch
+import com.iyox.vouch.core.model.VouchSortOrder
+import com.iyox.vouch.core.model.VouchTypeFilter
 import com.iyox.vouch.core.model.VouchWithPerson
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -125,21 +127,39 @@ class SettledSpaceViewModelTest {
     fun testFilterAndSortToggles() = runTest {
         val viewModel = createViewModel()
 
-        assertEquals(com.iyox.vouch.core.model.VouchTypeFilter.ALL, viewModel.uiState.value.showOnlyGiven)
+        assertEquals(VouchTypeFilter.ALL, viewModel.uiState.value.showOnlyGiven)
         viewModel.toggleShowOnlyGiven()
-        assertEquals(com.iyox.vouch.core.model.VouchTypeFilter.GIVEN, viewModel.uiState.first { it.showOnlyGiven == com.iyox.vouch.core.model.VouchTypeFilter.GIVEN }.showOnlyGiven)
+        assertEquals(
+            VouchTypeFilter.GIVEN,
+            viewModel.uiState.first { it.showOnlyGiven == VouchTypeFilter.GIVEN }.showOnlyGiven
+        )
         viewModel.toggleShowOnlyGiven()
-        assertEquals(com.iyox.vouch.core.model.VouchTypeFilter.RECEIVED, viewModel.uiState.first { it.showOnlyGiven == com.iyox.vouch.core.model.VouchTypeFilter.RECEIVED }.showOnlyGiven)
+        assertEquals(
+            VouchTypeFilter.RECEIVED,
+            viewModel.uiState.first { it.showOnlyGiven == VouchTypeFilter.RECEIVED }.showOnlyGiven
+        )
         viewModel.toggleShowOnlyGiven()
-        assertEquals(com.iyox.vouch.core.model.VouchTypeFilter.ALL, viewModel.uiState.first { it.showOnlyGiven == com.iyox.vouch.core.model.VouchTypeFilter.ALL }.showOnlyGiven)
+        assertEquals(
+            VouchTypeFilter.ALL,
+            viewModel.uiState.first { it.showOnlyGiven == VouchTypeFilter.ALL }.showOnlyGiven
+        )
 
-        assertEquals(com.iyox.vouch.core.model.VouchSortOrder.DATE, viewModel.uiState.value.sortedBy)
+        assertEquals(VouchSortOrder.DATE, viewModel.uiState.value.sortedBy)
         viewModel.toggleSortedBy()
-        assertEquals(com.iyox.vouch.core.model.VouchSortOrder.AMOUNT, viewModel.uiState.first { it.sortedBy == com.iyox.vouch.core.model.VouchSortOrder.AMOUNT }.sortedBy)
+        assertEquals(
+            VouchSortOrder.AMOUNT,
+            viewModel.uiState.first { it.sortedBy == VouchSortOrder.AMOUNT }.sortedBy
+        )
         viewModel.toggleSortedBy()
-        assertEquals(com.iyox.vouch.core.model.VouchSortOrder.PERSON, viewModel.uiState.first { it.sortedBy == com.iyox.vouch.core.model.VouchSortOrder.PERSON }.sortedBy)
+        assertEquals(
+            VouchSortOrder.PERSON,
+            viewModel.uiState.first { it.sortedBy == VouchSortOrder.PERSON }.sortedBy
+        )
         viewModel.toggleSortedBy()
-        assertEquals(com.iyox.vouch.core.model.VouchSortOrder.DATE, viewModel.uiState.first { it.sortedBy == com.iyox.vouch.core.model.VouchSortOrder.DATE }.sortedBy)
+        assertEquals(
+            VouchSortOrder.DATE,
+            viewModel.uiState.first { it.sortedBy == VouchSortOrder.DATE }.sortedBy
+        )
     }
 
     @Test

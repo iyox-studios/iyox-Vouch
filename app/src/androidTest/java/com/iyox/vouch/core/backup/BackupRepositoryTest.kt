@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.google.gson.Gson
 import com.iyox.vouch.core.data.AppDatabase
 import com.iyox.vouch.core.data.VouchRepository
 import com.iyox.vouch.core.model.Person
@@ -202,7 +203,7 @@ class BackupRepositoryTest {
             ),
             persons = listOf(ExportPersonAmount(name = "Dave", amount = 1200L, settled = false))
         )
-        val dataElement = com.google.gson.Gson().toJsonTree(singleExport)
+        val dataElement = Gson().toJsonTree(singleExport)
         val envelope = IyoxEnvelope(
             appSignature = IyoxEnvelope.APP_SIGNATURE,
             type = IyoxEnvelope.TYPE_SINGLE,
@@ -210,7 +211,7 @@ class BackupRepositoryTest {
             data = dataElement
         )
         FileOutputStream(file).use {
-            it.write(com.google.gson.Gson().toJson(envelope).toByteArray())
+            it.write(Gson().toJson(envelope).toByteArray())
         }
 
         // Preview

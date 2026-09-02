@@ -1,8 +1,10 @@
 package com.iyox.vouch.feature.vouch
 
+import androidx.annotation.StringRes
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.iyox.vouch.R
 import com.iyox.vouch.core.currency.CurrencyManager
 import com.iyox.vouch.core.data.PersonRepository
 import com.iyox.vouch.core.data.VouchRepository
@@ -41,7 +43,7 @@ data class GroupVouchUiState(
     val suggestedPersons: List<PersonTotal> = emptyList(),
     val members: List<GroupMemberInput> = emptyList(),
     val saveSuccess: Boolean = false,
-    @androidx.annotation.StringRes val errorMessageRes: Int? = null,
+    @StringRes val errorMessageRes: Int? = null,
     val isLoading: Boolean = false
 )
 
@@ -299,12 +301,22 @@ class GroupVouchViewModel @Inject constructor(
         val currentState = _uiState.value
         val totalAmount = currencyManager.parseToMinorUnits(currentState.amount)
         if (totalAmount == null) {
-            _uiState.update { it.copy(saveSuccess = false, errorMessageRes = com.iyox.vouch.R.string.error_invalid_total_amount) }
+            _uiState.update {
+                it.copy(
+                    saveSuccess = false,
+                    errorMessageRes = R.string.error_invalid_total_amount
+                )
+            }
             return null
         }
         val nonSelfMembers = currentState.members.filterNot { it.isSelf }
         if (nonSelfMembers.size < 2) {
-            _uiState.update { it.copy(saveSuccess = false, errorMessageRes = com.iyox.vouch.R.string.error_group_min_members) }
+            _uiState.update {
+                it.copy(
+                    saveSuccess = false,
+                    errorMessageRes = R.string.error_group_min_members
+                )
+            }
             return null
         }
 
@@ -317,7 +329,12 @@ class GroupVouchViewModel @Inject constructor(
                 defaultSplit
             }
             if (amount == null) {
-                _uiState.update { it.copy(saveSuccess = false, errorMessageRes = com.iyox.vouch.R.string.error_invalid_member_amount) }
+                _uiState.update {
+                    it.copy(
+                        saveSuccess = false,
+                        errorMessageRes = R.string.error_invalid_member_amount
+                    )
+                }
                 return null
             }
             otherMemberAmounts += member.personName to amount

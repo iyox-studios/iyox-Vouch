@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.iyox.vouch.core.data.AppDatabase
+import com.iyox.vouch.core.data.PersonRepository
 import com.iyox.vouch.core.data.VouchRepository
 import com.iyox.vouch.core.model.Person
 import com.iyox.vouch.core.model.PersonWithAmount
@@ -63,7 +64,7 @@ class PersonsViewModelTest {
         repository.setVouchSettled(v2.vouch.id, true)
 
         val viewModel = PersonsViewModel(
-            com.iyox.vouch.core.data.PersonRepository(database.personDao())
+            PersonRepository(database.personDao())
         )
         viewModel.loadPersons()
 
@@ -102,7 +103,7 @@ class PersonsViewModelTest {
         )
 
         val viewModel = PersonsViewModel(
-            com.iyox.vouch.core.data.PersonRepository(database.personDao())
+            PersonRepository(database.personDao())
         )
         viewModel.loadPersons()
         viewModel.uiState.first { it.persons.size == 2 }

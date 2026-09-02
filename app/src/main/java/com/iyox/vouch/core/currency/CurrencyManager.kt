@@ -2,9 +2,11 @@ package com.iyox.vouch.core.currency
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.content.res.Resources
 import android.icu.text.NumberFormat
 import android.icu.util.Currency
 import androidx.core.content.edit
+import com.iyox.vouch.core.utils.PreferenceKeys
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -24,7 +26,7 @@ class CurrencyManager @Inject constructor(
     }
 
     private val prefs: SharedPreferences =
-        context.getSharedPreferences(com.iyox.vouch.core.utils.PreferenceKeys.PREFS_SETTINGS, Context.MODE_PRIVATE)
+        context.getSharedPreferences(PreferenceKeys.PREFS_SETTINGS, Context.MODE_PRIVATE)
 
     private val _currencyFlow = MutableStateFlow(getInitialCurrency())
     val currencyFlow: StateFlow<Currency> = _currencyFlow.asStateFlow()
@@ -32,7 +34,7 @@ class CurrencyManager @Inject constructor(
     fun getDefaultCurrency(): Currency = resolveDefaultCurrency()
 
     private fun getInitialCurrency(): Currency {
-        val code = prefs.getString(com.iyox.vouch.core.utils.PreferenceKeys.KEY_CURRENCY_CODE, null)
+        val code = prefs.getString(PreferenceKeys.KEY_CURRENCY_CODE, null)
         if (!code.isNullOrBlank()) {
             return try {
                 Currency.getInstance(code)
@@ -41,7 +43,7 @@ class CurrencyManager @Inject constructor(
             }
         }
         val defaultCurrency = resolveDefaultCurrency()
-        prefs.edit { putString(com.iyox.vouch.core.utils.PreferenceKeys.KEY_CURRENCY_CODE, defaultCurrency.currencyCode) }
+        prefs.edit { putString(PreferenceKeys.KEY_CURRENCY_CODE, defaultCurrency.currencyCode) }
         return defaultCurrency
     }
 
@@ -53,7 +55,7 @@ class CurrencyManager @Inject constructor(
         } catch (_: Exception) {
             Currency.getInstance("EUR")
         }
-        prefs.edit { putString(com.iyox.vouch.core.utils.PreferenceKeys.KEY_CURRENCY_CODE, newCurrency.currencyCode) }
+        prefs.edit { putString(PreferenceKeys.KEY_CURRENCY_CODE, newCurrency.currencyCode) }
         _currencyFlow.value = newCurrency
     }
 
@@ -104,7 +106,7 @@ class CurrencyManager @Inject constructor(
         fun resolveDefaultCurrency(): Currency {
             return try {
                 val systemLocale = try {
-                    val locales = android.content.res.Resources.getSystem().configuration.locales
+                    val locales = Resources.getSystem().configuration.locales
                     if (!locales.isEmpty) locales.get(0) else Locale.getDefault()
                 } catch (_: Exception) {
                     Locale.getDefault()

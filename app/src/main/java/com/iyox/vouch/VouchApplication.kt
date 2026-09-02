@@ -10,6 +10,7 @@ import com.iyox.vouch.core.currency.CurrencyManager
 import com.iyox.vouch.core.data.AppDatabase
 import com.iyox.vouch.core.data.PersonRepository
 import com.iyox.vouch.core.data.VouchRepository
+import com.iyox.vouch.core.utils.PreferenceKeys
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -51,7 +52,7 @@ class VouchApplication : Application() {
             return
         }
 
-        val prefs = getSharedPreferences(com.iyox.vouch.core.utils.PreferenceKeys.PREFS_SETTINGS, MODE_PRIVATE)
+        val prefs = getSharedPreferences(PreferenceKeys.PREFS_SETTINGS, MODE_PRIVATE)
         if (prefs.getBoolean("locales_migrated_33", false)) {
             return
         }

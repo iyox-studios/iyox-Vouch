@@ -68,6 +68,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.iyox.vouch.R
 import com.iyox.vouch.core.currency.CurrencyManager
 import com.iyox.vouch.core.model.PersonTotal
+import com.iyox.vouch.core.model.VouchTypeFilter
 import com.iyox.vouch.core.model.VouchWithPerson
 import com.iyox.vouch.core.model.isSettledForPerson
 import com.iyox.vouch.core.utils.rememberToastManager
@@ -83,6 +84,7 @@ import kotlinx.coroutines.android.awaitFrame
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
+import kotlin.math.abs
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -219,7 +221,7 @@ fun PersonScreen(
                             searchQuery = state.searchQuery,
                             onClearSearch = { viewModel.setSearchQuery("") }
                         )
-                    } else if (state.settledCount > 0 && state.showOnlyGiven == com.iyox.vouch.core.model.VouchTypeFilter.ALL) {
+                    } else if (state.settledCount > 0 && state.showOnlyGiven == VouchTypeFilter.ALL) {
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
@@ -510,13 +512,13 @@ fun SettlePersonDialog(
                     totalAmount < 0L -> stringResource(
                         R.string.settle_person_you_owe,
                         personName,
-                        CurrencyManager.formatAmountWithSymbol(kotlin.math.abs(totalAmount))
+                        CurrencyManager.formatAmountWithSymbol(abs(totalAmount))
                     )
 
                     totalAmount > 0L -> stringResource(
                         R.string.settle_person_owes_you,
                         personName,
-                        CurrencyManager.formatAmountWithSymbol(kotlin.math.abs(totalAmount))
+                        CurrencyManager.formatAmountWithSymbol(abs(totalAmount))
                     )
 
                     else -> ""

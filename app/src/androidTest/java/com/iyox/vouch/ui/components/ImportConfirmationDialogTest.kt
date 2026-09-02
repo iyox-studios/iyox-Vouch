@@ -1,7 +1,6 @@
 package com.iyox.vouch.ui.components
 
 import android.content.Context
-import android.net.Uri
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled

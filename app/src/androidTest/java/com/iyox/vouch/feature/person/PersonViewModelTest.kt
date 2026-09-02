@@ -4,12 +4,15 @@ import android.app.Application
 import androidx.lifecycle.SavedStateHandle
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.iyox.vouch.R
 import com.iyox.vouch.core.data.AppDatabase
 import com.iyox.vouch.core.data.PersonRepository
 import com.iyox.vouch.core.data.VouchRepository
 import com.iyox.vouch.core.model.Person
 import com.iyox.vouch.core.model.PersonWithAmount
 import com.iyox.vouch.core.model.Vouch
+import com.iyox.vouch.core.model.VouchSortOrder
+import com.iyox.vouch.core.model.VouchTypeFilter
 import com.iyox.vouch.core.model.VouchWithPerson
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -104,30 +107,30 @@ class PersonViewModelTest {
         viewModel.uiState.first { !it.isLoading && it.vouches.size == 2 }
 
         // Initial: show all
-        assertEquals(com.iyox.vouch.core.model.VouchTypeFilter.ALL, viewModel.uiState.value.showOnlyGiven)
+        assertEquals(VouchTypeFilter.ALL, viewModel.uiState.value.showOnlyGiven)
         assertEquals(2, viewModel.uiState.value.vouches.size)
 
         // Toggle to given only
         viewModel.toggleShowOnlyGiven()
-        assertEquals(com.iyox.vouch.core.model.VouchTypeFilter.GIVEN, viewModel.uiState.value.showOnlyGiven)
+        assertEquals(VouchTypeFilter.GIVEN, viewModel.uiState.value.showOnlyGiven)
         assertEquals(1, viewModel.uiState.value.vouches.size)
         assertTrue(viewModel.uiState.value.vouches[0].vouch.given)
 
         // Toggle to received only
         viewModel.toggleShowOnlyGiven()
-        assertEquals(com.iyox.vouch.core.model.VouchTypeFilter.RECEIVED, viewModel.uiState.value.showOnlyGiven)
+        assertEquals(VouchTypeFilter.RECEIVED, viewModel.uiState.value.showOnlyGiven)
         assertEquals(1, viewModel.uiState.value.vouches.size)
         assertFalse(viewModel.uiState.value.vouches[0].vouch.given)
 
         // Toggle back to all
         viewModel.toggleShowOnlyGiven()
-        assertEquals(com.iyox.vouch.core.model.VouchTypeFilter.ALL, viewModel.uiState.value.showOnlyGiven)
+        assertEquals(VouchTypeFilter.ALL, viewModel.uiState.value.showOnlyGiven)
         assertEquals(2, viewModel.uiState.value.vouches.size)
 
         // Sort toggle
-        assertEquals(com.iyox.vouch.core.model.VouchSortOrder.DATE, viewModel.uiState.value.sortedBy)
+        assertEquals(VouchSortOrder.DATE, viewModel.uiState.value.sortedBy)
         viewModel.toggleSortedBy()
-        assertEquals(com.iyox.vouch.core.model.VouchSortOrder.AMOUNT, viewModel.uiState.value.sortedBy)
+        assertEquals(VouchSortOrder.AMOUNT, viewModel.uiState.value.sortedBy)
     }
 
     @Test
@@ -181,12 +184,15 @@ class PersonViewModelTest {
         viewModel.loadPerson("Dave")
         viewModel.uiState.first { !it.isLoading && it.vouches.size == 2 }
 
-        val (settled, nettingVouch) = viewModel.netVouches(application.getString(com.iyox.vouch.R.string.vouch_description_netting))
+        val (settled, nettingVouch) = viewModel.netVouches(application.getString(R.string.vouch_description_netting))
         assertEquals(2, settled.size)
         assertNotNull(nettingVouch)
         assertEquals(2000L, nettingVouch?.vouch?.amount)
         assertEquals(true, nettingVouch?.vouch?.given)
-        assertEquals(application.getString(com.iyox.vouch.R.string.vouch_description_netting), nettingVouch?.vouch?.description)
+        assertEquals(
+            application.getString(R.string.vouch_description_netting),
+            nettingVouch?.vouch?.description
+        )
 
         viewModel.loadPerson("Dave")
         val nettedState = viewModel.uiState.first { !it.isLoading && it.vouches.size == 1 }

@@ -7,6 +7,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.SnackbarVisuals
 import androidx.compose.runtime.Composable
+import com.iyox.vouch.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -116,8 +117,9 @@ class ToastManager(
         performAction: suspend () -> T,
         undoAction: suspend (T) -> Unit
     ) {
-        val resolvedActionLabel = actionLabel ?: context?.getString(com.iyox.vouch.R.string.action_undo) ?: "Undo"
-        val defaultError = errorMessage ?: context?.getString(com.iyox.vouch.R.string.msg_operation_failed) ?: "Operation failed"
+        val resolvedActionLabel = actionLabel ?: context?.getString(R.string.action_undo) ?: "Undo"
+        val defaultError =
+            errorMessage ?: context?.getString(R.string.msg_operation_failed) ?: "Operation failed"
         coroutineScope.launch {
             try {
                 val resultData = performAction() ?: return@launch
