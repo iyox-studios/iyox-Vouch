@@ -1,12 +1,15 @@
 package com.iyox.vouch.navigation
 
 
+import androidx.activity.compose.BackHandler
 import androidx.annotation.StringRes
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Payments
@@ -20,9 +23,11 @@ import androidx.compose.material3.ShortNavigationBar
 import androidx.compose.material3.ShortNavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -31,7 +36,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -49,13 +53,14 @@ import com.iyox.vouch.feature.vouch.GroupVouchScreen
 import com.iyox.vouch.feature.vouch.SingleVouchScreen
 import com.iyox.vouch.feature.vouches.VouchesScreen
 import com.iyox.vouch.feature.vouches.VouchesViewModel
+import kotlinx.coroutines.launch
 
 data class NavigationItem(
-    val route: Any,
+    val targetPage: Int,
     @StringRes val titleRes: Int,
     val icon: ImageVector,
     val iconSelected: ImageVector,
-    val isSelected: (NavDestination?) -> Boolean
+    val isSelected: (NavDestination?, Int) -> Boolean
 )
 
 @Composable
@@ -64,39 +69,42 @@ fun AppNavigation(
     settingsViewModel: SettingsViewModel = hiltViewModel()
 ) {
     val navController = rememberNavController()
-    val haptic = LocalHapticFeedback.current
+    val coroutineScope = rememberCoroutineScope()
     val uiState by settingsViewModel.uiState.collectAsState()
+    val pagerState = rememberPagerState(initialPage = 0, pageCount = { 3 })
+
+    val haptic = LocalHapticFeedback.current
 
     val navigationItems = listOf(
         NavigationItem(
-            route = VouchesRoute,
+            targetPage = 0,
             titleRes = R.string.screen_vouches,
             icon = Icons.Outlined.Payments,
             iconSelected = Icons.Filled.Payments,
-            isSelected = { dest ->
-                dest?.hasRoute<VouchesRoute>() == true ||
-                dest?.hasRoute<SingleVouchRoute>() == true ||
-                dest?.hasRoute<GroupVouchRoute>() == true ||
-                dest?.hasRoute<SettledSpaceRoute>() == true
+            isSelected = { dest, page ->
+                (dest?.hasRoute<VouchesRoute>() == true && page == 0) ||
+                        dest?.hasRoute<SingleVouchRoute>() == true ||
+                        dest?.hasRoute<GroupVouchRoute>() == true ||
+                        dest?.hasRoute<SettledSpaceRoute>() == true
             }
         ),
         NavigationItem(
-            route = PersonsRoute,
+            targetPage = 1,
             titleRes = R.string.screen_people,
             icon = Icons.Outlined.Group,
             iconSelected = Icons.Filled.Group,
-            isSelected = { dest ->
-                dest?.hasRoute<PersonsRoute>() == true ||
-                dest?.hasRoute<ViewPersonRoute>() == true
+            isSelected = { dest, page ->
+                (dest?.hasRoute<VouchesRoute>() == true && page == 1) ||
+                        dest?.hasRoute<ViewPersonRoute>() == true
             }
         ),
         NavigationItem(
-            route = SettingsRoute,
+            targetPage = 2,
             titleRes = R.string.screen_settings,
             icon = Icons.Outlined.Settings,
             iconSelected = Icons.Filled.Settings,
-            isSelected = { dest ->
-                dest?.hasRoute<SettingsRoute>() == true
+            isSelected = { dest, page ->
+                dest?.hasRoute<VouchesRoute>() == true && page == 2
             }
         )
     )
@@ -109,13 +117,20 @@ fun AppNavigation(
         if (settingsViewModel.isOnboardingCompleted()) VouchesRoute else OnboardingRoute
     }
 
+    val isMainDestination = currentDestination?.hasRoute<VouchesRoute>() == true
+    BackHandler(enabled = isMainDestination && pagerState.currentPage != 0) {
+        coroutineScope.launch {
+            pagerState.scrollToPage(0)
+        }
+    }
+
     Scaffold(
         snackbarHost = snackbarHost,
         bottomBar = {
             if (isNotOnboarding) {
                 ShortNavigationBar {
                     navigationItems.forEach { item ->
-                        val isSelected = item.isSelected(currentDestination)
+                        val isSelected = item.isSelected(currentDestination, pagerState.currentPage)
                         val icon = if (isSelected) item.iconSelected else item.icon
                         ShortNavigationBarItem(
                             icon = {
@@ -128,20 +143,12 @@ fun AppNavigation(
                             selected = isSelected,
                             onClick = {
                                 haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
-                                if (isSelected) {
-                                    when (item.route) {
-                                        is VouchesRoute -> if (currentDestination?.hasRoute<VouchesRoute>() != true) navController.popBackStack<VouchesRoute>(inclusive = false)
-                                        is PersonsRoute -> if (currentDestination?.hasRoute<PersonsRoute>() != true) navController.popBackStack<PersonsRoute>(inclusive = false)
-                                        is SettingsRoute -> if (currentDestination?.hasRoute<SettingsRoute>() != true) navController.popBackStack<SettingsRoute>(inclusive = false)
-                                    }
-                                } else {
-                                    navController.navigate(item.route) {
-                                        popUpTo(navController.graph.findStartDestination().id) {
-                                            saveState = true
-                                            inclusive = false
-                                        }
-                                        launchSingleTop = true
-                                        restoreState = true
+                                if (!isMainDestination) {
+                                    navController.popBackStack<VouchesRoute>(inclusive = false)
+                                }
+                                if (pagerState.currentPage != item.targetPage) {
+                                    coroutineScope.launch {
+                                        pagerState.scrollToPage(item.targetPage)
                                     }
                                 }
                             }
@@ -183,58 +190,87 @@ fun AppNavigation(
 
             composable<VouchesRoute> {
                 val vouchesViewModel: VouchesViewModel = hiltViewModel()
-                Box(modifier = Modifier.fillMaxSize().padding(bottom = innerPadding.calculateBottomPadding())) {
-                    VouchesScreen(
-                        viewModel = vouchesViewModel,
-                        onNavigateToAddVouch = {
-                            navController.navigate(SingleVouchRoute())
-                        },
-                        onNavigateToAddGroupVouch = {
-                            navController.navigate(GroupVouchRoute())
-                        },
-                        onNavigateToEditVouch = { vouchId, isGroup ->
-                            if (isGroup) {
-                                navController.navigate(GroupVouchRoute(vouchId = vouchId))
-                            } else {
-                                navController.navigate(SingleVouchRoute(vouchId = vouchId))
+                val personsViewModel: PersonsViewModel = hiltViewModel()
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(bottom = innerPadding.calculateBottomPadding())
+                ) {
+                    HorizontalPager(
+                        state = pagerState,
+                        userScrollEnabled = false,
+                        beyondViewportPageCount = 2,
+                        modifier = Modifier.fillMaxSize()
+                    ) { page ->
+                        when (page) {
+                            0 -> {
+                                VouchesScreen(
+                                    viewModel = vouchesViewModel,
+                                    onNavigateToAddVouch = {
+                                        navController.navigate(SingleVouchRoute())
+                                    },
+                                    onNavigateToAddGroupVouch = {
+                                        navController.navigate(GroupVouchRoute())
+                                    },
+                                    onNavigateToEditVouch = { vouchId, isGroup ->
+                                        if (isGroup) {
+                                            navController.navigate(GroupVouchRoute(vouchId = vouchId))
+                                        } else {
+                                            navController.navigate(SingleVouchRoute(vouchId = vouchId))
+                                        }
+                                    },
+                                    onNavigateToPerson = { personName ->
+                                        navController.navigate(ViewPersonRoute(personName = personName))
+                                    },
+                                    onNavigateToSettledSpace = {
+                                        navController.navigate(SettledSpaceRoute())
+                                    }
+                                )
                             }
-                        },
-                        onNavigateToPerson = { personName ->
-                            navController.navigate(ViewPersonRoute(personName = personName))
-                        },
-                        onNavigateToSettledSpace = {
-                            navController.navigate(SettledSpaceRoute())
+
+                            1 -> {
+                                PersonsScreen(
+                                    viewModel = personsViewModel,
+                                    onNavigateToViewPerson = { personName ->
+                                        navController.navigate(ViewPersonRoute(personName = personName))
+                                    }
+                                )
+                            }
+
+                            2 -> {
+                                SettingsScreen(
+                                    viewModel = settingsViewModel,
+                                    onNavigateToOnboarding = {
+                                        navController.navigate(OnboardingRoute)
+                                    }
+                                )
+                            }
                         }
-                    )
+                    }
                 }
             }
 
             composable<PersonsRoute> {
-                val personsViewModel: PersonsViewModel = hiltViewModel()
-                Box(modifier = Modifier.fillMaxSize().padding(bottom = innerPadding.calculateBottomPadding())) {
-                    PersonsScreen(
-                        viewModel = personsViewModel,
-                        onNavigateToViewPerson = { personName ->
-                            navController.navigate(ViewPersonRoute(personName = personName))
-                        }
-                    )
+                LaunchedEffect(Unit) {
+                    pagerState.scrollToPage(1)
+                    navController.popBackStack<VouchesRoute>(inclusive = false)
                 }
             }
 
             composable<SettingsRoute> {
-                Box(modifier = Modifier.fillMaxSize().padding(bottom = innerPadding.calculateBottomPadding())) {
-                    SettingsScreen(
-                        viewModel = settingsViewModel,
-                        onNavigateToOnboarding = {
-                            navController.navigate(OnboardingRoute)
-                        }
-                    )
+                LaunchedEffect(Unit) {
+                    pagerState.scrollToPage(2)
+                    navController.popBackStack<VouchesRoute>(inclusive = false)
                 }
             }
 
             composable<SingleVouchRoute> { backStackEntry ->
                 val route = backStackEntry.toRoute<SingleVouchRoute>()
-                Box(modifier = Modifier.fillMaxSize().padding(bottom = innerPadding.calculateBottomPadding())) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(bottom = innerPadding.calculateBottomPadding())
+                ) {
                     SingleVouchScreen(
                         vouchId = route.vouchId,
                         prefilledPersonName = route.personName,
@@ -248,7 +284,11 @@ fun AppNavigation(
 
             composable<GroupVouchRoute> { backStackEntry ->
                 val route = backStackEntry.toRoute<GroupVouchRoute>()
-                Box(modifier = Modifier.fillMaxSize().padding(bottom = innerPadding.calculateBottomPadding())) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(bottom = innerPadding.calculateBottomPadding())
+                ) {
                     GroupVouchScreen(
                         vouchId = route.vouchId,
                         edit = route.vouchId != null,
@@ -261,7 +301,11 @@ fun AppNavigation(
 
             composable<ViewPersonRoute> { backStackEntry ->
                 val route = backStackEntry.toRoute<ViewPersonRoute>()
-                Box(modifier = Modifier.fillMaxSize().padding(bottom = innerPadding.calculateBottomPadding())) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(bottom = innerPadding.calculateBottomPadding())
+                ) {
                     PersonScreen(
                         personName = route.personName,
                         onNavigateBack = {
@@ -291,7 +335,11 @@ fun AppNavigation(
 
             composable<SettledSpaceRoute> { backStackEntry ->
                 val route = backStackEntry.toRoute<SettledSpaceRoute>()
-                Box(modifier = Modifier.fillMaxSize().padding(bottom = innerPadding.calculateBottomPadding())) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(bottom = innerPadding.calculateBottomPadding())
+                ) {
                     SettledSpaceScreen(
                         initialPersonName = route.personName,
                         onNavigateBack = {
