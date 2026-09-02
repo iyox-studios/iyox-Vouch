@@ -1,5 +1,6 @@
 package com.iyox.vouch.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,8 +18,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowForward
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.outlined.Group
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Diversity3
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -36,6 +37,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.iyox.vouch.R
@@ -60,13 +63,13 @@ fun GroupParticipantsDialog(
                 modifier = Modifier.size(48.dp)
             ) {
                 Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = Icons.Outlined.Group,
+                        imageVector = Icons.Default.Diversity3,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(24.dp)
                     )
                 }
@@ -76,7 +79,7 @@ fun GroupParticipantsDialog(
             Text(
                 text = stringResource(R.string.title_group_participants),
                 style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold
+                textAlign = TextAlign.Center
             )
         },
         text = {
@@ -87,6 +90,7 @@ fun GroupParticipantsDialog(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(persons, key = { it.person.id }) { personWithAmount ->
+                    val isSettled = personWithAmount.settled
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -103,58 +107,78 @@ fun GroupParticipantsDialog(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 14.dp, vertical = 10.dp),
+                                .padding(horizontal = 14.dp, vertical = 12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            PersonAvatar(
-                                name = personWithAmount.person.name,
-                                size = 38.dp
-                            )
+                            Box {
+                                PersonAvatar(
+                                    name = personWithAmount.person.name,
+                                    size = 40.dp
+                                )
+                                if (isSettled) {
+                                    Surface(
+                                        shape = CircleShape,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.surfaceContainerHigh),
+                                        modifier = Modifier
+                                            .size(16.dp)
+                                            .align(Alignment.BottomEnd)
+                                    ) {
+                                        Box(contentAlignment = Alignment.Center) {
+                                            Icon(
+                                                imageVector = Icons.Filled.Check,
+                                                contentDescription = stringResource(R.string.label_settled),
+                                                tint = MaterialTheme.colorScheme.onPrimary,
+                                                modifier = Modifier.size(10.dp)
+                                            )
+                                        }
+                                    }
+                                }
+                            }
 
                             Spacer(modifier = Modifier.width(12.dp))
 
                             Column(
                                 modifier = Modifier.weight(1f),
-                                verticalArrangement = Arrangement.spacedBy(2.dp)
+                                verticalArrangement = Arrangement.Center
                             ) {
                                 Text(
                                     text = personWithAmount.person.name,
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.SemiBold,
-                                    color = MaterialTheme.colorScheme.onSurface,
+                                    color = if (isSettled) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
                                 )
-                                Text(
-                                    text = CurrencyManager.formatAmountWithSymbol(personWithAmount.amount),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis
-                                )
-                            }
-
-                            if (personWithAmount.settled) {
-                                Surface(
-                                    shape = CircleShape,
-                                    color = MaterialTheme.colorScheme.surfaceContainerHighest,
-                                    modifier = Modifier.padding(end = 6.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Filled.CheckCircle,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(12.dp)
+                                if (isSettled) {
+                                    Text(
+                                        text = stringResource(R.string.label_settled),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        fontWeight = FontWeight.Medium
                                     )
                                 }
                             }
 
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Outlined.ArrowForward,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(18.dp)
-                            )
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Text(
+                                    text = CurrencyManager.formatAmountWithSymbol(personWithAmount.amount),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (isSettled) MaterialTheme.colorScheme.outline else MaterialTheme.colorScheme.onSurface,
+                                    textDecoration = if (isSettled) TextDecoration.LineThrough else TextDecoration.None
+                                )
+
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Outlined.ArrowForward,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
                         }
                     }
                 }
