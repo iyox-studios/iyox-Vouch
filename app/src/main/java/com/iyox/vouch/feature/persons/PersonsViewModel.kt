@@ -3,7 +3,6 @@ package com.iyox.vouch.feature.persons
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.iyox.vouch.core.data.PersonRepository
-import com.iyox.vouch.core.data.VouchRepository
 import com.iyox.vouch.core.model.PersonTotal
 import com.iyox.vouch.core.utils.VouchFilterUtils.filterBySearchQuery
 import dagger.hilt.android.lifecycle.HiltViewModel

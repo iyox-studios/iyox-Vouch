@@ -1,5 +1,6 @@
 package com.iyox.vouch.feature.vouches
 
+import android.app.Application
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.iyox.vouch.core.data.AppDatabase

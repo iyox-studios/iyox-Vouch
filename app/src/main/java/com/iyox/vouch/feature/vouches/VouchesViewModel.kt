@@ -8,7 +8,6 @@ import com.iyox.vouch.core.model.VouchSortOrder
 import com.iyox.vouch.core.model.VouchTypeFilter
 import com.iyox.vouch.core.model.VouchWithPerson
 import com.iyox.vouch.core.model.isSettled
-import com.iyox.vouch.core.utils.VouchFilterUtils.filterByGiven
 import com.iyox.vouch.core.utils.VouchFilterUtils.filterSearchAndSort
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
