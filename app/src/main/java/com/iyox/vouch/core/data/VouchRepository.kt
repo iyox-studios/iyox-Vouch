@@ -74,9 +74,6 @@ class VouchRepository @Inject constructor(
     }
 
     suspend fun getAll(): List<VouchWithPerson> {
-        val inMemory = vouchesFlow.value
-        if (inMemory.isNotEmpty()) return inMemory
-
         return database.withTransaction {
             val vouches = vouchDataDao.getAll()
             val personRows = vouchDataDao.getAllPersonRows()
@@ -91,13 +88,6 @@ class VouchRepository @Inject constructor(
     }
 
     suspend fun getVouchesByPersonName(name: String): List<VouchWithPerson> {
-        val inMemory = vouchesFlow.value.filter { v ->
-            v.persons.any { it.person.name.equals(name, ignoreCase = true) }
-        }
-        if (inMemory.isNotEmpty() || vouchesFlow.value.isNotEmpty()) {
-            return inMemory
-        }
-
         return database.withTransaction {
             val vouches = vouchDataDao.getVouchesByPersonName(name)
             if (vouches.isEmpty()) return@withTransaction emptyList()
@@ -113,9 +103,6 @@ class VouchRepository @Inject constructor(
     }
 
     suspend fun getById(id: Long): VouchWithPerson? {
-        // Instant in-memory lookup (<1ms)
-        vouchesFlow.value.find { it.vouch.id == id }?.let { return it }
-
         return database.withTransaction {
             val vouch = vouchDataDao.getById(id) ?: return@withTransaction null
             VouchWithPerson(
