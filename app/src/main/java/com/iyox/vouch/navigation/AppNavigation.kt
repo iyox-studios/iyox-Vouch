@@ -1,6 +1,7 @@
 package com.iyox.vouch.navigation
 
 
+import androidx.annotation.StringRes
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.layout.Box
@@ -28,13 +29,15 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavDestination
+import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
+import androidx.navigation.toRoute
+import com.iyox.vouch.R
 import com.iyox.vouch.feature.onboarding.OnboardingScreen
 import com.iyox.vouch.feature.person.PersonScreen
 import com.iyox.vouch.feature.persons.PersonsScreen
@@ -48,7 +51,11 @@ import com.iyox.vouch.feature.vouches.VouchesScreen
 import com.iyox.vouch.feature.vouches.VouchesViewModel
 
 data class NavigationItem(
-    val screen: Screen, val icon: ImageVector, val iconSelected: ImageVector
+    val route: Any,
+    @StringRes val titleRes: Int,
+    val icon: ImageVector,
+    val iconSelected: ImageVector,
+    val isSelected: (NavDestination?) -> Boolean
 )
 
 @Composable
@@ -61,17 +68,45 @@ fun AppNavigation(
     val uiState by settingsViewModel.uiState.collectAsState()
 
     val navigationItems = listOf(
-        NavigationItem(Screen.Vouches, Icons.Outlined.Payments, Icons.Filled.Payments),
-        NavigationItem(Screen.Persons, Icons.Outlined.Group, Icons.Filled.Group),
-        NavigationItem(Screen.Settings, Icons.Outlined.Settings, Icons.Filled.Settings)
+        NavigationItem(
+            route = VouchesRoute,
+            titleRes = R.string.screen_vouches,
+            icon = Icons.Outlined.Payments,
+            iconSelected = Icons.Filled.Payments,
+            isSelected = { dest ->
+                dest?.hasRoute<VouchesRoute>() == true ||
+                dest?.hasRoute<SingleVouchRoute>() == true ||
+                dest?.hasRoute<GroupVouchRoute>() == true ||
+                dest?.hasRoute<SettledSpaceRoute>() == true
+            }
+        ),
+        NavigationItem(
+            route = PersonsRoute,
+            titleRes = R.string.screen_people,
+            icon = Icons.Outlined.Group,
+            iconSelected = Icons.Filled.Group,
+            isSelected = { dest ->
+                dest?.hasRoute<PersonsRoute>() == true ||
+                dest?.hasRoute<ViewPersonRoute>() == true
+            }
+        ),
+        NavigationItem(
+            route = SettingsRoute,
+            titleRes = R.string.screen_settings,
+            icon = Icons.Outlined.Settings,
+            iconSelected = Icons.Filled.Settings,
+            isSelected = { dest ->
+                dest?.hasRoute<SettingsRoute>() == true
+            }
+        )
     )
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route
-    val isNotOnboarding = currentRoute != Screen.Onboarding.route
+    val currentDestination = navBackStackEntry?.destination
+    val isNotOnboarding = currentDestination?.hasRoute<OnboardingRoute>() != true
 
-    val startDestination = remember {
-        if (settingsViewModel.isOnboardingCompleted()) Screen.Vouches.route else Screen.Onboarding.route
+    val startDestination: Any = remember {
+        if (settingsViewModel.isOnboardingCompleted()) VouchesRoute else OnboardingRoute
     }
 
     Scaffold(
@@ -79,45 +114,28 @@ fun AppNavigation(
         bottomBar = {
             if (isNotOnboarding) {
                 ShortNavigationBar {
-                    val activeTopLevelRoute = when (currentRoute) {
-                        Screen.Persons.route,
-                        Screen.ViewPerson.route -> Screen.Persons.route
-
-                        Screen.Settings.route -> Screen.Settings.route
-
-                        Screen.Vouches.route,
-                        Screen.AddVouch.route,
-                        Screen.AddGroupVouch.route,
-                        Screen.EditVouch.route,
-                        Screen.EditGroupVouch.route,
-                        Screen.SettledSpace.route -> Screen.Vouches.route
-
-                        else -> Screen.Vouches.route
-                    }
-
                     navigationItems.forEach { item ->
-                        val isSelected = item.screen.route == activeTopLevelRoute
+                        val isSelected = item.isSelected(currentDestination)
                         val icon = if (isSelected) item.iconSelected else item.icon
                         ShortNavigationBarItem(
                             icon = {
                                 Icon(
                                     imageVector = icon,
-                                    contentDescription = stringResource(item.screen.titleRes)
+                                    contentDescription = stringResource(item.titleRes)
                                 )
                             },
-                            label = { Text(stringResource(item.screen.titleRes)) },
+                            label = { Text(stringResource(item.titleRes)) },
                             selected = isSelected,
                             onClick = {
                                 haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
                                 if (isSelected) {
-                                    if (navBackStackEntry?.destination?.route != item.screen.route) {
-                                        navController.popBackStack(
-                                            route = item.screen.route,
-                                            inclusive = false
-                                        )
+                                    when (item.route) {
+                                        is VouchesRoute -> if (currentDestination?.hasRoute<VouchesRoute>() != true) navController.popBackStack<VouchesRoute>(inclusive = false)
+                                        is PersonsRoute -> if (currentDestination?.hasRoute<PersonsRoute>() != true) navController.popBackStack<PersonsRoute>(inclusive = false)
+                                        is SettingsRoute -> if (currentDestination?.hasRoute<SettingsRoute>() != true) navController.popBackStack<SettingsRoute>(inclusive = false)
                                     }
                                 } else {
-                                    navController.navigate(item.screen.route) {
+                                    navController.navigate(item.route) {
                                         popUpTo(navController.graph.findStartDestination().id) {
                                             saveState = true
                                             inclusive = false
@@ -126,11 +144,13 @@ fun AppNavigation(
                                         restoreState = true
                                     }
                                 }
-                            })
+                            }
+                        )
                     }
                 }
             }
-        }) { innerPadding ->
+        }
+    ) { innerPadding ->
         NavHost(
             navController = navController,
             startDestination = startDestination,
@@ -140,16 +160,17 @@ fun AppNavigation(
             enterTransition = { EnterTransition.None },
             exitTransition = { ExitTransition.None },
             popEnterTransition = { EnterTransition.None },
-            popExitTransition = { ExitTransition.None }) {
-            composable(Screen.Onboarding.route) {
+            popExitTransition = { ExitTransition.None }
+        ) {
+            composable<OnboardingRoute> {
                 OnboardingScreen(
                     onFinish = {
                         settingsViewModel.setOnboardingCompleted(true)
                         if (navController.previousBackStackEntry != null) {
                             navController.popBackStack()
                         } else {
-                            navController.navigate(Screen.Vouches.route) {
-                                popUpTo(Screen.Onboarding.route) { inclusive = true }
+                            navController.navigate(VouchesRoute) {
+                                popUpTo<OnboardingRoute> { inclusive = true }
                             }
                         }
                     },
@@ -159,170 +180,134 @@ fun AppNavigation(
                     }
                 )
             }
-            composable(Screen.Vouches.route) {
+
+            composable<VouchesRoute> {
                 val vouchesViewModel: VouchesViewModel = hiltViewModel()
                 Box(modifier = Modifier.fillMaxSize().padding(bottom = innerPadding.calculateBottomPadding())) {
                     VouchesScreen(
                         viewModel = vouchesViewModel,
                         onNavigateToAddVouch = {
-                            navController.navigate(Screen.AddVouch.createRoute())
+                            navController.navigate(SingleVouchRoute())
                         },
                         onNavigateToAddGroupVouch = {
-                            navController.navigate(Screen.AddGroupVouch.route)
+                            navController.navigate(GroupVouchRoute())
                         },
                         onNavigateToEditVouch = { vouchId, isGroup ->
                             if (isGroup) {
-                                navController.navigate(Screen.EditGroupVouch.createRoute(vouchId))
+                                navController.navigate(GroupVouchRoute(vouchId = vouchId))
                             } else {
-                                navController.navigate(Screen.EditVouch.createRoute(vouchId))
+                                navController.navigate(SingleVouchRoute(vouchId = vouchId))
                             }
                         },
                         onNavigateToPerson = { personName ->
-                            navController.navigate(Screen.ViewPerson.createRoute(personName))
+                            navController.navigate(ViewPersonRoute(personName = personName))
                         },
                         onNavigateToSettledSpace = {
-                            navController.navigate(Screen.SettledSpace.createRoute())
+                            navController.navigate(SettledSpaceRoute())
                         }
                     )
                 }
             }
-            composable(Screen.Persons.route) {
+
+            composable<PersonsRoute> {
                 val personsViewModel: PersonsViewModel = hiltViewModel()
                 Box(modifier = Modifier.fillMaxSize().padding(bottom = innerPadding.calculateBottomPadding())) {
-                    PersonsScreen(viewModel = personsViewModel, onNavigateToViewPerson = { personName ->
-                        navController.navigate(Screen.ViewPerson.createRoute(personName))
-                    })
+                    PersonsScreen(
+                        viewModel = personsViewModel,
+                        onNavigateToViewPerson = { personName ->
+                            navController.navigate(ViewPersonRoute(personName = personName))
+                        }
+                    )
                 }
             }
-            composable(Screen.Settings.route) {
+
+            composable<SettingsRoute> {
                 Box(modifier = Modifier.fillMaxSize().padding(bottom = innerPadding.calculateBottomPadding())) {
                     SettingsScreen(
                         viewModel = settingsViewModel,
                         onNavigateToOnboarding = {
-                            navController.navigate(Screen.Onboarding.route)
+                            navController.navigate(OnboardingRoute)
                         }
                     )
                 }
             }
-            composable(
-                route = Screen.AddVouch.route,
-                arguments = listOf(
-                    navArgument(Screen.AddVouch.PERSON_NAME_ARG) {
-                        type = NavType.StringType
-                        nullable = true
-                        defaultValue = null
-                    }
-                )
-            ) { backStackEntry ->
-                val prefilledPersonName =
-                    backStackEntry.arguments?.getString(Screen.AddVouch.PERSON_NAME_ARG)
+
+            composable<SingleVouchRoute> { backStackEntry ->
+                val route = backStackEntry.toRoute<SingleVouchRoute>()
                 Box(modifier = Modifier.fillMaxSize().padding(bottom = innerPadding.calculateBottomPadding())) {
                     SingleVouchScreen(
-                        prefilledPersonName = prefilledPersonName,
-                        onNavigateBack = {
-                            navController.popBackStack()
-                        })
-                }
-            }
-            composable(Screen.AddGroupVouch.route) {
-                Box(modifier = Modifier.fillMaxSize().padding(bottom = innerPadding.calculateBottomPadding())) {
-                    GroupVouchScreen(
+                        vouchId = route.vouchId,
+                        prefilledPersonName = route.personName,
+                        edit = route.vouchId != null,
                         onNavigateBack = {
                             navController.popBackStack()
                         }
                     )
                 }
             }
-            composable(
-                route = Screen.ViewPerson.route,
-                arguments = listOf(navArgument("personName") { type = NavType.StringType })
-            ) { backStackEntry ->
-                val personName =
-                    backStackEntry.arguments?.getString("personName") ?: return@composable
+
+            composable<GroupVouchRoute> { backStackEntry ->
+                val route = backStackEntry.toRoute<GroupVouchRoute>()
+                Box(modifier = Modifier.fillMaxSize().padding(bottom = innerPadding.calculateBottomPadding())) {
+                    GroupVouchScreen(
+                        vouchId = route.vouchId,
+                        edit = route.vouchId != null,
+                        onNavigateBack = {
+                            navController.popBackStack()
+                        }
+                    )
+                }
+            }
+
+            composable<ViewPersonRoute> { backStackEntry ->
+                val route = backStackEntry.toRoute<ViewPersonRoute>()
                 Box(modifier = Modifier.fillMaxSize().padding(bottom = innerPadding.calculateBottomPadding())) {
                     PersonScreen(
-                        personName = personName,
+                        personName = route.personName,
                         onNavigateBack = {
                             navController.popBackStack()
                         },
                         onNavigateToAddVouch = { selectedPersonName ->
-                            navController.navigate(Screen.AddVouch.createRoute(selectedPersonName))
+                            navController.navigate(SingleVouchRoute(personName = selectedPersonName))
                         },
                         onNavigateToEditVouch = { vouchId, isGroup ->
                             if (isGroup) {
-                                navController.navigate(Screen.EditGroupVouch.createRoute(vouchId))
+                                navController.navigate(GroupVouchRoute(vouchId = vouchId))
                             } else {
-                                navController.navigate(Screen.EditVouch.createRoute(vouchId))
+                                navController.navigate(SingleVouchRoute(vouchId = vouchId))
                             }
                         },
                         onNavigateToPerson = { selectedPersonName ->
-                            if (selectedPersonName != personName) {
-                                navController.navigate(Screen.ViewPerson.createRoute(selectedPersonName))
+                            if (selectedPersonName != route.personName) {
+                                navController.navigate(ViewPersonRoute(personName = selectedPersonName))
                             }
                         },
                         onNavigateToSettledSpace = { targetPersonName ->
-                            navController.navigate(Screen.SettledSpace.createRoute(targetPersonName))
+                            navController.navigate(SettledSpaceRoute(personName = targetPersonName))
                         }
                     )
                 }
             }
-            composable(
-                route = Screen.SettledSpace.route,
-                arguments = listOf(
-                    navArgument(Screen.SettledSpace.PERSON_NAME_ARG) {
-                        type = NavType.StringType
-                        nullable = true
-                        defaultValue = null
-                    }
-                )
-            ) { backStackEntry ->
-                val targetPersonName =
-                    backStackEntry.arguments?.getString(Screen.SettledSpace.PERSON_NAME_ARG)
+
+            composable<SettledSpaceRoute> { backStackEntry ->
+                val route = backStackEntry.toRoute<SettledSpaceRoute>()
                 Box(modifier = Modifier.fillMaxSize().padding(bottom = innerPadding.calculateBottomPadding())) {
                     SettledSpaceScreen(
-                        initialPersonName = targetPersonName,
+                        initialPersonName = route.personName,
                         onNavigateBack = {
                             navController.popBackStack()
                         },
                         onNavigateToEditVouch = { vouchId, isGroup ->
                             if (isGroup) {
-                                navController.navigate(Screen.EditGroupVouch.createRoute(vouchId))
+                                navController.navigate(GroupVouchRoute(vouchId = vouchId))
                             } else {
-                                navController.navigate(Screen.EditVouch.createRoute(vouchId))
+                                navController.navigate(SingleVouchRoute(vouchId = vouchId))
                             }
                         },
                         onNavigateToPerson = { selectedPersonName ->
-                            navController.navigate(Screen.ViewPerson.createRoute(selectedPersonName))
+                            navController.navigate(ViewPersonRoute(personName = selectedPersonName))
                         }
                     )
-                }
-            }
-            composable(
-                route = Screen.EditVouch.route,
-                arguments = listOf(navArgument("vouchId") { type = NavType.LongType })
-            ) { backStackEntry ->
-                val vouchId = backStackEntry.arguments?.getLong("vouchId") ?: return@composable
-                Box(modifier = Modifier.fillMaxSize().padding(bottom = innerPadding.calculateBottomPadding())) {
-                    SingleVouchScreen(
-                        vouchId = vouchId,
-                        edit = true,
-                        onNavigateBack = {
-                            navController.popBackStack()
-                        })
-                }
-            }
-            composable(
-                route = Screen.EditGroupVouch.route,
-                arguments = listOf(navArgument("vouchId") { type = NavType.LongType })
-            ) { backStackEntry ->
-                val vouchId = backStackEntry.arguments?.getLong("vouchId") ?: return@composable
-                Box(modifier = Modifier.fillMaxSize().padding(bottom = innerPadding.calculateBottomPadding())) {
-                    GroupVouchScreen(
-                        vouchId = vouchId,
-                        edit = true,
-                        onNavigateBack = {
-                            navController.popBackStack()
-                        })
                 }
             }
         }
