@@ -211,6 +211,8 @@
     <string name="onboarding_slide3_title">Personen-Detail &amp; Aktionen</string>
     <string name="onboarding_slide3_subtitle">Hier siehst du den Gesamtsaldo einer Person und kannst schnell neue &vouches; anlegen, Salden begleichen oder eine Übersicht teilen.</string>
     <string name="onboarding_slide3_hint">Öffne eine Person für den gesamten Verlauf, Netto-Verrechnungen oder zum Teilen von Übersichten.</string>
+    <string name="onboarding_action_settled_space_title">Erledigt-Bereich</string>
+    <string name="onboarding_action_settled_space_desc">Sieh dir alle vergangenen und beglichenen &vouches; mit dieser Person in einem separaten Archiv an.</string>
     <string name="onboarding_action_add_title">&vouch; hinzufügen</string>
     <string name="onboarding_action_add_desc">Erstelle direkt einen neuen &vouch; für diese Person, egal ob geliehen oder verliehen.</string>
     <string name="onboarding_action_settle_title">Salden ausgleichen</string>
