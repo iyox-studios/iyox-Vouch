@@ -189,7 +189,7 @@ private fun OnboardingBottomNavigation(
             modifier = Modifier
                 .fillMaxWidth()
                 .navigationBarsPadding()
-                .padding(start = 24.dp, end = 24.dp, top = 12.dp, bottom = 28.dp),
+                .padding(horizontal = 24.dp, vertical = 16.dp),
             contentAlignment = Alignment.Center
         ) {
             Row(
@@ -248,7 +248,7 @@ private fun OnboardingBottomNavigation(
 
             Button(
                 onClick = onNext,
-                contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
                 shape = MaterialTheme.shapes.medium,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary
