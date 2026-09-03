@@ -4,6 +4,8 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -45,6 +47,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
@@ -55,6 +58,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.iyox.vouch.R
+import kotlinx.coroutines.delay
 
 /**
  * Reusable Material 3 Expressive Search Bar.
@@ -74,6 +78,7 @@ fun VouchSearchBar(
     val haptics = LocalHapticFeedback.current
 
     LaunchedEffect(Unit) {
+        delay(220)
         focusRequester.requestFocus()
     }
 
@@ -194,13 +199,18 @@ fun ExpandableFilterSearchRow(
     AnimatedContent(
         targetState = isSearchActive && onSearchQueryChange != null,
         transitionSpec = {
-            fadeIn(animationSpec = tween(150))
-                .togetherWith(fadeOut(animationSpec = tween(100)))
+            (fadeIn(animationSpec = tween(200, delayMillis = 30)) +
+                    slideInHorizontally(animationSpec = tween(220)) { width -> width / 4 })
+                .togetherWith(
+                    fadeOut(animationSpec = tween(140)) +
+                            slideOutHorizontally(animationSpec = tween(140)) { width -> -width / 4 }
+                )
         },
         label = "ExpandableFilterSearchRowAnimation",
         modifier = modifier
             .fillMaxWidth()
             .height(48.dp)
+            .clipToBounds()
     ) { searchActive ->
         if (searchActive && onSearchQueryChange != null) {
             val closeSearch: () -> Unit = {
