@@ -37,6 +37,7 @@ import androidx.compose.material.icons.filled.Diversity3
 import androidx.compose.material.icons.filled.DoneAll
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.SwapHoriz
+import androidx.compose.material.icons.outlined.Archive
 import androidx.compose.material.icons.outlined.Lightbulb
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -514,6 +515,11 @@ private enum class OnboardingQuickAction(
     @param:StringRes val descriptionRes: Int,
     val icon: ImageVector
 ) {
+    SETTLED_SPACE(
+        titleRes = R.string.onboarding_action_settled_space_title,
+        descriptionRes = R.string.onboarding_action_settled_space_desc,
+        icon = Icons.Outlined.Archive
+    ),
     ADD_VOUCH(
         titleRes = R.string.onboarding_action_add_title,
         descriptionRes = R.string.onboarding_action_add_desc,
@@ -560,6 +566,7 @@ private fun PeopleSlide() {
             )
 
             QuickActionsCard(
+                onSettledSpaceClick = { selectedAction = OnboardingQuickAction.SETTLED_SPACE },
                 onAddVouch = { selectedAction = OnboardingQuickAction.ADD_VOUCH },
                 onSettleClick = { selectedAction = OnboardingQuickAction.SETTLE },
                 onShareClick = { selectedAction = OnboardingQuickAction.SHARE },
@@ -578,7 +585,7 @@ private fun PeopleSlide() {
             onDismissRequest = { selectedAction = null },
             icon = {
                 Surface(
-                    shape = CircleShape,
+                    shape = MaterialShapes.Cookie9Sided.toShape(),
                     color = MaterialTheme.colorScheme.primaryContainer,
                     modifier = Modifier.size(48.dp)
                 ) {

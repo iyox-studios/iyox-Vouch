@@ -213,6 +213,8 @@
     <string name="onboarding_slide3_title">Person Detail &amp; Quick Actions</string>
     <string name="onboarding_slide3_subtitle">Here you see the total balance for a person and can quickly add &vouches;, settle up, or share a summary.</string>
     <string name="onboarding_slide3_hint">Open any person to view their full history, calculate net balances, or share a summary.</string>
+    <string name="onboarding_action_settled_space_title">Settled Space</string>
+    <string name="onboarding_action_settled_space_desc">View all completed and settled &vouches; with this person in a dedicated archive.</string>
     <string name="onboarding_action_add_title">Add &vouch;</string>
     <string name="onboarding_action_add_desc">Quickly create a new &vouch; for this person, whether lent or borrowed.</string>
     <string name="onboarding_action_settle_title">Settle Balances</string>
