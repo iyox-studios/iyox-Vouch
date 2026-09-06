@@ -228,4 +228,11 @@
 
     <string name="settings_onboarding_guide">App Guide &amp; Tour</string>
     <string name="settings_onboarding_guide_subtitle">Replay</string>
+
+    <string name="currency_search_button">Search</string>
+    <string name="currency_search_placeholder">Search currency or code…</string>
+    <plurals name="currency_search_currencies_count">
+        <item quantity="one">%1$d currency</item>
+        <item quantity="other">%1$d currencies</item>
+    </plurals>
 </resources>

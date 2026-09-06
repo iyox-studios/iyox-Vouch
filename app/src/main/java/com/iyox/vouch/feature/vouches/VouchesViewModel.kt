@@ -2,6 +2,7 @@ package com.iyox.vouch.feature.vouches
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.iyox.vouch.core.currency.CurrencyManager
 import com.iyox.vouch.core.data.VouchRepository
 import com.iyox.vouch.core.domain.SharedVouchActions
 import com.iyox.vouch.core.model.VouchSortOrder
@@ -25,14 +26,17 @@ data class VouchesUiState(
     val searchQuery: String = "",
     val totalGiven: Long = 0L,
     val totalOwed: Long = 0L,
-    val netTotal: Long = 0L
+    val netTotal: Long = 0L,
+    val currencyCode: String = ""
 )
 
 @HiltViewModel
 class VouchesViewModel @Inject constructor(
-    repository: VouchRepository
+    repository: VouchRepository,
+    currencyManager: CurrencyManager? = null
 ) : ViewModel() {
 
+    private val currencyFlow = currencyManager?.currencyFlow ?: CurrencyManager.currencyFlow
     val sharedActions = SharedVouchActions(repository)
 
     private val _showOnlyGiven = MutableStateFlow(VouchTypeFilter.ALL)
@@ -43,7 +47,8 @@ class VouchesViewModel @Inject constructor(
         allVouches: List<VouchWithPerson>,
         showOnlyGiven: VouchTypeFilter,
         sortedBy: VouchSortOrder,
-        searchQuery: String
+        searchQuery: String,
+        currencyCode: String = ""
     ): VouchesUiState {
         val activeVouches = allVouches.filter { !it.isSettled() }
         val settledCount = allVouches.count { it.isSettled() }
@@ -76,14 +81,15 @@ class VouchesViewModel @Inject constructor(
             searchQuery = searchQuery,
             totalGiven = totalGiven,
             totalOwed = totalOwed,
-            netTotal = totalGiven - totalOwed
+            netTotal = totalGiven - totalOwed,
+            currencyCode = currencyCode
         )
     }
 
     val uiState: StateFlow<VouchesUiState> = combine(
-        repository.vouchesFlow, _showOnlyGiven, _sortedBy, _searchQuery
-    ) { allVouches, showOnlyGiven, sortedBy, searchQuery ->
-        computeState(allVouches, showOnlyGiven, sortedBy, searchQuery)
+        repository.vouchesFlow, _showOnlyGiven, _sortedBy, _searchQuery, currencyFlow
+    ) { allVouches, showOnlyGiven, sortedBy, searchQuery, currency ->
+        computeState(allVouches, showOnlyGiven, sortedBy, searchQuery, currencyCode = currency.currencyCode)
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.Eagerly,
@@ -91,7 +97,8 @@ class VouchesViewModel @Inject constructor(
             repository.vouchesFlow.value,
             _showOnlyGiven.value,
             _sortedBy.value,
-            _searchQuery.value
+            _searchQuery.value,
+            currencyCode = currencyFlow.value.currencyCode
         )
     )
 

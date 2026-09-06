@@ -33,15 +33,18 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.dialog
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.iyox.vouch.R
+import com.iyox.vouch.feature.currency.CurrencySearchScreen
 import com.iyox.vouch.feature.onboarding.OnboardingScreen
 import com.iyox.vouch.feature.person.PersonScreen
 import com.iyox.vouch.feature.persons.PersonsScreen
@@ -111,7 +114,9 @@ fun AppNavigation(
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
-    val isNotOnboarding = currentDestination?.hasRoute<OnboardingRoute>() != true
+    val showBottomBar = currentDestination?.let { dest ->
+        !dest.hasRoute<OnboardingRoute>() && !dest.hasRoute<CurrencySearchRoute>()
+    } ?: false
 
     val startDestination: Any = remember {
         if (settingsViewModel.isOnboardingCompleted()) VouchesRoute else OnboardingRoute
@@ -127,7 +132,7 @@ fun AppNavigation(
     Scaffold(
         snackbarHost = snackbarHost,
         bottomBar = {
-            if (isNotOnboarding) {
+            if (showBottomBar) {
                 ShortNavigationBar {
                     navigationItems.forEach { item ->
                         val isSelected = item.isSelected(currentDestination, pagerState.currentPage)
@@ -184,6 +189,9 @@ fun AppNavigation(
                     currentCurrencyCode = uiState.currencyCode,
                     onCurrencySelected = { currencyCode ->
                         settingsViewModel.setCurrency(currencyCode)
+                    },
+                    onNavigateToCurrencySearch = {
+                        navController.navigate(CurrencySearchRoute)
                     }
                 )
             }
@@ -242,6 +250,9 @@ fun AppNavigation(
                                     viewModel = settingsViewModel,
                                     onNavigateToOnboarding = {
                                         navController.navigate(OnboardingRoute)
+                                    },
+                                    onNavigateToCurrencySearch = {
+                                        navController.navigate(CurrencySearchRoute)
                                     }
                                 )
                             }
@@ -357,6 +368,23 @@ fun AppNavigation(
                         }
                     )
                 }
+            }
+
+            dialog<CurrencySearchRoute>(
+                dialogProperties = DialogProperties(
+                    usePlatformDefaultWidth = false
+                )
+            ) {
+                CurrencySearchScreen(
+                    selectedCurrencyCode = uiState.currencyCode,
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    },
+                    onCurrencySelected = { currency ->
+                        navController.popBackStack()
+                        settingsViewModel.setCurrency(currency.currencyCode)
+                    }
+                )
             }
         }
     }

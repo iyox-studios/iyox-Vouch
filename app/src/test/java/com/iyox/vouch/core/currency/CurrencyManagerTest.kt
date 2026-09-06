@@ -2,6 +2,7 @@ package com.iyox.vouch.core.currency
 
 import android.icu.util.Currency
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -139,8 +140,8 @@ class CurrencyManagerTest {
     }
 
     @Test
-    fun testSupportedCurrencies() {
-        val list = CurrencyManager.supportedCurrencies
+    fun testPopularCurrencies() {
+        val list = CurrencyManager.popularCurrencies
         assertEquals(9, list.size)
         val codes = list.map { it.currencyCode }
         assertTrue(codes.contains("EUR"))
@@ -152,6 +153,74 @@ class CurrencyManagerTest {
         assertTrue(codes.contains("AUD"))
         assertTrue(codes.contains("CNY"))
         assertTrue(codes.contains("INR"))
+    }
+
+    @Test
+    fun testSupportedCurrencies() {
+        val list = CurrencyManager.supportedCurrencies
+        assertTrue(list.size > 9)
+        val codes = list.map { it.currencyCode }
+        assertTrue(codes.contains("EUR"))
+        assertTrue(codes.contains("USD"))
+        assertTrue(codes.contains("GBP"))
+        assertTrue(codes.contains("JPY"))
+        assertTrue(codes.contains("CHF"))
+        assertTrue(codes.contains("CAD"))
+        assertTrue(codes.contains("AUD"))
+        assertTrue(codes.contains("CNY"))
+        assertTrue(codes.contains("INR"))
+    }
+
+    @Test
+    fun testQuickCurrencySlots_eurLocale() {
+        val localeCurrency = Currency.getInstance("EUR")
+        val slots = CurrencyManager.getQuickCurrencySlots(localeCurrency)
+        assertEquals(9, slots.size)
+
+        // Slot 0 (top left) is localeCurrency (EUR)
+        val topLeftSlot = slots[0]
+        assertTrue(topLeftSlot is CurrencyGridSlot.CurrencyItem)
+        assertEquals("EUR", (topLeftSlot as CurrencyGridSlot.CurrencyItem).currency.currencyCode)
+
+        // Slot 8 (bottom right) is SearchButton
+        val bottomRightSlot = slots[8]
+        assertTrue(bottomRightSlot is CurrencyGridSlot.SearchButton)
+
+        // Remaining 7 slots are CurrencyItem and do not contain EUR
+        val otherIndices = (1..7).toList()
+        val otherCodes = otherIndices.map { index ->
+            val slot = slots[index]
+            assertTrue(slot is CurrencyGridSlot.CurrencyItem)
+            (slot as CurrencyGridSlot.CurrencyItem).currency.currencyCode
+        }
+        assertEquals(7, otherCodes.toSet().size)
+        assertFalse(otherCodes.contains("EUR"))
+    }
+
+    @Test
+    fun testQuickCurrencySlots_customLocale() {
+        val localeCurrency = Currency.getInstance("BRL")
+        val slots = CurrencyManager.getQuickCurrencySlots(localeCurrency)
+        assertEquals(9, slots.size)
+
+        // Slot 0 (top left) is localeCurrency (BRL)
+        val topLeftSlot = slots[0]
+        assertTrue(topLeftSlot is CurrencyGridSlot.CurrencyItem)
+        assertEquals("BRL", (topLeftSlot as CurrencyGridSlot.CurrencyItem).currency.currencyCode)
+
+        // Slot 8 (bottom right) is SearchButton
+        val bottomRightSlot = slots[8]
+        assertTrue(bottomRightSlot is CurrencyGridSlot.SearchButton)
+
+        // Remaining 7 slots are CurrencyItem and do not contain BRL
+        val otherIndices = (1..7).toList()
+        val otherCodes = otherIndices.map { index ->
+            val slot = slots[index]
+            assertTrue(slot is CurrencyGridSlot.CurrencyItem)
+            (slot as CurrencyGridSlot.CurrencyItem).currency.currencyCode
+        }
+        assertEquals(7, otherCodes.toSet().size)
+        assertFalse(otherCodes.contains("BRL"))
     }
 
     @Test

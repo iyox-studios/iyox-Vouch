@@ -75,6 +75,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.iyox.vouch.R
+import com.iyox.vouch.core.currency.CurrencyGridSlot
 import com.iyox.vouch.core.currency.CurrencyManager
 import com.iyox.vouch.core.model.Person
 import com.iyox.vouch.core.model.PersonWithAmount
@@ -83,6 +84,8 @@ import com.iyox.vouch.core.model.VouchWithPerson
 import com.iyox.vouch.feature.person.QuickActionsCard
 import com.iyox.vouch.feature.vouch.GroupMemberInput
 import com.iyox.vouch.feature.vouch.GroupVouchSummaryCard
+import com.iyox.vouch.ui.components.CurrencyCard
+import com.iyox.vouch.ui.components.CurrencySearchCard
 import com.iyox.vouch.ui.components.PageHeader
 import com.iyox.vouch.ui.components.VouchBalanceHeroCard
 import com.iyox.vouch.ui.components.vouches.SingleVouchItem
@@ -96,7 +99,8 @@ private const val PAGE_COUNT = 5
 fun OnboardingScreen(
     onFinish: () -> Unit,
     currentCurrencyCode: String = CurrencyManager.getDefaultCurrency().currencyCode,
-    onCurrencySelected: (String) -> Unit = {}
+    onCurrencySelected: (String) -> Unit = {},
+    onNavigateToCurrencySearch: () -> Unit = {}
 ) {
     val pagerState = rememberPagerState(pageCount = { PAGE_COUNT })
     val coroutineScope = rememberCoroutineScope()
@@ -167,7 +171,8 @@ fun OnboardingScreen(
                 3 -> PeopleSlide()
                 4 -> CurrencySlide(
                     currentCurrencyCode = currentCurrencyCode,
-                    onCurrencySelected = onCurrencySelected
+                    onCurrencySelected = onCurrencySelected,
+                    onNavigateToCurrencySearch = onNavigateToCurrencySearch
                 )
             }
         }
@@ -631,10 +636,23 @@ private fun PeopleSlide() {
 @Composable
 private fun CurrencySlide(
     currentCurrencyCode: String,
-    onCurrencySelected: (String) -> Unit
+    onCurrencySelected: (String) -> Unit,
+    onNavigateToCurrencySearch: () -> Unit = {}
 ) {
     val haptic = LocalHapticFeedback.current
-    val currencies = CurrencyManager.supportedCurrencies
+    val localeCurrency = remember { CurrencyManager.resolveDefaultCurrency() }
+    val slots = remember(localeCurrency) { CurrencyManager.getQuickCurrencySlots(localeCurrency) }
+
+    val isCurrentInSlots = remember(slots, currentCurrencyCode) {
+        slots.any { it is CurrencyGridSlot.CurrencyItem && it.currency.currencyCode == currentCurrencyCode }
+    }
+    val customSelectedCurrency = remember(currentCurrencyCode, isCurrentInSlots) {
+        if (!isCurrentInSlots) {
+            try { Currency.getInstance(currentCurrencyCode) } catch (_: Exception) { null }
+        } else {
+            null
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -648,88 +666,48 @@ private fun CurrencySlide(
             subtitle = stringResource(R.string.onboarding_slide4_subtitle)
         )
 
-        val chunkedCurrencies = currencies.chunked(3)
+        val chunkedSlots = remember(slots) { slots.chunked(3) }
         Column(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            chunkedCurrencies.forEach { rowCurrencies ->
+            chunkedSlots.forEach { rowSlots ->
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    rowCurrencies.forEach { currency ->
-                        val isSelected = currency.currencyCode == currentCurrencyCode
-                        CurrencyCard(
-                            currency = currency,
-                            isSelected = isSelected,
-                            onSelect = {
-                                haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
-                                onCurrencySelected(currency.currencyCode)
-                            },
-                            modifier = Modifier.weight(1f)
-                        )
+                    rowSlots.forEach { slot ->
+                        when (slot) {
+                            is CurrencyGridSlot.CurrencyItem -> {
+                                val isSelected = slot.currency.currencyCode == currentCurrencyCode
+                                CurrencyCard(
+                                    currency = slot.currency,
+                                    isSelected = isSelected,
+                                    onSelect = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
+                                        onCurrencySelected(slot.currency.currencyCode)
+                                    },
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+                            is CurrencyGridSlot.SearchButton -> {
+                                CurrencySearchCard(
+                                    isCustomSelected = !isCurrentInSlots,
+                                    selectedCurrency = customSelectedCurrency,
+                                    onClick = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
+                                        onNavigateToCurrencySearch()
+                                    },
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+                        }
                     }
                 }
             }
         }
 
         Spacer(modifier = Modifier.height(1.dp))
-    }
-}
-
-@Composable
-private fun CurrencyCard(
-    currency: Currency,
-    isSelected: Boolean,
-    onSelect: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val containerColor = if (isSelected) {
-        MaterialTheme.colorScheme.primaryContainer
-    } else {
-        MaterialTheme.colorScheme.surfaceContainer
-    }
-    val contentColor = if (isSelected) {
-        MaterialTheme.colorScheme.onPrimaryContainer
-    } else {
-        MaterialTheme.colorScheme.onSurface
-    }
-    val borderModifier = if (isSelected) {
-        Modifier.border(2.dp, MaterialTheme.colorScheme.primary, MaterialTheme.shapes.medium)
-    } else {
-        Modifier
-    }
-
-    Card(
-        modifier = modifier
-            .aspectRatio(1.35f)
-            .then(borderModifier)
-            .clickable(onClick = onSelect),
-        shape = MaterialTheme.shapes.medium,
-        colors = CardDefaults.cardColors(containerColor = containerColor)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(6.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text(
-                text = currency.getSymbol(Locale.getDefault()),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = contentColor
-            )
-            Spacer(modifier = Modifier.height(2.dp))
-            Text(
-                text = currency.currencyCode,
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                color = contentColor
-            )
-        }
     }
 }
 

@@ -34,3 +34,6 @@ data class GroupVouchRoute(
 data class ViewPersonRoute(
     val personName: String
 )
+
+@Serializable
+data object CurrencySearchRoute

@@ -226,4 +226,11 @@
 
     <string name="settings_onboarding_guide">App-Einführung &amp; Tour</string>
     <string name="settings_onboarding_guide_subtitle">Erneut anzeigen</string>
+
+    <string name="currency_search_button">Suchen</string>
+    <string name="currency_search_placeholder">Währung oder Code suchen…</string>
+    <plurals name="currency_search_currencies_count">
+        <item quantity="one">%1$d Währung</item>
+        <item quantity="other">%1$d Währungen</item>
+    </plurals>
 </resources>
