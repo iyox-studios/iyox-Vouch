@@ -2,6 +2,7 @@ package com.iyox.vouch.feature.persons
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.iyox.vouch.core.currency.CurrencyManager
 import com.iyox.vouch.core.data.PersonRepository
 import com.iyox.vouch.core.model.PersonTotal
 import com.iyox.vouch.core.utils.VouchFilterUtils.filterBySearchQuery
@@ -17,14 +18,17 @@ data class PersonsUiState(
     val persons: List<PersonTotal> = emptyList(),
     val showOnlyNonZero: Boolean = true,
     val searchQuery: String = "",
-    val isLoading: Boolean = false
+    val isLoading: Boolean = false,
+    val currencyCode: String = ""
 )
 
 @HiltViewModel
 class PersonsViewModel @Inject constructor(
-    repository: PersonRepository
+    repository: PersonRepository,
+    currencyManager: CurrencyManager? = null
 ) : ViewModel() {
 
+    private val currencyFlow = currencyManager?.currencyFlow ?: CurrencyManager.currencyFlow
     private val _showOnlyNonZero = MutableStateFlow(true)
     private val _searchQuery = MutableStateFlow("")
 
@@ -32,6 +36,7 @@ class PersonsViewModel @Inject constructor(
         personsList: List<PersonTotal>,
         showOnlyNonZero: Boolean,
         searchQuery: String,
+        currencyCode: String = "",
         isLoading: Boolean = false
     ): PersonsUiState {
         val filtered = if (showOnlyNonZero) {
@@ -44,33 +49,36 @@ class PersonsViewModel @Inject constructor(
             persons = searched,
             showOnlyNonZero = showOnlyNonZero,
             searchQuery = searchQuery,
-            isLoading = isLoading
+            isLoading = isLoading,
+            currencyCode = currencyCode
         )
     }
 
     val uiState: StateFlow<PersonsUiState> = combine(
-        repository.getPersonsTotalFlow(), _showOnlyNonZero, _searchQuery
-    ) { personsList, showOnlyNonZero, searchQuery ->
+        repository.getPersonsTotalFlow(), _showOnlyNonZero, _searchQuery, currencyFlow
+    ) { personsList, showOnlyNonZero, searchQuery, currency ->
         if (personsList == null) {
             PersonsUiState(
                 persons = emptyList(),
                 showOnlyNonZero = showOnlyNonZero,
                 searchQuery = searchQuery,
-                isLoading = true
+                isLoading = true,
+                currencyCode = currency.currencyCode
             )
         } else {
-            computeState(personsList, showOnlyNonZero, searchQuery, isLoading = false)
+            computeState(personsList, showOnlyNonZero, searchQuery, currencyCode = currency.currencyCode, isLoading = false)
         }
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.Eagerly,
         initialValue = repository.personsTotalFlow.value?.let {
-            computeState(it, _showOnlyNonZero.value, _searchQuery.value, isLoading = false)
+            computeState(it, _showOnlyNonZero.value, _searchQuery.value, currencyCode = currencyFlow.value.currencyCode, isLoading = false)
         } ?: PersonsUiState(
             persons = emptyList(),
             showOnlyNonZero = _showOnlyNonZero.value,
             searchQuery = _searchQuery.value,
-            isLoading = true
+            isLoading = true,
+            currencyCode = currencyFlow.value.currencyCode
         )
     )
 

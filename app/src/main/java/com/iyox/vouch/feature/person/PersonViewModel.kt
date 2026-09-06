@@ -3,6 +3,7 @@ package com.iyox.vouch.feature.person
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.iyox.vouch.core.currency.CurrencyManager
 import com.iyox.vouch.core.data.PersonRepository
 import com.iyox.vouch.core.data.VouchRepository
 import com.iyox.vouch.core.domain.SharedVouchActions
@@ -36,7 +37,8 @@ data class PersonUiState(
     val showOnlyGiven: VouchTypeFilter = VouchTypeFilter.ALL,
     val sortedBy: VouchSortOrder = VouchSortOrder.DATE,
     val searchQuery: String = "",
-    val isLoading: Boolean = false
+    val isLoading: Boolean = false,
+    val currencyCode: String = ""
 )
 
 data class PersonSettlementChange(
@@ -48,9 +50,11 @@ data class PersonSettlementChange(
 class PersonViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val vouchRepository: VouchRepository,
-    private val personRepository: PersonRepository
+    private val personRepository: PersonRepository,
+    currencyManager: CurrencyManager? = null
 ) : ViewModel() {
 
+    private val currencyFlow = currencyManager?.currencyFlow ?: CurrencyManager.currencyFlow
     private val initialPersonName: String = savedStateHandle.get<String>("personName") ?: ""
     private val _personName = MutableStateFlow(initialPersonName)
     private val _showOnlyGiven = MutableStateFlow(VouchTypeFilter.ALL)
@@ -71,6 +75,7 @@ class PersonViewModel @Inject constructor(
         showOnlyGiven: VouchTypeFilter,
         sortOrder: VouchSortOrder,
         searchQuery: String,
+        currencyCode: String = "",
         isLoading: Boolean = false
     ): PersonUiState {
         val activeVouches = mutableListOf<VouchWithPerson>()
@@ -124,7 +129,8 @@ class PersonViewModel @Inject constructor(
             showOnlyGiven = showOnlyGiven,
             sortedBy = sortOrder,
             searchQuery = searchQuery,
-            isLoading = isLoading
+            isLoading = isLoading,
+            currencyCode = currencyCode
         )
     }
 
@@ -134,9 +140,10 @@ class PersonViewModel @Inject constructor(
             vouchRepository.getVouchesByPersonNameFlow(name),
             _showOnlyGiven,
             _sortedBy,
-            _searchQuery
-        ) { personVouches, showOnlyGiven, sortedBy, searchQuery ->
-            buildState(name, personVouches, showOnlyGiven, sortedBy, searchQuery, isLoading = false)
+            _searchQuery,
+            currencyFlow
+        ) { personVouches, showOnlyGiven, sortedBy, searchQuery, currency ->
+            buildState(name, personVouches, showOnlyGiven, sortedBy, searchQuery, currencyCode = currency.currencyCode, isLoading = false)
         }
     }.stateIn(
         scope = viewModelScope,
@@ -147,6 +154,7 @@ class PersonViewModel @Inject constructor(
             _showOnlyGiven.value,
             _sortedBy.value,
             _searchQuery.value,
+            currencyCode = currencyFlow.value.currencyCode,
             isLoading = getInitialPersonVouches(initialPersonName).isEmpty()
         )
     )
