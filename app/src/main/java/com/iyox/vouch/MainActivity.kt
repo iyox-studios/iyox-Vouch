@@ -16,14 +16,14 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.mutableStateOf
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.fragment.app.FragmentActivity
+import androidx.appcompat.app.AppCompatActivity
 import com.iyox.vouch.core.utils.LocalVibrationManager
 import com.iyox.vouch.core.utils.PreferenceKeys
 import com.iyox.vouch.core.utils.VibrationManager
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class MainActivity : FragmentActivity() {
+class MainActivity : AppCompatActivity() {
 
     private var isAuthenticated = false
     private var isIntentConsumed = false

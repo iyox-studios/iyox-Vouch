@@ -4,7 +4,6 @@ import android.app.UiModeManager
 import android.content.Context
 import android.content.ContextWrapper
 import android.icu.util.Currency
-import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
@@ -146,7 +145,6 @@ fun SettingsScreen(
     var showColorDialog by remember { mutableStateOf(false) }
     var showLanguageDialog by remember { mutableStateOf(false) }
     var showCurrencyDialog by remember { mutableStateOf(false) }
-    val isPerAppLanguageSupported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
 
     LaunchedEffect(Unit) {
         viewModel.refreshLanguage()
@@ -238,18 +236,10 @@ fun SettingsScreen(
             SettingItem(
                 icon = Icons.Outlined.Translate,
                 title = stringResource(R.string.settings_language),
-                subtitle = if (isPerAppLanguageSupported) {
-                    findSupportedLanguage(uiState.languageTag)
-                        ?.let { stringResource(it.labelRes) }
-                        ?: uiState.languageTag
-                } else {
-                    stringResource(R.string.settings_language_android_13_only)
-                },
-                onClick = if (isPerAppLanguageSupported) {
-                    { showLanguageDialog = true }
-                } else {
-                    null
-                }
+                subtitle = findSupportedLanguage(uiState.languageTag)
+                    ?.let { stringResource(it.labelRes) }
+                    ?: uiState.languageTag,
+                onClick = { showLanguageDialog = true }
             )
 
             SettingItem(
