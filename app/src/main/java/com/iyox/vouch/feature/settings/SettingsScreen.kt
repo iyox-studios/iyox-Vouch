@@ -357,7 +357,7 @@ fun SettingsScreen(
                 }
 
                 FilledTonalButton(
-                    onClick = { importLauncher.launch(arrayOf("*/*", IyoxEnvelope.MIME_TYPE, "application/octet-stream", "application/json")) },
+                    onClick = { importLauncher.launch(arrayOf("*/*")) },
                     modifier = Modifier
                         .weight(1f)
                         .height(52.dp),

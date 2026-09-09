@@ -3,6 +3,7 @@ package com.iyox.vouch.core.data
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import com.iyox.vouch.core.model.PersonWithAmount
@@ -108,7 +109,7 @@ interface VouchDao {
     @Query("DELETE FROM Vouch")
     suspend fun deleteAll()
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertCrossRefs(refs: List<VouchPersonCrossRef>)
 
     @Query("DELETE FROM vouch_person_cross_ref WHERE vouchId = :vouchId")

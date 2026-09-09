@@ -3,10 +3,12 @@ package com.iyox.vouch.feature.settings
 import android.app.LocaleManager
 import android.app.UiModeManager
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Build
 import android.os.LocaleList
+import android.util.Log
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.edit
@@ -210,12 +212,24 @@ class SettingsViewModel @Inject constructor(
 
     fun requestImport(uri: Uri) {
         viewModelScope.launch {
+            try {
+                if (uri.scheme == "content") {
+                    context.contentResolver.takePersistableUriPermission(
+                        uri,
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    )
+                }
+            } catch (_: Exception) {
+                // Ignored if persistable permission is not available for this URI
+            }
+
             val result = backupRepository.readPreview(uri)
             if (result.isSuccess) {
                 _pendingImportPreview.value = result.getOrNull()
             } else {
                 val error = result.exceptionOrNull()
                 error?.printStackTrace()
+                Log.e("SettingsViewModel", "Failed to read backup preview for $uri", error)
                 if (error is InvalidSignatureException) {
                     _toastEvents.emit(ToastEvent.Error(R.string.toast_import_invalid_file))
                 } else {
@@ -228,12 +242,13 @@ class SettingsViewModel @Inject constructor(
     fun confirmImport(preview: BackupPreview) {
         _pendingImportPreview.value = null
         viewModelScope.launch {
-            val result = backupRepository.importData(preview.uri.toUri())
+            val result = backupRepository.importFromPreview(preview)
             if (result.isSuccess) {
                 _toastEvents.emit(ToastEvent.Info(R.string.toast_import_success))
             } else {
                 val error = result.exceptionOrNull()
                 error?.printStackTrace()
+                Log.e("SettingsViewModel", "Failed to confirm import", error)
                 if (error is InvalidSignatureException) {
                     _toastEvents.emit(ToastEvent.Error(R.string.toast_import_invalid_file))
                 } else {

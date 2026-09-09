@@ -158,4 +158,36 @@ class BackupSerializationTest {
         val fileName = IyoxEnvelope.generateBackupFileName(calendar.time)
         assertEquals("vouch_backup_20260909_115930.iyxv", fileName)
     }
+
+    @Test
+    fun testAlternateSignatureDeserialization() {
+        val json = """
+            {
+                "app_signature": "com.iyox.vouch",
+                "type": "backup",
+                "version": "1.0",
+                "data": []
+            }
+        """.trimIndent()
+
+        val deserialized = gson.fromJson(json, IyoxEnvelope::class.java)
+        assertNotNull(deserialized)
+        assertEquals(IyoxEnvelope.APP_SIGNATURE, deserialized.appSignature)
+    }
+
+    @Test
+    fun testAlternatePersonNameDeserialization() {
+        val json = """
+            {
+                "personName": "Eve",
+                "amount": 500,
+                "settled": false
+            }
+        """.trimIndent()
+
+        val deserialized = gson.fromJson(json, ExportPersonAmount::class.java)
+        assertNotNull(deserialized)
+        assertEquals("Eve", deserialized.name)
+        assertEquals(500L, deserialized.amount)
+    }
 }
