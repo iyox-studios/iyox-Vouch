@@ -1,18 +1,17 @@
 package com.iyox.vouch.feature.settings
 
-import android.app.LocaleManager
 import android.app.UiModeManager
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Build
-import android.os.LocaleList
 import android.util.Log
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.edit
 import androidx.core.net.toUri
+import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.iyox.vouch.R
@@ -67,12 +66,7 @@ class SettingsViewModel @Inject constructor(
     private val prefs: SharedPreferences = context.getSharedPreferences(PreferenceKeys.PREFS_SETTINGS, Context.MODE_PRIVATE)
 
     private fun currentLanguageTag(): String {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-            return "system"
-        }
-
-        val localeManager = context.getSystemService(LocaleManager::class.java)
-        val current = localeManager.applicationLocales.toLanguageTags()
+        val current = AppCompatDelegate.getApplicationLocales().toLanguageTags()
         return current.ifBlank { "system" }
     }
 
@@ -180,18 +174,13 @@ class SettingsViewModel @Inject constructor(
     fun setLanguage(tag: String) {
         _languageTag.value = tag
 
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-            return
-        }
-
         val appLocale = if (tag == "system") {
-            LocaleList.getEmptyLocaleList()
+            LocaleListCompat.getEmptyLocaleList()
         } else {
-            LocaleList.forLanguageTags(tag)
+            LocaleListCompat.forLanguageTags(tag)
         }
 
-        val localeManager = context.getSystemService(LocaleManager::class.java)
-        localeManager.applicationLocales = appLocale
+        AppCompatDelegate.setApplicationLocales(appLocale)
     }
 
     fun setCurrency(currencyCode: String) {
