@@ -335,7 +335,7 @@ fun SettingsScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 FilledTonalButton(
-                    onClick = { exportLauncher.launch(IyoxEnvelope.DEFAULT_BACKUP_FILE_NAME) },
+                    onClick = { exportLauncher.launch(IyoxEnvelope.generateBackupFileName()) },
                     modifier = Modifier
                         .weight(1f)
                         .height(52.dp),

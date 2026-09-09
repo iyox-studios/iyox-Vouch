@@ -149,4 +149,13 @@ class BackupSerializationTest {
         assertEquals("application/x-iyxv", IyoxEnvelope.MIME_TYPE)
         assertEquals("vouch_backup.iyxv", IyoxEnvelope.DEFAULT_BACKUP_FILE_NAME)
     }
+
+    @Test
+    fun testGenerateBackupFileName() {
+        val calendar = java.util.Calendar.getInstance().apply {
+            set(2026, java.util.Calendar.SEPTEMBER, 9, 11, 59, 30)
+        }
+        val fileName = IyoxEnvelope.generateBackupFileName(calendar.time)
+        assertEquals("vouch_backup_20260909_115930.iyxv", fileName)
+    }
 }

@@ -3,6 +3,9 @@ package com.iyox.vouch.core.backup
 import com.google.gson.JsonElement
 import com.google.gson.annotations.SerializedName
 import com.iyox.vouch.core.model.Vouch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 data class IyoxEnvelope(
     @SerializedName("_app_signature")
@@ -22,6 +25,11 @@ data class IyoxEnvelope(
         const val FILE_EXTENSION = "iyxv"
         const val MIME_TYPE = "application/x-iyxv"
         const val DEFAULT_BACKUP_FILE_NAME = "vouch_backup.iyxv"
+
+        fun generateBackupFileName(date: Date = Date()): String {
+            val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(date)
+            return "vouch_backup_$timestamp.$FILE_EXTENSION"
+        }
     }
 }
 
