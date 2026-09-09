@@ -8,7 +8,7 @@ import java.util.Date
 import java.util.Locale
 
 data class IyoxEnvelope(
-    @SerializedName("_app_signature")
+    @SerializedName(value = "_app_signature", alternate = ["app_signature", "signature"])
     val appSignature: String = APP_SIGNATURE,
     @SerializedName("type")
     val type: String = TYPE_BACKUP,
@@ -34,7 +34,7 @@ data class IyoxEnvelope(
 }
 
 data class ExportPersonAmount(
-    @SerializedName("name")
+    @SerializedName(value = "name", alternate = ["personName", "person_name"])
     val name: String,
     @SerializedName("amount")
     val amount: Long,
@@ -46,7 +46,7 @@ data class ExportVouch(
     @SerializedName("vouch")
     val vouch: Vouch,
     @SerializedName("persons")
-    val persons: List<ExportPersonAmount>
+    val persons: List<ExportPersonAmount> = emptyList()
 )
 
 data class BackupPreview(
@@ -54,5 +54,6 @@ data class BackupPreview(
     val type: String,
     val version: String,
     val vouchCount: Int,
-    val personCount: Int
+    val personCount: Int,
+    val cachedPayload: String? = null
 )
