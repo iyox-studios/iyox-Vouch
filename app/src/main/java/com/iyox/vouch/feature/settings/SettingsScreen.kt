@@ -44,6 +44,7 @@ import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.LightMode
 import androidx.compose.material.icons.outlined.Palette
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.material.icons.outlined.Upload
 import androidx.compose.material3.AlertDialog
@@ -72,6 +73,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
@@ -79,8 +81,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.iyox.vouch.core.currency.CurrencyGridSlot
-import com.iyox.vouch.ui.components.CurrencyCard
-import com.iyox.vouch.ui.components.CurrencySearchCard
+import com.iyox.vouch.ui.components.SelectionCard
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -455,49 +456,22 @@ fun LanguageSelectionDialog(
             ) {
                 items(supportedLanguages) { language ->
                     val isSelected = matchesLanguageTag(language.tag, currentLanguageTag)
-                    Card(
-                        modifier = Modifier
-                            .aspectRatio(1f)
-                            .clickable { onLanguageSelected(language.tag) },
-                        colors = CardDefaults.cardColors(
-                            containerColor = if (isSelected) {
-                                MaterialTheme.colorScheme.primaryContainer
-                            } else {
-                                MaterialTheme.colorScheme.surface
-                            }
-                        ),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                    SelectionCard(
+                        isSelected = isSelected,
+                        onClick = { onLanguageSelected(language.tag) },
+                        label = stringResource(language.labelRes)
                     ) {
-                        Column(
-                            modifier = Modifier.fillMaxSize(),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            if (language.icon != null) {
-                                Icon(
-                                    imageVector = language.icon,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(32.dp),
-                                    tint = if (isSelected) {
-                                        MaterialTheme.colorScheme.primary
-                                    } else {
-                                        MaterialTheme.colorScheme.onSurface
-                                    }
-                                )
-                            } else {
-                                Text(
-                                    text = language.displayCode,
-                                    style = MaterialTheme.typography.headlineMedium,
-                                    textAlign = TextAlign.Center,
-                                )
-                            }
-                            Spacer(modifier = Modifier.height(4.dp))
+                        if (language.icon != null) {
+                            Icon(
+                                imageVector = language.icon,
+                                contentDescription = null,
+                                modifier = Modifier.size(32.dp)
+                            )
+                        } else {
                             Text(
-                                text = stringResource(language.labelRes),
-                                style = MaterialTheme.typography.bodySmall,
-                                textAlign = TextAlign.Center,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
+                                text = language.displayCode,
+                                style = MaterialTheme.typography.headlineMedium,
+                                textAlign = TextAlign.Center
                             )
                         }
                     }
@@ -520,6 +494,8 @@ fun CurrencySelectionDialog(
     onSearchClick: () -> Unit = {}
 ) {
     val haptic = LocalHapticFeedback.current
+    val configuration = LocalConfiguration.current
+    val locale = configuration.locales[0] ?: Locale.getDefault()
     val localeCurrency = remember { CurrencyManager.resolveDefaultCurrency() }
     val slots = remember(localeCurrency) { CurrencyManager.getQuickCurrencySlots(localeCurrency) }
     val selectedCodeAtOpen = remember { currentCurrency.currencyCode }
@@ -544,10 +520,10 @@ fun CurrencySelectionDialog(
                     when (slot) {
                         is CurrencyGridSlot.CurrencyItem -> {
                             val isSelected = slot.currency.currencyCode == selectedCodeAtOpen
-                            CurrencyCard(
-                                currency = slot.currency,
+                            val symbol = slot.currency.getSymbol(locale)
+                            SelectionCard(
                                 isSelected = isSelected,
-                                onSelect = {
+                                onClick = {
                                     val now = System.currentTimeMillis()
                                     if (now - lastSelectedTimestamp > 400L) {
                                         lastSelectedTimestamp = now
@@ -555,19 +531,67 @@ fun CurrencySelectionDialog(
                                         onCurrencySelected(slot.currency)
                                     }
                                 },
-                                aspectRatio = 1f
-                            )
+                                label = slot.currency.currencyCode
+                            ) {
+                                Text(
+                                    text = symbol,
+                                    style = if (symbol.length > 2) {
+                                        MaterialTheme.typography.titleLarge
+                                    } else {
+                                        MaterialTheme.typography.headlineMedium
+                                    },
+                                    textAlign = TextAlign.Center,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
                         }
                         is CurrencyGridSlot.SearchButton -> {
-                            CurrencySearchCard(
-                                isCustomSelected = !isCurrentInSlots,
-                                selectedCurrency = customSelectedCurrency,
+                            val isSelected = !isCurrentInSlots
+                            SelectionCard(
+                                isSelected = isSelected,
                                 onClick = {
                                     haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
                                     onSearchClick()
                                 },
-                                aspectRatio = 1f
-                            )
+                                label = if (isSelected && customSelectedCurrency != null) {
+                                    customSelectedCurrency.currencyCode
+                                } else {
+                                    stringResource(R.string.currency_search_button)
+                                }
+                            ) {
+                                if (isSelected && customSelectedCurrency != null) {
+                                    val symbol = customSelectedCurrency.getSymbol(locale)
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.Center
+                                    ) {
+                                        Text(
+                                            text = symbol,
+                                            style = if (symbol.length > 2) {
+                                                MaterialTheme.typography.titleLarge
+                                            } else {
+                                                MaterialTheme.typography.headlineMedium
+                                            },
+                                            textAlign = TextAlign.Center,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                        Spacer(modifier = Modifier.width(2.dp))
+                                        Icon(
+                                            imageVector = Icons.Outlined.Search,
+                                            contentDescription = stringResource(R.string.currency_search_button),
+                                            modifier = Modifier.size(14.dp)
+                                        )
+                                    }
+                                } else {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Search,
+                                        contentDescription = stringResource(R.string.currency_search_button),
+                                        modifier = Modifier.size(32.dp)
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -598,44 +622,12 @@ fun ThemeSelectionDialog(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 items(supportedThemes) { theme ->
-                    Card(
-                        modifier = Modifier
-                            .aspectRatio(1f)
-                            .clickable { onThemeSelected(theme.mode) },
-                        colors = CardDefaults.cardColors(
-                            containerColor = if (theme.mode == currentTheme) {
-                                MaterialTheme.colorScheme.primaryContainer
-                            } else {
-                                MaterialTheme.colorScheme.surface
-                            }
-                        ),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-                    ) {
-                        Column(
-                            modifier = Modifier.fillMaxSize(),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Icon(
-                                imageVector = theme.icon,
-                                contentDescription = null,
-                                modifier = Modifier.size(32.dp),
-                                tint = if (theme.mode == currentTheme) {
-                                    MaterialTheme.colorScheme.primary
-                                } else {
-                                    MaterialTheme.colorScheme.onSurface
-                                }
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = stringResource(theme.labelRes),
-                                style = MaterialTheme.typography.bodySmall,
-                                textAlign = TextAlign.Center,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
-                    }
+                    SelectionCard(
+                        isSelected = theme.mode == currentTheme,
+                        onClick = { onThemeSelected(theme.mode) },
+                        label = stringResource(theme.labelRes),
+                        icon = theme.icon
+                    )
                 }
             }
         },
@@ -665,49 +657,23 @@ fun ColorThemeSelectionDialog(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 items(AppColorTheme.entries) { colorTheme ->
-                    Card(
-                        modifier = Modifier
-                            .aspectRatio(1f)
-                            .clickable { onColorThemeSelected(colorTheme) },
-                        colors = CardDefaults.cardColors(
-                            containerColor = if (colorTheme == currentColorTheme) {
-                                MaterialTheme.colorScheme.primaryContainer
-                            } else {
-                                MaterialTheme.colorScheme.surface
-                            }
-                        ),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                    val isSelected = colorTheme == currentColorTheme
+                    SelectionCard(
+                        isSelected = isSelected,
+                        onClick = { onColorThemeSelected(colorTheme) },
+                        label = stringResource(colorTheme.labelRes)
                     ) {
-                        Column(
-                            modifier = Modifier.fillMaxSize(),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            if (colorTheme.previewColor == null) {
-                                Icon(
-                                    imageVector = Icons.Outlined.AutoAwesome,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(32.dp),
-                                    tint = if (colorTheme == currentColorTheme) {
-                                        MaterialTheme.colorScheme.primary
-                                    } else {
-                                        MaterialTheme.colorScheme.onSurface
-                                    }
-                                )
-                            } else {
-                                Box(
-                                    modifier = Modifier
-                                        .size(32.dp)
-                                        .background(color = colorTheme.previewColor, shape = MaterialShapes.Cookie6Sided.toShape())
-                                )
-                            }
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = stringResource(colorTheme.labelRes),
-                                style = MaterialTheme.typography.bodySmall,
-                                textAlign = TextAlign.Center,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
+                        if (colorTheme.previewColor == null) {
+                            Icon(
+                                imageVector = Icons.Outlined.AutoAwesome,
+                                contentDescription = null,
+                                modifier = Modifier.size(32.dp)
+                            )
+                        } else {
+                            Box(
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .background(color = colorTheme.previewColor, shape = MaterialShapes.Cookie6Sided.toShape())
                             )
                         }
                     }
