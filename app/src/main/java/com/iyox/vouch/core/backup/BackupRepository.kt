@@ -98,7 +98,8 @@ class BackupRepository @Inject constructor(
                         ExportPersonAmount(
                             name = personWithAmount.person.name,
                             amount = personWithAmount.amount,
-                            settled = personWithAmount.settled
+                            settled = personWithAmount.settled,
+                            isCustom = personWithAmount.isCustom
                         )
                     }
                 )
@@ -344,7 +345,8 @@ class BackupRepository @Inject constructor(
                     if (name.isNotEmpty()) {
                         val pAmount = parseAmount(pObj.get("amount")) ?: amount
                         val settled = parseBoolean(pObj.get("settled"), default = false)
-                        persons.add(ExportPersonAmount(name = name, amount = pAmount, settled = settled))
+                        val isCustom = parseBoolean(pObj.get("isCustom"), default = false)
+                        persons.add(ExportPersonAmount(name = name, amount = pAmount, settled = settled, isCustom = isCustom))
                     }
                 } else if (pElem.isJsonPrimitive) {
                     val name = pElem.asString.trim()
@@ -490,7 +492,8 @@ class BackupRepository @Inject constructor(
                                     vouchId = newVouchId,
                                     personId = storedPerson.id,
                                     amount = personAmount.amount,
-                                    settled = personAmount.settled
+                                    settled = personAmount.settled,
+                                    isCustom = personAmount.isCustom
                                 )
                             }
                             allCrossRefs.addAll(crossRefs)
@@ -532,7 +535,8 @@ class BackupRepository @Inject constructor(
                                 vouchId = newVouchId,
                                 personId = storedPerson.id,
                                 amount = personAmount.amount,
-                                settled = personAmount.settled
+                                settled = personAmount.settled,
+                                isCustom = personAmount.isCustom
                             )
                         }
 

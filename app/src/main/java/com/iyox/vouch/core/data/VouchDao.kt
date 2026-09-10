@@ -23,7 +23,7 @@ interface VouchDao {
 
     @Query(
         """
-        SELECT vpc.vouchId AS vouchId, p.id AS id, p.name AS name, vpc.amount AS amount, vpc.settled AS settled
+        SELECT vpc.vouchId AS vouchId, p.id AS id, p.name AS name, vpc.amount AS amount, vpc.settled AS settled, vpc.isCustom AS isCustom
         FROM Person p
         INNER JOIN vouch_person_cross_ref vpc ON p.id = vpc.personId
         """
@@ -32,7 +32,7 @@ interface VouchDao {
 
     @Query(
         """
-        SELECT vpc.vouchId AS vouchId, p.id AS id, p.name AS name, vpc.amount AS amount, vpc.settled AS settled
+        SELECT vpc.vouchId AS vouchId, p.id AS id, p.name AS name, vpc.amount AS amount, vpc.settled AS settled, vpc.isCustom AS isCustom
         FROM Person p
         INNER JOIN vouch_person_cross_ref vpc ON p.id = vpc.personId
         """
@@ -65,7 +65,7 @@ interface VouchDao {
 
     @Query(
         """
-        SELECT vpc.vouchId AS vouchId, p.id AS id, p.name AS name, vpc.amount AS amount, vpc.settled AS settled
+        SELECT vpc.vouchId AS vouchId, p.id AS id, p.name AS name, vpc.amount AS amount, vpc.settled AS settled, vpc.isCustom AS isCustom
         FROM Person p
         INNER JOIN vouch_person_cross_ref vpc ON p.id = vpc.personId
         WHERE vpc.vouchId IN (
@@ -79,7 +79,7 @@ interface VouchDao {
 
     @Query(
         """
-        SELECT vpc.vouchId AS vouchId, p.id AS id, p.name AS name, vpc.amount AS amount, vpc.settled AS settled
+        SELECT vpc.vouchId AS vouchId, p.id AS id, p.name AS name, vpc.amount AS amount, vpc.settled AS settled, vpc.isCustom AS isCustom
         FROM Person p
         INNER JOIN vouch_person_cross_ref vpc ON p.id = vpc.personId
         WHERE vpc.vouchId IN (
@@ -117,7 +117,7 @@ interface VouchDao {
 
     @Query(
         """
-        SELECT p.*, vpc.amount AS amount, vpc.settled AS settled
+        SELECT p.*, vpc.amount AS amount, vpc.settled AS settled, vpc.isCustom AS isCustom
         FROM Person p
         INNER JOIN vouch_person_cross_ref vpc ON p.id = vpc.personId
         WHERE vpc.vouchId = :vouchId

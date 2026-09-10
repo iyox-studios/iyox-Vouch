@@ -111,7 +111,6 @@ class GroupVouchViewModelTest {
 
         // Set Alice's amount to "40" -> trigger rebalancing so remaining 20 is split between Bob and Charlie (10 each)
         viewModel.onMemberAmountChange("Alice", "40")
-        viewModel.resetAllToEqualSplit()
 
         val state = viewModel.uiState.value
         val alice = state.members.find { it.personName == "Alice" }!!
@@ -131,6 +130,15 @@ class GroupVouchViewModelTest {
         assertEquals(currencyManager.formatAmount(2000L), resetState.members[0].amount)
         assertEquals(currencyManager.formatAmount(2000L), resetState.members[1].amount)
         assertEquals(currencyManager.formatAmount(2000L), resetState.members[2].amount)
+
+        // Reset all to equal split after custom change
+        viewModel.onMemberAmountChange("Alice", "40")
+        viewModel.resetAllToEqualSplit()
+        val allResetState = viewModel.uiState.value
+        assertFalse(allResetState.members[0].isCustom)
+        assertEquals(currencyManager.formatAmount(2000L), allResetState.members[0].amount)
+        assertEquals(currencyManager.formatAmount(2000L), allResetState.members[1].amount)
+        assertEquals(currencyManager.formatAmount(2000L), allResetState.members[2].amount)
     }
 
     @Test
@@ -159,14 +167,14 @@ class GroupVouchViewModelTest {
         // Less than 2 non-self members should fail
         viewModel.addSelfMember("Me")
         viewModel.addMember("Alice")
-        val failSave = viewModel.saveGroupVouches()
+        val failSave = viewModel.saveGroupVouchesDirect()
         assertNull(failSave)
         assertFalse(viewModel.uiState.value.saveSuccess)
 
         // Add 2nd non-self member (Alice and Bob) -> Total 90 split among 3 (30 each).
         // Total amount for the created vouch is Alice's share (30) + Bob's share (30) = 60 (excluding Self).
         viewModel.addMember("Bob")
-        val saved = viewModel.saveGroupVouches()
+        val saved = viewModel.saveGroupVouchesDirect()
         assertNotNull(saved)
         assertTrue(viewModel.uiState.value.saveSuccess)
         assertEquals(6000L, saved?.vouch?.amount)
@@ -174,6 +182,80 @@ class GroupVouchViewModelTest {
         assertEquals(2, saved?.persons?.size)
         assertEquals(3000L, saved?.persons?.find { it.person.name == "Alice" }?.amount)
         assertEquals(3000L, saved?.persons?.find { it.person.name == "Bob" }?.amount)
+    }
+
+    @Test
+    fun testSaveGroupVouch_withCustomSplit() = runTest {
+        val viewModel = createViewModel()
+        viewModel.onAmountChange("100")
+        viewModel.onDescriptionChange("Trip Expenses")
+        viewModel.continueToMembers()
+
+        viewModel.addMember("Alice")
+        viewModel.addMember("Bob")
+
+        // Alice pays 30, Bob should be automatically rebalanced to 70
+        viewModel.onMemberAmountChange("Alice", "30")
+
+        val saved = viewModel.saveGroupVouchesDirect()
+        assertNotNull(saved)
+        assertTrue(viewModel.uiState.value.saveSuccess)
+        assertEquals(10000L, saved?.vouch?.amount)
+        assertEquals("Trip Expenses", saved?.vouch?.description)
+        assertEquals(2, saved?.persons?.size)
+
+        val savedAlice = saved?.persons?.find { it.person.name == "Alice" }!!
+        val savedBob = saved?.persons?.find { it.person.name == "Bob" }!!
+        assertEquals(3000L, savedAlice.amount)
+        assertTrue(savedAlice.isCustom)
+        assertEquals(7000L, savedBob.amount)
+        assertFalse(savedBob.isCustom)
+
+        // Reload the saved vouch: only Alice should have isCustom = true
+        val reloadedViewModel = createViewModel(saved.vouch.id)
+        val loadedAlice = reloadedViewModel.uiState.value.members.find { it.personName == "Alice" }!!
+        val loadedBob = reloadedViewModel.uiState.value.members.find { it.personName == "Bob" }!!
+        assertTrue(loadedAlice.isCustom)
+        assertEquals(currencyManager.formatAmount(3000L), loadedAlice.amount)
+        assertFalse(loadedBob.isCustom)
+        assertEquals(currencyManager.formatAmount(7000L), loadedBob.amount)
+
+        // Reset Alice to equal split -> both become 50
+        reloadedViewModel.resetMemberToEqualSplit("Alice")
+        val resetState = reloadedViewModel.uiState.value
+        val resetAlice = resetState.members.find { it.personName == "Alice" }!!
+        val resetBob = resetState.members.find { it.personName == "Bob" }!!
+        assertFalse(resetAlice.isCustom)
+        assertEquals(currencyManager.formatAmount(5000L), resetAlice.amount)
+        assertFalse(resetBob.isCustom)
+        assertEquals(currencyManager.formatAmount(5000L), resetBob.amount)
+    }
+
+    @Test
+    fun testSaveGroupVouch_withSelfAndCustomSplit() = runTest {
+        val viewModel = createViewModel()
+        viewModel.onAmountChange("100")
+        viewModel.onDescriptionChange("Dinner")
+        viewModel.continueToMembers()
+
+        viewModel.addSelfMember("Me")
+        viewModel.addMember("Alice")
+        viewModel.addMember("Bob")
+
+        // 3 members: Me, Alice, Bob. Alice is custom 50.
+        // Remaining 50 split between Me (25) and Bob (25).
+        viewModel.onMemberAmountChange("Alice", "50")
+
+        val saved = viewModel.saveGroupVouchesDirect()
+        assertNotNull(saved)
+        assertTrue(viewModel.uiState.value.saveSuccess)
+        // Vouch total excluding Self (Alice 50 + Bob 25 = 75)
+        assertEquals(7500L, saved?.vouch?.amount)
+        assertEquals(2, saved?.persons?.size)
+        assertEquals(5000L, saved?.persons?.find { it.person.name == "Alice" }?.amount)
+        assertTrue(saved?.persons?.find { it.person.name == "Alice" }?.isCustom == true)
+        assertEquals(2500L, saved?.persons?.find { it.person.name == "Bob" }?.amount)
+        assertFalse(saved?.persons?.find { it.person.name == "Bob" }?.isCustom == true)
     }
 
     @Test
