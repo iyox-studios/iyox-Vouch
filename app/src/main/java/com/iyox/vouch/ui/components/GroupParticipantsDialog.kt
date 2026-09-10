@@ -91,14 +91,22 @@ fun GroupParticipantsDialog(
             ) {
                 items(persons, key = { it.person.id }) { personWithAmount ->
                     val isSettled = personWithAmount.settled
-                    Card(
-                        modifier = Modifier
+                    val isSelf = personWithAmount.isSelf
+                    val cardModifier = if (isSelf) {
+                        Modifier
+                            .fillMaxWidth()
+                            .clip(MaterialTheme.shapes.large)
+                    } else {
+                        Modifier
                             .fillMaxWidth()
                             .clip(MaterialTheme.shapes.large)
                             .clickable {
                                 onDismiss()
                                 onPersonClick(personWithAmount.person.name)
-                            },
+                            }
+                    }
+                    Card(
+                        modifier = cardModifier,
                         shape = MaterialTheme.shapes.large,
                         colors = CardDefaults.cardColors(
                             containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
@@ -172,12 +180,14 @@ fun GroupParticipantsDialog(
                                     textDecoration = if (isSettled) TextDecoration.LineThrough else TextDecoration.None
                                 )
 
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Outlined.ArrowForward,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.size(16.dp)
-                                )
+                                if (!isSelf) {
+                                    Icon(
+                                        imageVector = Icons.AutoMirrored.Outlined.ArrowForward,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
                             }
                         }
                     }

@@ -49,7 +49,8 @@ data class VouchPersonCrossRef(
     val personId: Long,
     val amount: Long,
     val settled: Boolean = false,
-    val isCustom: Boolean = false
+    val isCustom: Boolean = false,
+    val isSelf: Boolean = false
 )
 
 /**
@@ -61,10 +62,17 @@ data class VouchPersonRow(
     @Embedded val person: Person,
     val amount: Long,
     val settled: Boolean,
-    val isCustom: Boolean = false
+    val isCustom: Boolean = false,
+    val isSelf: Boolean = false
 ) {
     fun toPersonWithAmount(): PersonWithAmount =
-        PersonWithAmount(person = person, amount = amount, settled = settled, isCustom = isCustom)
+        PersonWithAmount(
+            person = person,
+            amount = amount,
+            settled = settled,
+            isCustom = isCustom,
+            isSelf = isSelf
+        )
 }
 
 data class VouchWithPerson(

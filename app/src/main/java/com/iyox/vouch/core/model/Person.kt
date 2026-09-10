@@ -14,7 +14,8 @@ data class PersonWithAmount(
     @Embedded val person: Person,
     val amount: Long,
     val settled: Boolean = false,
-    val isCustom: Boolean = false
+    val isCustom: Boolean = false,
+    val isSelf: Boolean = false
 )
 
 data class PersonTotal(

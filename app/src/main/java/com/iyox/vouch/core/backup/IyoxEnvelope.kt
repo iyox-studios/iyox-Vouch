@@ -41,7 +41,9 @@ data class ExportPersonAmount(
     @SerializedName("settled")
     val settled: Boolean = false,
     @SerializedName("isCustom")
-    val isCustom: Boolean = false
+    val isCustom: Boolean = false,
+    @SerializedName("isSelf")
+    val isSelf: Boolean = false
 )
 
 data class ExportVouch(
