@@ -172,16 +172,29 @@ class GroupVouchViewModelTest {
         assertFalse(viewModel.uiState.value.saveSuccess)
 
         // Add 2nd non-self member (Alice and Bob) -> Total 90 split among 3 (30 each).
-        // Total amount for the created vouch is Alice's share (30) + Bob's share (30) = 60 (excluding Self).
+        // Total amount for the created vouch is the specified 90 (including Self).
         viewModel.addMember("Bob")
         val saved = viewModel.saveGroupVouchesDirect()
         assertNotNull(saved)
         assertTrue(viewModel.uiState.value.saveSuccess)
-        assertEquals(6000L, saved?.vouch?.amount)
+        assertEquals(9000L, saved?.vouch?.amount)
         assertEquals("Group Dinner", saved?.vouch?.description)
-        assertEquals(2, saved?.persons?.size)
-        assertEquals(3000L, saved?.persons?.find { it.person.name == "Alice" }?.amount)
-        assertEquals(3000L, saved?.persons?.find { it.person.name == "Bob" }?.amount)
+        assertEquals(3, saved?.persons?.size)
+        val savedMe = saved?.persons?.find { it.person.name == "Me" }
+        assertNotNull(savedMe)
+        assertEquals(3000L, savedMe?.amount)
+        assertTrue(savedMe?.isSelf == true)
+        assertTrue(savedMe?.settled == true)
+        val savedAlice = saved?.persons?.find { it.person.name == "Alice" }
+        assertNotNull(savedAlice)
+        assertEquals(3000L, savedAlice?.amount)
+        assertFalse(savedAlice?.isSelf == true)
+        assertFalse(savedAlice?.settled == true)
+        val savedBob = saved?.persons?.find { it.person.name == "Bob" }
+        assertNotNull(savedBob)
+        assertEquals(3000L, savedBob?.amount)
+        assertFalse(savedBob?.isSelf == true)
+        assertFalse(savedBob?.settled == true)
     }
 
     @Test
@@ -249,13 +262,36 @@ class GroupVouchViewModelTest {
         val saved = viewModel.saveGroupVouchesDirect()
         assertNotNull(saved)
         assertTrue(viewModel.uiState.value.saveSuccess)
-        // Vouch total excluding Self (Alice 50 + Bob 25 = 75)
-        assertEquals(7500L, saved?.vouch?.amount)
-        assertEquals(2, saved?.persons?.size)
-        assertEquals(5000L, saved?.persons?.find { it.person.name == "Alice" }?.amount)
-        assertTrue(saved?.persons?.find { it.person.name == "Alice" }?.isCustom == true)
-        assertEquals(2500L, saved?.persons?.find { it.person.name == "Bob" }?.amount)
-        assertFalse(saved?.persons?.find { it.person.name == "Bob" }?.isCustom == true)
+        // Vouch total includes Self and matches the specified total amount (100)
+        assertEquals(10000L, saved?.vouch?.amount)
+        assertEquals(3, saved?.persons?.size)
+        val savedMe = saved?.persons?.find { it.person.name == "Me" }
+        assertNotNull(savedMe)
+        assertEquals(2500L, savedMe?.amount)
+        assertTrue(savedMe?.isSelf == true)
+        assertTrue(savedMe?.settled == true)
+        assertFalse(savedMe?.isCustom == true)
+
+        val savedAlice = saved?.persons?.find { it.person.name == "Alice" }
+        assertNotNull(savedAlice)
+        assertEquals(5000L, savedAlice?.amount)
+        assertTrue(savedAlice?.isCustom == true)
+        assertFalse(savedAlice?.isSelf == true)
+
+        val savedBob = saved?.persons?.find { it.person.name == "Bob" }
+        assertNotNull(savedBob)
+        assertEquals(2500L, savedBob?.amount)
+        assertFalse(savedBob?.isCustom == true)
+        assertFalse(savedBob?.isSelf == true)
+
+        // Reload the saved vouch: self member should be loaded first and have isSelf = true
+        val reloadedViewModel = createViewModel(saved.vouch.id)
+        val loadedMembers = reloadedViewModel.uiState.value.members
+        assertEquals(3, loadedMembers.size)
+        val loadedMe = loadedMembers.find { it.isSelf }
+        assertNotNull(loadedMe)
+        assertEquals("Me", loadedMe?.personName)
+        assertEquals(currencyManager.formatAmount(2500L), loadedMe?.amount)
     }
 
     @Test

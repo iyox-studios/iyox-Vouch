@@ -317,8 +317,8 @@ class GroupVouchViewModel @Inject constructor(
         } else {
             0L
         }
-        val otherMemberAmounts = mutableListOf<Pair<GroupMemberInput, Long>>()
-        for (member in nonSelfMembers) {
+        val allMemberAmounts = mutableListOf<Pair<GroupMemberInput, Long>>()
+        for (member in currentState.members) {
             val amount = if (member.isCustom) {
                 currencyManager.parseToMinorUnits(member.amount)
             } else {
@@ -333,11 +333,10 @@ class GroupVouchViewModel @Inject constructor(
                 }
                 return null
             }
-            otherMemberAmounts += member to amount
+            allMemberAmounts += member to amount
         }
 
-        // The created vouch amount represents the total amount owed by / to the others (excluding self)
-        val vouchTotalAmount = otherMemberAmounts.sumOf { it.second }
+        val vouchTotalAmount = totalAmount
 
         val savedVouch: VouchWithPerson?
         if (editingVouchId != null && originalVouch != null) {
@@ -347,11 +346,14 @@ class GroupVouchViewModel @Inject constructor(
                     description = currentState.description.trim(),
                     given = currentState.given
                 ),
-                persons = otherMemberAmounts.map { (member, amount) ->
+                persons = allMemberAmounts.map { (member, amount) ->
+                    val existingSettled = originalVouch!!.persons.find { it.person.name == member.personName }?.settled ?: false
                     PersonWithAmount(
                         person = Person(name = member.personName),
                         amount = amount,
-                        isCustom = member.isCustom
+                        settled = if (member.isSelf) true else existingSettled,
+                        isCustom = member.isCustom,
+                        isSelf = member.isSelf
                     )
                 }
             )
@@ -365,11 +367,13 @@ class GroupVouchViewModel @Inject constructor(
                     description = currentState.description.trim(),
                     given = currentState.given
                 ),
-                persons = otherMemberAmounts.map { (member, amount) ->
+                persons = allMemberAmounts.map { (member, amount) ->
                     PersonWithAmount(
                         person = Person(name = member.personName),
                         amount = amount,
-                        isCustom = member.isCustom
+                        settled = member.isSelf,
+                        isCustom = member.isCustom,
+                        isSelf = member.isSelf
                     )
                 }
             )
@@ -467,13 +471,15 @@ class GroupVouchViewModel @Inject constructor(
  */
 fun VouchWithPerson.toGroupMemberInputs(currencyManager: CurrencyManager): List<GroupMemberInput> {
     val result = mutableListOf<GroupMemberInput>()
-    for (personEntry in this.persons) {
+    val selfEntries = this.persons.filter { it.isSelf }
+    val nonSelfEntries = this.persons.filterNot { it.isSelf }
+    for (personEntry in (selfEntries + nonSelfEntries)) {
         result.add(
             GroupMemberInput(
                 personName = personEntry.person.name,
                 amount = currencyManager.formatAmount(personEntry.amount),
                 isCustom = personEntry.isCustom,
-                isSelf = false
+                isSelf = personEntry.isSelf
             )
         )
     }

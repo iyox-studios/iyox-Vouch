@@ -23,7 +23,7 @@ interface VouchDao {
 
     @Query(
         """
-        SELECT vpc.vouchId AS vouchId, p.id AS id, p.name AS name, vpc.amount AS amount, vpc.settled AS settled, vpc.isCustom AS isCustom
+        SELECT vpc.vouchId AS vouchId, p.id AS id, p.name AS name, vpc.amount AS amount, vpc.settled AS settled, vpc.isCustom AS isCustom, vpc.isSelf AS isSelf
         FROM Person p
         INNER JOIN vouch_person_cross_ref vpc ON p.id = vpc.personId
         """
@@ -32,7 +32,7 @@ interface VouchDao {
 
     @Query(
         """
-        SELECT vpc.vouchId AS vouchId, p.id AS id, p.name AS name, vpc.amount AS amount, vpc.settled AS settled, vpc.isCustom AS isCustom
+        SELECT vpc.vouchId AS vouchId, p.id AS id, p.name AS name, vpc.amount AS amount, vpc.settled AS settled, vpc.isCustom AS isCustom, vpc.isSelf AS isSelf
         FROM Person p
         INNER JOIN vouch_person_cross_ref vpc ON p.id = vpc.personId
         """
@@ -65,7 +65,7 @@ interface VouchDao {
 
     @Query(
         """
-        SELECT vpc.vouchId AS vouchId, p.id AS id, p.name AS name, vpc.amount AS amount, vpc.settled AS settled, vpc.isCustom AS isCustom
+        SELECT vpc.vouchId AS vouchId, p.id AS id, p.name AS name, vpc.amount AS amount, vpc.settled AS settled, vpc.isCustom AS isCustom, vpc.isSelf AS isSelf
         FROM Person p
         INNER JOIN vouch_person_cross_ref vpc ON p.id = vpc.personId
         WHERE vpc.vouchId IN (
@@ -79,7 +79,7 @@ interface VouchDao {
 
     @Query(
         """
-        SELECT vpc.vouchId AS vouchId, p.id AS id, p.name AS name, vpc.amount AS amount, vpc.settled AS settled, vpc.isCustom AS isCustom
+        SELECT vpc.vouchId AS vouchId, p.id AS id, p.name AS name, vpc.amount AS amount, vpc.settled AS settled, vpc.isCustom AS isCustom, vpc.isSelf AS isSelf
         FROM Person p
         INNER JOIN vouch_person_cross_ref vpc ON p.id = vpc.personId
         WHERE vpc.vouchId IN (
@@ -117,7 +117,7 @@ interface VouchDao {
 
     @Query(
         """
-        SELECT p.*, vpc.amount AS amount, vpc.settled AS settled, vpc.isCustom AS isCustom
+        SELECT p.*, vpc.amount AS amount, vpc.settled AS settled, vpc.isCustom AS isCustom, vpc.isSelf AS isSelf
         FROM Person p
         INNER JOIN vouch_person_cross_ref vpc ON p.id = vpc.personId
         WHERE vpc.vouchId = :vouchId
@@ -165,7 +165,7 @@ interface VouchDao {
         """
         UPDATE vouch_person_cross_ref
         SET settled = :settled
-        WHERE vouchId = :vouchId
+        WHERE vouchId = :vouchId AND isSelf = 0
         """
     )
     suspend fun updateCrossRefsSettledByVouchId(vouchId: Long, settled: Boolean)

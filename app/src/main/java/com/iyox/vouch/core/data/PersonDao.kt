@@ -53,13 +53,14 @@ interface PersonDao {
                        CASE
                            WHEN vpc.settled = 1 THEN 0
                            WHEN v.id IS NULL THEN 0
+                           WHEN vpc.isSelf = 1 THEN 0
                            WHEN v.given = 0 THEN -vpc.amount
                            ELSE vpc.amount
                        END
                    ),
                    0
                ) AS amount,
-               COUNT(DISTINCT CASE WHEN vpc.settled = 0 THEN vpc.vouchId END) AS vouchCount
+               COUNT(DISTINCT CASE WHEN vpc.settled = 0 AND vpc.isSelf = 0 THEN vpc.vouchId END) AS vouchCount
         FROM Person p
         LEFT JOIN vouch_person_cross_ref vpc ON p.id = vpc.personId
         LEFT JOIN Vouch v ON vpc.vouchId = v.id
@@ -78,16 +79,18 @@ interface PersonDao {
                        CASE
                            WHEN vpc.settled = 1 THEN 0
                            WHEN v.id IS NULL THEN 0
+                           WHEN vpc.isSelf = 1 THEN 0
                            WHEN v.given = 0 THEN -vpc.amount
                            ELSE vpc.amount
                        END
                    ),
                    0
                ) AS amount,
-               COUNT(DISTINCT CASE WHEN vpc.settled = 0 THEN vpc.vouchId END) AS vouchCount
+               COUNT(DISTINCT CASE WHEN vpc.settled = 0 AND vpc.isSelf = 0 THEN vpc.vouchId END) AS vouchCount
         FROM Person p
         LEFT JOIN vouch_person_cross_ref vpc ON p.id = vpc.personId
         LEFT JOIN Vouch v ON vpc.vouchId = v.id
+        WHERE p.id NOT IN (SELECT personId FROM vouch_person_cross_ref WHERE isSelf = 1)
         GROUP BY p.id
         """
     )
@@ -101,16 +104,18 @@ interface PersonDao {
                        CASE
                            WHEN vpc.settled = 1 THEN 0
                            WHEN v.id IS NULL THEN 0
+                           WHEN vpc.isSelf = 1 THEN 0
                            WHEN v.given = 0 THEN -vpc.amount
                            ELSE vpc.amount
                        END
                    ),
                    0
                ) AS amount,
-               COUNT(DISTINCT CASE WHEN vpc.settled = 0 THEN vpc.vouchId END) AS vouchCount
+               COUNT(DISTINCT CASE WHEN vpc.settled = 0 AND vpc.isSelf = 0 THEN vpc.vouchId END) AS vouchCount
         FROM Person p
         LEFT JOIN vouch_person_cross_ref vpc ON p.id = vpc.personId
         LEFT JOIN Vouch v ON vpc.vouchId = v.id
+        WHERE p.id NOT IN (SELECT personId FROM vouch_person_cross_ref WHERE isSelf = 1)
         GROUP BY p.id
         """
     )
@@ -124,17 +129,19 @@ interface PersonDao {
                        CASE
                            WHEN vpc.settled = 1 THEN 0
                            WHEN v.id IS NULL THEN 0
+                           WHEN vpc.isSelf = 1 THEN 0
                            WHEN v.given = 0 THEN -vpc.amount
                            ELSE vpc.amount
                        END
                    ),
                    0
                ) AS amount,
-               COUNT(DISTINCT CASE WHEN vpc.settled = 0 THEN vpc.vouchId END) AS vouchCount
+               COUNT(DISTINCT CASE WHEN vpc.settled = 0 AND vpc.isSelf = 0 THEN vpc.vouchId END) AS vouchCount
         FROM Person p
         LEFT JOIN vouch_person_cross_ref vpc ON p.id = vpc.personId
         LEFT JOIN Vouch v ON vpc.vouchId = v.id
-        WHERE p.name LIKE '%' || :query || '%'
+        WHERE p.id NOT IN (SELECT personId FROM vouch_person_cross_ref WHERE isSelf = 1)
+          AND p.name LIKE '%' || :query || '%'
         GROUP BY p.id
         """
     )
@@ -148,16 +155,18 @@ interface PersonDao {
                        CASE
                            WHEN vpc.settled = 1 THEN 0
                            WHEN v.id IS NULL THEN 0
+                           WHEN vpc.isSelf = 1 THEN 0
                            WHEN v.given = 0 THEN -vpc.amount
                            ELSE vpc.amount
                        END
                    ),
                    0
                ) AS amount,
-               COUNT(DISTINCT vpc.vouchId) AS vouchCount
+               COUNT(DISTINCT CASE WHEN vpc.isSelf = 0 THEN vpc.vouchId END) AS vouchCount
         FROM Person p
         LEFT JOIN vouch_person_cross_ref vpc ON p.id = vpc.personId
         LEFT JOIN Vouch v ON vpc.vouchId = v.id
+        WHERE p.id NOT IN (SELECT personId FROM vouch_person_cross_ref WHERE isSelf = 1)
         GROUP BY p.id
         ORDER BY vouchCount DESC, p.name ASC
         """
