@@ -225,7 +225,8 @@ class VouchRepository @Inject constructor(
             PersonWithAmount(
                 person = storedPerson,
                 amount = personWithAmount.amount,
-                settled = personWithAmount.settled
+                settled = personWithAmount.settled,
+                isCustom = personWithAmount.isCustom
             )
         }
 
@@ -235,7 +236,8 @@ class VouchRepository @Inject constructor(
                 vouchId = vouchId,
                 personId = personWithAmount.person.id,
                 amount = personWithAmount.amount,
-                settled = preservedSettlement ?: personWithAmount.settled
+                settled = preservedSettlement ?: personWithAmount.settled,
+                isCustom = personWithAmount.isCustom
             )
         }
         if (crossRefs.isNotEmpty()) {

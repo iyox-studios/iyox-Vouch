@@ -308,13 +308,21 @@ class GroupVouchViewModel @Inject constructor(
             return null
         }
 
-        val defaultSplit = computeDefaultSplitAmount(totalAmount, currentState.members.size)
-        val otherMemberAmounts = mutableListOf<Pair<String, Long>>()
+        val customSum = currentState.members
+            .filter { it.isCustom }
+            .sumOf { currencyManager.parseToMinorUnits(it.amount) ?: 0L }
+        val nonCustomCount = currentState.members.count { !it.isCustom }
+        val defaultSplit = if (nonCustomCount > 0) {
+            maxOf(0L, totalAmount - customSum) / nonCustomCount
+        } else {
+            0L
+        }
+        val otherMemberAmounts = mutableListOf<Pair<GroupMemberInput, Long>>()
         for (member in nonSelfMembers) {
             val amount = if (member.isCustom) {
                 currencyManager.parseToMinorUnits(member.amount)
             } else {
-                defaultSplit
+                currencyManager.parseToMinorUnits(member.amount) ?: defaultSplit
             }
             if (amount == null) {
                 _uiState.update {
@@ -325,7 +333,7 @@ class GroupVouchViewModel @Inject constructor(
                 }
                 return null
             }
-            otherMemberAmounts += member.personName to amount
+            otherMemberAmounts += member to amount
         }
 
         // The created vouch amount represents the total amount owed by / to the others (excluding self)
@@ -339,8 +347,12 @@ class GroupVouchViewModel @Inject constructor(
                     description = currentState.description.trim(),
                     given = currentState.given
                 ),
-                persons = otherMemberAmounts.map { (personName, amount) ->
-                    PersonWithAmount(Person(name = personName), amount)
+                persons = otherMemberAmounts.map { (member, amount) ->
+                    PersonWithAmount(
+                        person = Person(name = member.personName),
+                        amount = amount,
+                        isCustom = member.isCustom
+                    )
                 }
             )
             repository.update(updatedVouch)
@@ -353,8 +365,12 @@ class GroupVouchViewModel @Inject constructor(
                     description = currentState.description.trim(),
                     given = currentState.given
                 ),
-                persons = otherMemberAmounts.map { (personName, amount) ->
-                    PersonWithAmount(Person(name = personName), amount)
+                persons = otherMemberAmounts.map { (member, amount) ->
+                    PersonWithAmount(
+                        person = Person(name = member.personName),
+                        amount = amount,
+                        isCustom = member.isCustom
+                    )
                 }
             )
             savedVouch = repository.insert(vouch)
@@ -438,11 +454,6 @@ class GroupVouchViewModel @Inject constructor(
         }
     }
 
-    private fun computeDefaultSplitAmount(total: Long, memberCount: Int): Long {
-        if (memberCount <= 0) return total
-        return total / memberCount
-    }
-
     private fun loadSuggestedPersons() {
         viewModelScope.launch {
             val suggestions = personRepository.getPersonsByTotalVouches()
@@ -461,7 +472,7 @@ fun VouchWithPerson.toGroupMemberInputs(currencyManager: CurrencyManager): List<
             GroupMemberInput(
                 personName = personEntry.person.name,
                 amount = currencyManager.formatAmount(personEntry.amount),
-                isCustom = true,
+                isCustom = personEntry.isCustom,
                 isSelf = false
             )
         )
