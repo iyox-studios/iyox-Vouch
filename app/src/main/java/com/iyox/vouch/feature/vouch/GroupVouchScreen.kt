@@ -92,6 +92,8 @@ import com.iyox.vouch.ui.components.PersonAvatar
 import com.iyox.vouch.ui.components.VouchBackButton
 import com.iyox.vouch.ui.components.vouches.GroupSplitSection
 import com.iyox.vouch.ui.components.vouches.GroupVouchSplitSlider
+import java.text.SimpleDateFormat
+import java.util.Locale
 import kotlin.math.abs
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -234,11 +236,17 @@ fun GroupVouchScreen(
                         focusManager = focusManager
                     )
 
+                    VouchDateField(
+                        timestamp = uiState.timestamp,
+                        onDateSelected = viewModel::onDateChange
+                    )
+
                     Spacer(modifier = Modifier.weight(1f))
                 } else {
                     GroupVouchSummaryCard(
                         amount = uiState.amount,
                         isGiven = uiState.given,
+                        timestamp = uiState.timestamp,
                         members = uiState.members,
                         onResetAllToEqual = viewModel::resetAllToEqualSplit
                     )
@@ -276,13 +284,17 @@ fun GroupVouchSummaryCard(
     isGiven: Boolean,
     members: List<GroupMemberInput>,
     onResetAllToEqual: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    timestamp: Long = System.currentTimeMillis()
 ) {
     val totalAmountMinor = CurrencyManager.parseToMinorUnits(amount) ?: 0L
     val sumAssignedMinor = members.sumOf { CurrencyManager.parseToMinorUnits(it.amount) ?: 0L }
     val remainingMinor = totalAmountMinor - sumAssignedMinor
     val hasCustomSplit = members.any { it.isCustom }
     val isBalanced = remainingMinor == 0L && members.isNotEmpty()
+    val dateFormat =
+        SimpleDateFormat(stringResource(R.string.format_vouch_date), Locale.getDefault())
+    val formattedDate = dateFormat.format(timestamp)
 
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -344,36 +356,48 @@ fun GroupVouchSummaryCard(
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                if (members.isNotEmpty()) {
-                    Surface(
-                        shape = CircleShape,
-                        color = MaterialTheme.colorScheme.surfaceContainerHigh
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                Column(
+                    horizontalAlignment = Alignment.End,
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    if (members.isNotEmpty()) {
+                        Surface(
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.surfaceContainerHigh
                         ) {
-                            Icon(
-                                imageVector = Icons.Outlined.Group,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Text(
-                                text = pluralStringResource(
-                                    R.plurals.person_count,
-                                    members.size,
-                                    members.size
-                                ),
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
+                            Row(
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Group,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Text(
+                                    text = pluralStringResource(
+                                        R.plurals.person_count,
+                                        members.size,
+                                        members.size
+                                    ),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
                         }
                     }
+                    Text(
+                        text = formattedDate,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.outline,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
             }
 

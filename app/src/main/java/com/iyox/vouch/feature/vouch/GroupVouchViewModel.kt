@@ -38,6 +38,7 @@ data class GroupVouchUiState(
     val amount: String = "",
     val given: Boolean = true,
     val description: String = "",
+    val timestamp: Long = System.currentTimeMillis(),
     val personQuery: String = "",
     val personSearchResults: List<PersonTotal> = emptyList(),
     val suggestedPersons: List<PersonTotal> = emptyList(),
@@ -79,6 +80,7 @@ class GroupVouchViewModel @Inject constructor(
                     amount = currencyManager.formatAmount(cached.vouch.amount),
                     given = cached.vouch.given,
                     description = cached.vouch.description,
+                    timestamp = cached.vouch.timestamp,
                     members = members,
                     step = STEP_DETAILS,
                     isLoading = false
@@ -120,6 +122,7 @@ class GroupVouchViewModel @Inject constructor(
                     amount = currencyManager.formatAmount(inMemory.vouch.amount),
                     given = inMemory.vouch.given,
                     description = inMemory.vouch.description,
+                    timestamp = inMemory.vouch.timestamp,
                     members = members,
                     step = STEP_DETAILS,
                     isLoading = false
@@ -140,6 +143,7 @@ class GroupVouchViewModel @Inject constructor(
                         amount = currencyManager.formatAmount(vouch.vouch.amount),
                         given = vouch.vouch.given,
                         description = vouch.vouch.description,
+                        timestamp = vouch.vouch.timestamp,
                         members = members,
                         step = STEP_DETAILS,
                         isLoading = false
@@ -162,6 +166,10 @@ class GroupVouchViewModel @Inject constructor(
 
     fun onDescriptionChange(value: String) {
         _uiState.update { it.copy(description = value) }
+    }
+
+    fun onDateChange(timestamp: Long) {
+        _uiState.update { it.copy(timestamp = timestamp) }
     }
 
     fun continueToMembers() {
@@ -344,7 +352,8 @@ class GroupVouchViewModel @Inject constructor(
                 vouch = originalVouch!!.vouch.copy(
                     amount = vouchTotalAmount,
                     description = currentState.description.trim(),
-                    given = currentState.given
+                    given = currentState.given,
+                    timestamp = currentState.timestamp
                 ),
                 persons = allMemberAmounts.map { (member, amount) ->
                     val existingSettled = originalVouch!!.persons.find { it.person.name == member.personName }?.settled ?: false
@@ -365,7 +374,8 @@ class GroupVouchViewModel @Inject constructor(
                     id = 0,
                     amount = vouchTotalAmount,
                     description = currentState.description.trim(),
-                    given = currentState.given
+                    given = currentState.given,
+                    timestamp = currentState.timestamp
                 ),
                 persons = allMemberAmounts.map { (member, amount) ->
                     PersonWithAmount(
