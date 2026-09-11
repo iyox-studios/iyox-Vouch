@@ -26,6 +26,7 @@ interface VouchDao {
         SELECT vpc.vouchId AS vouchId, p.id AS id, p.name AS name, vpc.amount AS amount, vpc.settled AS settled, vpc.isCustom AS isCustom, vpc.isSelf AS isSelf
         FROM Person p
         INNER JOIN vouch_person_cross_ref vpc ON p.id = vpc.personId
+        ORDER BY vpc.isSelf DESC, p.id ASC
         """
     )
     fun getAllPersonRowsFlow(): Flow<List<VouchPersonRow>>
@@ -35,6 +36,7 @@ interface VouchDao {
         SELECT vpc.vouchId AS vouchId, p.id AS id, p.name AS name, vpc.amount AS amount, vpc.settled AS settled, vpc.isCustom AS isCustom, vpc.isSelf AS isSelf
         FROM Person p
         INNER JOIN vouch_person_cross_ref vpc ON p.id = vpc.personId
+        ORDER BY vpc.isSelf DESC, p.id ASC
         """
     )
     suspend fun getAllPersonRows(): List<VouchPersonRow>
@@ -73,6 +75,7 @@ interface VouchDao {
             INNER JOIN Person p2 ON vpc2.personId = p2.id
             WHERE p2.name = :name
         )
+        ORDER BY vpc.isSelf DESC, p.id ASC
         """
     )
     fun getPersonRowsForVouchesOfPersonFlow(name: String): Flow<List<VouchPersonRow>>
@@ -87,6 +90,7 @@ interface VouchDao {
             INNER JOIN Person p2 ON vpc2.personId = p2.id
             WHERE p2.name = :name
         )
+        ORDER BY vpc.isSelf DESC, p.id ASC
         """
     )
     suspend fun getPersonRowsForVouchesOfPerson(name: String): List<VouchPersonRow>
@@ -121,6 +125,7 @@ interface VouchDao {
         FROM Person p
         INNER JOIN vouch_person_cross_ref vpc ON p.id = vpc.personId
         WHERE vpc.vouchId = :vouchId
+        ORDER BY vpc.isSelf DESC, p.id ASC
         """
     )
     suspend fun getPersonsForVouch(vouchId: Long): List<PersonWithAmount>

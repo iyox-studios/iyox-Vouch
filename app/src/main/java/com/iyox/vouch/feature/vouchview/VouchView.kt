@@ -350,66 +350,80 @@ fun VouchViewContent(
                                         onPersonClick = {}
                                     )
                                 } else {
-                                    VouchSwipeToDismiss(
-                                        enableDismissFromStartToEnd = true,
-                                        enableDismissFromEndToStart = false,
-                                        onStartToEnd = {
-                                            val isParticipantSettled = personWithAmount.settled
-                                            val settleMessage = if (isParticipantSettled) msgVouchUnsettled else msgVouchSettled
-                                            toastManager.executeWithUndo(
-                                                message = settleMessage,
-                                                actionLabel = actionUndo,
-                                                errorMessage = msgSettleFailed,
-                                                performAction = {
-                                                    sharedActions.setVouchPersonSettlement(
-                                                        vouchId = vouch.vouch.id,
-                                                        personId = personWithAmount.person.id,
-                                                        settled = !isParticipantSettled
-                                                    )
-                                                },
-                                                undoAction = { _: Unit ->
-                                                    sharedActions.setVouchPersonSettlement(
-                                                        vouchId = vouch.vouch.id,
-                                                        personId = personWithAmount.person.id,
-                                                        settled = isParticipantSettled
-                                                    )
-                                                }
-                                            )
-                                        },
-                                        settleText = if (personWithAmount.settled) {
-                                            stringResource(R.string.action_unsettle)
-                                        } else {
-                                            stringResource(R.string.action_settle)
-                                        },
-                                        deleteText = ""
-                                    ) {
-                                        GroupVouchParticipantItem(
-                                            personWithAmount = personWithAmount,
-                                            onSettleToggle = {
-                                                val isParticipantSettled = personWithAmount.settled
-                                                val settleMessage = if (isParticipantSettled) msgVouchUnsettled else msgVouchSettled
-                                                toastManager.executeWithUndo(
-                                                    message = settleMessage,
-                                                    actionLabel = actionUndo,
-                                                    errorMessage = msgSettleFailed,
-                                                    performAction = {
-                                                        sharedActions.setVouchPersonSettlement(
-                                                            vouchId = vouch.vouch.id,
-                                                            personId = personWithAmount.person.id,
-                                                            settled = !isParticipantSettled
-                                                        )
-                                                    },
-                                                    undoAction = { _: Unit ->
-                                                        sharedActions.setVouchPersonSettlement(
-                                                            vouchId = vouch.vouch.id,
-                                                            personId = personWithAmount.person.id,
-                                                            settled = isParticipantSettled
-                                                        )
-                                                    }
+                                    val isParticipantSettled = personWithAmount.settled
+                                    val toggleParticipantSettlement: () -> Unit = {
+                                        val settleMessage = if (isParticipantSettled) msgVouchUnsettled else msgVouchSettled
+                                        toastManager.executeWithUndo(
+                                            message = settleMessage,
+                                            actionLabel = actionUndo,
+                                            errorMessage = msgSettleFailed,
+                                            performAction = {
+                                                sharedActions.setVouchPersonSettlement(
+                                                    vouchId = vouch.vouch.id,
+                                                    personId = personWithAmount.person.id,
+                                                    settled = !isParticipantSettled
                                                 )
                                             },
+                                            undoAction = { _: Unit ->
+                                                sharedActions.setVouchPersonSettlement(
+                                                    vouchId = vouch.vouch.id,
+                                                    personId = personWithAmount.person.id,
+                                                    settled = isParticipantSettled
+                                                )
+                                            }
+                                        )
+                                    }
+                                    val deleteParticipant: () -> Unit = {
+                                        toastManager.executeWithUndo(
+                                            message = msgVouchDeleted,
+                                            actionLabel = actionUndo,
+                                            errorMessage = msgDeleteFailed,
+                                            performAction = {
+                                                sharedActions.deletePersonFromVouch(
+                                                    vouchId = vouch.vouch.id,
+                                                    personId = personWithAmount.person.id
+                                                )
+                                            },
+                                            undoAction = { _: Unit -> sharedActions.restoreVouch(vouch) }
+                                        )
+                                    }
+                                    val canSettle = !isParticipantSettled
+                                    val settleLabel = if (canSettle) {
+                                        stringResource(R.string.action_settle)
+                                    } else {
+                                        stringResource(R.string.action_unsettle)
+                                    }
+                                    val deleteLabel = stringResource(R.string.action_delete)
+                                    val participantContent = @Composable {
+                                        GroupVouchParticipantItem(
+                                            personWithAmount = personWithAmount,
+                                            onSettleToggle = toggleParticipantSettlement,
                                             onPersonClick = onNavigateToPerson
                                         )
+                                    }
+
+                                    if (canSettle) {
+                                        VouchSwipeToDismiss(
+                                            enableDismissFromStartToEnd = true,
+                                            enableDismissFromEndToStart = true,
+                                            onStartToEnd = toggleParticipantSettlement,
+                                            onEndToStart = deleteParticipant,
+                                            settleText = settleLabel,
+                                            deleteText = deleteLabel
+                                        ) {
+                                            participantContent()
+                                        }
+                                    } else {
+                                        VouchSwipeToDismiss(
+                                            enableDismissFromStartToEnd = true,
+                                            enableDismissFromEndToStart = true,
+                                            onStartToEnd = toggleParticipantSettlement,
+                                            onEndToStart = deleteParticipant,
+                                            settleText = settleLabel,
+                                            deleteText = deleteLabel
+                                        ) {
+                                            participantContent()
+                                        }
                                     }
                                 }
                             }
