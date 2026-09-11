@@ -65,7 +65,7 @@ class PersonViewModel @Inject constructor(
 
     private fun getInitialPersonVouches(name: String): List<VouchWithPerson> {
         return vouchRepository.vouchesFlow.value.filter { v ->
-            v.persons.any { it.person.name.equals(name, ignoreCase = true) }
+            v.persons.any { !it.isSelf && it.person.name.equals(name, ignoreCase = true) }
         }
     }
 

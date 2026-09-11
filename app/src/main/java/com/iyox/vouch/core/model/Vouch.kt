@@ -80,8 +80,10 @@ data class VouchWithPerson(
     val persons: List<PersonWithAmount>
 )
 
-fun VouchWithPerson.isSettled(): Boolean =
-    persons.isNotEmpty() && persons.all { it.settled }
+fun VouchWithPerson.isSettled(): Boolean {
+    val nonSelf = persons.filterNot { it.isSelf }
+    return nonSelf.isNotEmpty() && nonSelf.all { it.settled }
+}
 
 fun VouchWithPerson.isSettledForPerson(personId: Long): Boolean =
     persons.firstOrNull { it.person.id == personId }?.settled ?: false

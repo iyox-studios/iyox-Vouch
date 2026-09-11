@@ -123,7 +123,7 @@ fun GroupParticipantsDialog(
                                     name = personWithAmount.person.name,
                                     size = 40.dp
                                 )
-                                if (isSettled) {
+                                if (isSettled && !isSelf) {
                                     Surface(
                                         shape = CircleShape,
                                         color = MaterialTheme.colorScheme.primary,
@@ -154,11 +154,18 @@ fun GroupParticipantsDialog(
                                     text = personWithAmount.person.name,
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.SemiBold,
-                                    color = if (isSettled) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
+                                    color = if (isSettled && !isSelf) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
                                 )
-                                if (isSettled) {
+                                if (isSelf) {
+                                    Text(
+                                        text = stringResource(R.string.label_own_share),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                } else if (isSettled) {
                                     Text(
                                         text = stringResource(R.string.label_settled),
                                         style = MaterialTheme.typography.labelSmall,
@@ -176,8 +183,8 @@ fun GroupParticipantsDialog(
                                     text = CurrencyManager.formatAmountWithSymbol(personWithAmount.amount),
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold,
-                                    color = if (isSettled) MaterialTheme.colorScheme.outline else MaterialTheme.colorScheme.onSurface,
-                                    textDecoration = if (isSettled) TextDecoration.LineThrough else TextDecoration.None
+                                    color = if (isSettled && !isSelf) MaterialTheme.colorScheme.outline else MaterialTheme.colorScheme.onSurface,
+                                    textDecoration = if (isSettled && !isSelf) TextDecoration.LineThrough else TextDecoration.None
                                 )
 
                                 if (!isSelf) {

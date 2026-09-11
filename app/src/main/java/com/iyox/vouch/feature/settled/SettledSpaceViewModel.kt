@@ -72,9 +72,9 @@ class SettledSpaceViewModel @Inject constructor(
 
         for (vouch in settledVouches) {
             val relevantPersons = if (selectedPerson != null) {
-                vouch.persons.filter { it.person.name == selectedPerson && it.settled }
+                vouch.persons.filter { it.person.name == selectedPerson && it.settled && !it.isSelf }
             } else {
-                vouch.persons.filter { it.settled }
+                vouch.persons.filter { it.settled && !it.isSelf }
             }
 
             for (person in relevantPersons) {
