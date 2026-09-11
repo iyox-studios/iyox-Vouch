@@ -44,10 +44,12 @@ import com.iyox.vouch.ui.components.vouches.VouchList
 fun SettledSpaceScreen(
     initialPersonName: String? = null,
     onNavigateBack: () -> Unit = {},
-    onNavigateToEditVouch: (Long, Boolean) -> Unit = { _, _ -> },
+    onVouchClick: ((Long, Boolean) -> Unit)? = null,
     onNavigateToPerson: (String) -> Unit = {},
-    viewModel: SettledSpaceViewModel = hiltViewModel()
+    viewModel: SettledSpaceViewModel = hiltViewModel(),
+    onNavigateToEditVouch: (Long, Boolean) -> Unit = { _, _ -> }
 ) {
+    val handleVouchClick = onVouchClick ?: onNavigateToEditVouch
     val uiState by viewModel.uiState.collectAsState()
     val listState = rememberLazyListState()
 
@@ -167,7 +169,7 @@ fun SettledSpaceScreen(
                     listState = listState,
                     innerPadding = PaddingValues(0.dp),
                     sharedVouchActions = viewModel.sharedActions,
-                    onEdit = onNavigateToEditVouch,
+                    onEdit = handleVouchClick,
                     onNavigateToPerson = onNavigateToPerson,
                     isSettled = { true }
                 )
