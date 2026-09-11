@@ -4,6 +4,7 @@ import android.content.ClipData
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -21,20 +22,27 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.DoneAll
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.Archive
+import androidx.compose.material.icons.outlined.ArrowOutward
 import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.SouthWest
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialShapes
@@ -58,11 +66,13 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.iyox.vouch.R
@@ -73,17 +83,18 @@ import com.iyox.vouch.core.model.VouchWithPerson
 import com.iyox.vouch.core.model.isSettledForPerson
 import com.iyox.vouch.core.utils.rememberToastManager
 import com.iyox.vouch.ui.components.EmptySearchContent
+import com.iyox.vouch.ui.components.PersonAvatar
 import com.iyox.vouch.ui.components.RenamePersonDialog
 import com.iyox.vouch.ui.components.VouchBackButton
 import com.iyox.vouch.ui.components.VouchBalanceHeroCard
 import com.iyox.vouch.ui.components.VouchFilterRow
-import com.iyox.vouch.ui.components.vouches.GroupVouchSingleItem
-import com.iyox.vouch.ui.components.vouches.SingleVouchItem
 import com.iyox.vouch.ui.components.vouches.VouchList
 import kotlinx.coroutines.android.awaitFrame
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
+import java.text.SimpleDateFormat
+import java.util.Locale
 import kotlin.math.abs
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -564,31 +575,244 @@ fun VouchExportTemplate(
     vouches: List<VouchWithPerson>,
     modifier: Modifier = Modifier
 ) {
-    Column(
+    val dateFormat = SimpleDateFormat(stringResource(R.string.format_vouch_date), Locale.getDefault())
+    val totalAmount = personData?.amount ?: (amountGiven - amountOwed)
+    val activeVouches = vouches.filter { !it.isSettledForPerson(personName) }
+
+    Card(
         modifier = modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surface)
-            .padding(16.dp)
+            .width(360.dp)
+            .padding(16.dp),
+        shape = MaterialTheme.shapes.extraLarge,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainer
+        )
     ) {
-        PersonInfoCard(personData, amountGiven, amountOwed)
-        Spacer(Modifier.height(16.dp))
-        Column(modifier = Modifier.padding(16.dp)) {
-            vouches.filter { vouch -> !vouch.isSettledForPerson(personName) }.forEach { vouch ->
-                if (vouch.persons.size <= 1)
-                    SingleVouchItem(
-                        vouch,
-                        canSettle = false,
-                        onSettle = {},
-                        onDelete = {},
-                        onEdit = {})
-                else GroupVouchSingleItem(
-                    vouch,
-                    personData?.person,
-                    canSettle = false,
-                    onSettle = {},
-                    onDelete = {},
-                    onEdit = {})
-                Spacer(Modifier.height(8.dp))
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            // Header: App Branding + Export Date
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Surface(
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.primaryContainer
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Image(
+                            painter = painterResource(R.drawable.ic_app_logo),
+                            contentDescription = null,
+                            modifier = Modifier.size(width = 18.dp, height = 14.dp)
+                        )
+                        Text(
+                            text = stringResource(R.string.app_name),
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                }
+                Text(
+                    text = dateFormat.format(System.currentTimeMillis()),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.outline
+                )
+            }
+
+            // Person Hero: Avatar + Name + Net Balance
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                PersonAvatar(name = personName, size = 48.dp)
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = personName,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        text = when {
+                            totalAmount > 0L -> stringResource(R.string.label_given)
+                            totalAmount < 0L -> stringResource(R.string.label_received)
+                            else -> stringResource(R.string.label_settled)
+                        },
+                        style = MaterialTheme.typography.labelMedium,
+                        color = when {
+                            totalAmount > 0L -> MaterialTheme.colorScheme.primary
+                            totalAmount < 0L -> MaterialTheme.colorScheme.error
+                            else -> MaterialTheme.colorScheme.outline
+                        },
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+
+                Text(
+                    text = CurrencyManager.formatAmountWithSymbol(abs(totalAmount)),
+                    style = MaterialTheme.typography.headlineSmall.copy(fontSize = 22.sp),
+                    fontWeight = FontWeight.Bold,
+                    color = when {
+                        totalAmount > 0L -> MaterialTheme.colorScheme.primary
+                        totalAmount < 0L -> MaterialTheme.colorScheme.error
+                        else -> MaterialTheme.colorScheme.outline
+                    }
+                )
+            }
+
+            // Subtotals summary if both given and owed exist
+            if (amountGiven > 0L && amountOwed > 0L) {
+                Surface(
+                    shape = MaterialTheme.shapes.medium,
+                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 14.dp, vertical = 10.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Icon(
+                                imageVector = Icons.Outlined.ArrowOutward,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Text(
+                                text = stringResource(R.string.label_given),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = CurrencyManager.formatAmountWithSymbol(amountGiven),
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Icon(
+                                imageVector = Icons.Outlined.SouthWest,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Text(
+                                text = stringResource(R.string.label_received),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = CurrencyManager.formatAmountWithSymbol(amountOwed),
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    }
+                }
+            }
+
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+
+            // Active Vouches List
+            if (activeVouches.isEmpty()) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 12.dp),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Check,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = stringResource(R.string.all_settled_title),
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            } else {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    activeVouches.forEach { vouch ->
+                        val personShare = vouch.persons.firstOrNull {
+                            it.person.name == personName || it.person.id == personData?.person?.id
+                        }?.amount ?: vouch.vouch.amount
+                        val isGiven = vouch.vouch.given
+                        val vouchDate = dateFormat.format(vouch.vouch.timestamp)
+                        val description = vouch.vouch.description.ifBlank {
+                            stringResource(R.string.label_no_description)
+                        }
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            Surface(
+                                shape = MaterialTheme.shapes.medium,
+                                color = if (isGiven) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.errorContainer,
+                                modifier = Modifier.size(36.dp)
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        imageVector = if (isGiven) Icons.Outlined.ArrowOutward else Icons.Outlined.SouthWest,
+                                        contentDescription = null,
+                                        tint = if (isGiven) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onErrorContainer,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                }
+                            }
+
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = description,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                Text(
+                                    text = vouchDate,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.outline
+                                )
+                            }
+
+                            Text(
+                                text = CurrencyManager.formatAmountWithSymbol(personShare),
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    }
+                }
             }
         }
     }
@@ -604,7 +828,7 @@ private fun shareBitmap(
     val cachePath = File(context.cacheDir, "images")
     cachePath.mkdirs()
 
-    val fileName = "vouch_${personName.replace(" ", "_")}.png"
+    val fileName = "vouch_${personName.replace(" ", "_")}_${System.currentTimeMillis()}.png"
     val file = File(cachePath, fileName)
 
     FileOutputStream(file).use { out ->
