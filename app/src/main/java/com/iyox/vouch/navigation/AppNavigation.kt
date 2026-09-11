@@ -54,6 +54,7 @@ import com.iyox.vouch.feature.settings.SettingsViewModel
 import com.iyox.vouch.feature.settled.SettledSpaceScreen
 import com.iyox.vouch.feature.vouch.GroupVouchScreen
 import com.iyox.vouch.feature.vouch.SingleVouchScreen
+import com.iyox.vouch.feature.vouchview.VouchView
 import com.iyox.vouch.feature.vouches.VouchesScreen
 import com.iyox.vouch.feature.vouches.VouchesViewModel
 import kotlinx.coroutines.launch
@@ -220,9 +221,9 @@ fun AppNavigation(
                                     onNavigateToAddGroupVouch = {
                                         navController.navigate(GroupVouchRoute())
                                     },
-                                    onNavigateToEditVouch = { vouchId, isGroup ->
+                                    onVouchClick = { vouchId, isGroup ->
                                         if (isGroup) {
-                                            navController.navigate(GroupVouchRoute(vouchId = vouchId))
+                                            navController.navigate(VouchViewRoute(vouchId = vouchId))
                                         } else {
                                             navController.navigate(SingleVouchRoute(vouchId = vouchId))
                                         }
@@ -325,9 +326,9 @@ fun AppNavigation(
                         onNavigateToAddVouch = { selectedPersonName ->
                             navController.navigate(SingleVouchRoute(personName = selectedPersonName))
                         },
-                        onNavigateToEditVouch = { vouchId, isGroup ->
+                        onVouchClick = { vouchId, isGroup ->
                             if (isGroup) {
-                                navController.navigate(GroupVouchRoute(vouchId = vouchId))
+                                navController.navigate(VouchViewRoute(vouchId = vouchId))
                             } else {
                                 navController.navigate(SingleVouchRoute(vouchId = vouchId))
                             }
@@ -356,15 +357,37 @@ fun AppNavigation(
                         onNavigateBack = {
                             navController.popBackStack()
                         },
-                        onNavigateToEditVouch = { vouchId, isGroup ->
+                        onVouchClick = { vouchId, isGroup ->
                             if (isGroup) {
-                                navController.navigate(GroupVouchRoute(vouchId = vouchId))
+                                navController.navigate(VouchViewRoute(vouchId = vouchId))
                             } else {
                                 navController.navigate(SingleVouchRoute(vouchId = vouchId))
                             }
                         },
                         onNavigateToPerson = { selectedPersonName ->
                             navController.navigate(ViewPersonRoute(personName = selectedPersonName))
+                        }
+                    )
+                }
+            }
+
+            composable<VouchViewRoute> { backStackEntry ->
+                val route = backStackEntry.toRoute<VouchViewRoute>()
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(bottom = innerPadding.calculateBottomPadding())
+                ) {
+                    VouchView(
+                        vouchId = route.vouchId,
+                        onNavigateBack = {
+                            navController.popBackStack()
+                        },
+                        onNavigateToEdit = { editVouchId ->
+                            navController.navigate(GroupVouchRoute(vouchId = editVouchId))
+                        },
+                        onNavigateToPerson = { personName ->
+                            navController.navigate(ViewPersonRoute(personName = personName))
                         }
                     )
                 }

@@ -92,10 +92,12 @@ fun PersonScreen(
     personName: String,
     onNavigateBack: () -> Unit,
     onNavigateToAddVouch: (String) -> Unit = {},
-    onNavigateToEditVouch: (Long, Boolean) -> Unit = { _, _ -> },
+    onVouchClick: ((Long, Boolean) -> Unit)? = null,
     onNavigateToPerson: (String) -> Unit = {},
-    onNavigateToSettledSpace: (String) -> Unit = {}
+    onNavigateToSettledSpace: (String) -> Unit = {},
+    onNavigateToEditVouch: (Long, Boolean) -> Unit = { _, _ -> }
 ) {
+    val handleVouchClick = onVouchClick ?: onNavigateToEditVouch
     val viewModel: PersonViewModel = hiltViewModel()
     val state by viewModel.uiState.collectAsState()
     val exportLayer = rememberGraphicsLayer()
@@ -296,7 +298,7 @@ fun PersonScreen(
                             bottom = 24.dp
                         ),
                         sharedVouchActions = viewModel.sharedActions,
-                        onEdit = onNavigateToEditVouch,
+                        onEdit = handleVouchClick,
                         onNavigateToPerson = onNavigateToPerson,
                         isSettled = { vouch ->
                             state.personData?.person?.id?.let { pid ->

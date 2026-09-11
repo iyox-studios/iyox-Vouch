@@ -50,10 +50,12 @@ fun VouchesScreen(
     viewModel: VouchesViewModel = viewModel(),
     onNavigateToAddVouch: () -> Unit = {},
     onNavigateToAddGroupVouch: () -> Unit = {},
-    onNavigateToEditVouch: (Long, Boolean) -> Unit = { _, _ -> },
+    onVouchClick: ((Long, Boolean) -> Unit)? = null,
     onNavigateToPerson: (String) -> Unit = {},
-    onNavigateToSettledSpace: () -> Unit = {}
+    onNavigateToSettledSpace: () -> Unit = {},
+    onNavigateToEditVouch: (Long, Boolean) -> Unit = { _, _ -> }
 ) {
+    val handleVouchClick = onVouchClick ?: onNavigateToEditVouch
     val uiState by viewModel.uiState.collectAsState()
 
     val fabMenuExpanded = remember { mutableStateOf(false) }
@@ -192,7 +194,7 @@ fun VouchesScreen(
                     listState = listState,
                     innerPadding = PaddingValues(0.dp),
                     sharedVouchActions = viewModel.sharedActions,
-                    onEdit = onNavigateToEditVouch,
+                    onEdit = handleVouchClick,
                     onNavigateToPerson = onNavigateToPerson
                 )
             }
