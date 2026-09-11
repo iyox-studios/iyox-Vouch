@@ -142,6 +142,13 @@
     <string name="settle_person_you_owe">You currently owe %1$s %2$s</string>
     <string name="settle_person_owes_you">%1$s currently owes you %2$s</string>
 
+    <string name="title_delete_vouch_confirm">Delete &vouch;?</string>
+    <string name="msg_delete_vouch_confirm">Are you sure you want to delete this &vouch;?</string>
+    <string name="title_settle_vouch_confirm">Settle &vouch;?</string>
+    <string name="msg_settle_vouch_confirm">Are you sure you want to mark this &vouch; as settled?</string>
+    <string name="title_unsettle_vouch_confirm">Unsettle &vouch;?</string>
+    <string name="msg_unsettle_vouch_confirm">Are you sure you want to mark this &vouch; as unsettled?</string>
+
     <string name="toast_export_success">Export successful</string>
     <string name="toast_export_failed">Export failed</string>
     <string name="toast_import_success">Import successful</string>
@@ -164,6 +171,13 @@
     <string name="cd_selected">Selected</string>
     <string name="cd_rename_person">Rename Person</string>
     <string name="cd_export_vouch_list">Export &vouch;-List</string>
+    <string name="title_vouch_details">&vouch; Details</string>
+    <string name="title_group_vouch_details">&group_vouch;</string>
+    <string name="cd_export_vouch_image">Export &vouch; image</string>
+    <string name="cd_edit_vouch">Edit &vouch;</string>
+    <string name="cd_delete_vouch">Delete &vouch;</string>
+    <string name="attached_vouches_title">Participants (%1$d)</string>
+    <string name="share_vouch_image_title">Share &vouch;</string>
 
     <string name="share_vouch_summary_title">Share &vouch; Summary</string>
     <string name="vouch_summary_label">&vouch; Summary</string>

@@ -2,8 +2,9 @@ package com.iyox.vouch.core.domain
 
 import com.iyox.vouch.core.data.VouchRepository
 import com.iyox.vouch.core.model.VouchWithPerson
+import javax.inject.Inject
 
-class SharedVouchActions(
+class SharedVouchActions @Inject constructor(
     private val repository: VouchRepository
 ) {
     suspend fun addVouch(vouchWithPerson: VouchWithPerson) {

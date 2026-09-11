@@ -36,4 +36,9 @@ data class ViewPersonRoute(
 )
 
 @Serializable
+data class VouchViewRoute(
+    val vouchId: Long
+)
+
+@Serializable
 data object CurrencySearchRoute

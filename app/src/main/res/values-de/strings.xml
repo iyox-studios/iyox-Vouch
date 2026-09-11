@@ -140,6 +140,13 @@
     <string name="settle_person_you_owe">Du schuldest %1$s derzeit %2$s</string>
     <string name="settle_person_owes_you">%1$s schuldet dir derzeit %2$s</string>
 
+    <string name="title_delete_vouch_confirm">&vouch; löschen?</string>
+    <string name="msg_delete_vouch_confirm">Möchtest du diesen &vouch; wirklich löschen?</string>
+    <string name="title_settle_vouch_confirm">&vouch; begleichen?</string>
+    <string name="msg_settle_vouch_confirm">Möchtest du diesen &vouch; wirklich als beglichen markieren?</string>
+    <string name="title_unsettle_vouch_confirm">Begleichung aufheben?</string>
+    <string name="msg_unsettle_vouch_confirm">Möchtest du die Begleichung dieses &vouch;es wirklich aufheben?</string>
+
     <string name="toast_export_success">Export erfolgreich</string>
     <string name="toast_export_failed">Export fehlgeschlagen</string>
     <string name="toast_import_success">Import erfolgreich</string>
@@ -162,6 +169,13 @@
     <string name="cd_selected">Ausgewählt</string>
     <string name="cd_rename_person">Person umbenennen</string>
     <string name="cd_export_vouch_list">&vouch;-Übersicht exportieren</string>
+    <string name="title_vouch_details">&vouch;-Details</string>
+    <string name="title_group_vouch_details">&group_vouch;</string>
+    <string name="cd_export_vouch_image">&vouch;-Bild exportieren</string>
+    <string name="cd_edit_vouch">&vouch; bearbeiten</string>
+    <string name="cd_delete_vouch">&vouch; löschen</string>
+    <string name="attached_vouches_title">Beteiligte (%1$d)</string>
+    <string name="share_vouch_image_title">&vouch; teilen</string>
 
     <string name="share_vouch_summary_title">&vouch;-Übersicht teilen</string>
     <string name="vouch_summary_label">&vouch;-Übersicht</string>
