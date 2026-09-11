@@ -27,12 +27,14 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.DoneAll
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.Archive
 import androidx.compose.material.icons.outlined.ArrowOutward
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.Group
 import androidx.compose.material.icons.outlined.SouthWest
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -69,6 +71,7 @@ import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
@@ -84,9 +87,11 @@ import com.iyox.vouch.core.model.PersonWithAmount
 import com.iyox.vouch.core.model.VouchWithPerson
 import com.iyox.vouch.core.model.isSettled
 import com.iyox.vouch.core.utils.rememberToastManager
+import com.iyox.vouch.ui.components.GroupParticipantsDialog
 import com.iyox.vouch.ui.components.PersonAvatar
 import com.iyox.vouch.ui.components.VouchBackButton
-import com.iyox.vouch.ui.components.vouches.GroupVouchFullItem
+import com.iyox.vouch.ui.components.vouches.GroupSplitSection
+import com.iyox.vouch.ui.components.vouches.GroupVouchSplitSlider
 import com.iyox.vouch.ui.components.vouches.VouchSwipeToDismiss
 import kotlinx.coroutines.android.awaitFrame
 import kotlinx.coroutines.launch
@@ -284,12 +289,8 @@ fun VouchViewContent(
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp)
                     ) {
-                        GroupVouchFullItem(
+                        GroupVouchDetailHero(
                             vouch = vouch,
-                            canSettle = !vouch.isSettled(),
-                            onSettle = { showSettleConfirmDialog = true },
-                            onDelete = { showDeleteConfirmDialog = true },
-                            onEdit = { onNavigateToEdit(vouch.vouch.id) },
                             onPersonClick = onNavigateToPerson
                         )
                     }
@@ -450,6 +451,177 @@ fun VouchViewContent(
                 }
             }
         }
+    }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun GroupVouchDetailHero(
+    vouch: VouchWithPerson,
+    onPersonClick: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var showParticipantsDialog by remember { mutableStateOf(false) }
+    val dateFormat =
+        SimpleDateFormat(stringResource(R.string.format_vouch_date), Locale.getDefault())
+    val formattedDate = dateFormat.format(vouch.vouch.timestamp)
+
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.largeIncreased,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainer
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(18.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    modifier = Modifier.weight(1f, fill = false),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(14.dp)
+                ) {
+                    Surface(
+                        shape = MaterialTheme.shapes.medium,
+                        color = if (vouch.vouch.given) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.errorContainer,
+                        modifier = Modifier.size(42.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = if (vouch.vouch.given) Icons.Outlined.ArrowOutward else Icons.Outlined.SouthWest,
+                                contentDescription = null,
+                                tint = if (vouch.vouch.given) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onErrorContainer,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
+
+                    Column(modifier = Modifier.weight(1f, fill = false)) {
+                        Text(
+                            text = stringResource(R.string.group_vouch_split_summary).uppercase(),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Text(
+                            text = CurrencyManager.formatAmountWithSymbol(vouch.vouch.amount),
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Column(
+                    horizontalAlignment = Alignment.End,
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Surface(
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .clickable { showParticipantsDialog = true }
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Group,
+                                contentDescription = stringResource(R.string.cd_view_participants),
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Text(
+                                text = pluralStringResource(
+                                    R.plurals.person_count,
+                                    vouch.persons.size,
+                                    vouch.persons.size
+                                ),
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+                    Text(
+                        text = formattedDate,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.outline,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+
+            if (vouch.vouch.description.isNotBlank()) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Description,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Text(
+                        text = vouch.vouch.description,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+
+            val trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
+            val settledColor = MaterialTheme.colorScheme.primary
+            val activePersons = vouch.persons.filter { it.amount > 0L }
+            val sumAssignedMinor = activePersons.sumOf { it.amount }
+            val remainingMinor = vouch.vouch.amount - sumAssignedMinor
+
+            val sections = mutableListOf<GroupSplitSection>()
+            for (p in activePersons) {
+                val isSettled = p.settled || p.isSelf
+                val color = if (isSettled) settledColor else trackColor
+                sections.add(GroupSplitSection(amount = p.amount, color = color))
+            }
+            if (remainingMinor > 0L) {
+                sections.add(GroupSplitSection(amount = remainingMinor, color = trackColor))
+            }
+
+            GroupVouchSplitSlider(
+                totalAmountMinor = vouch.vouch.amount,
+                sections = sections
+            )
+        }
+    }
+
+    if (showParticipantsDialog) {
+        GroupParticipantsDialog(
+            persons = vouch.persons,
+            onDismiss = { showParticipantsDialog = false },
+            onPersonClick = onPersonClick
+        )
     }
 }
 

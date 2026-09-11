@@ -479,7 +479,6 @@ private fun GroupVouchesSlide() {
             GroupVouchSummaryCard(
                 amount = "60.00",
                 isGiven = true,
-                description = sampleDesc,
                 members = sampleMembers,
                 onResetAllToEqual = {}
             )
