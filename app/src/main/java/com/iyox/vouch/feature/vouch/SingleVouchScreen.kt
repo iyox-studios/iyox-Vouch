@@ -149,6 +149,11 @@ fun SingleVouchScreen(
                     focusManager = focusManager
                 )
 
+                VouchDateField(
+                    timestamp = uiState.timestamp,
+                    onDateSelected = viewModel::onDateChange
+                )
+
                 Spacer(modifier = Modifier.weight(1f))
             }
         }

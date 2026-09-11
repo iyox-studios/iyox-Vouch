@@ -26,6 +26,7 @@ data class VouchUiState(
     val given: Boolean = true,
     val personName: String = "",
     val description: String = "",
+    val timestamp: Long = System.currentTimeMillis(),
     val isLoading: Boolean = false,
     val saveSuccess: Boolean = false,
     val personSearchResults: List<PersonTotal> = emptyList()
@@ -64,6 +65,7 @@ class SingleVouchViewModel @Inject constructor(
                     given = cached.vouch.given,
                     personName = cached.persons.firstOrNull()?.person?.name ?: "",
                     description = cached.vouch.description,
+                    timestamp = cached.vouch.timestamp,
                     isLoading = false
                 )
             }
@@ -112,6 +114,7 @@ class SingleVouchViewModel @Inject constructor(
                     given = inMemory.vouch.given,
                     personName = inMemory.persons.firstOrNull()?.person?.name ?: "",
                     description = inMemory.vouch.description,
+                    timestamp = inMemory.vouch.timestamp,
                     isLoading = false
                 )
             }
@@ -130,6 +133,7 @@ class SingleVouchViewModel @Inject constructor(
                         given = vouch.vouch.given,
                         personName = vouch.persons.firstOrNull()?.person?.name ?: "",
                         description = vouch.vouch.description,
+                        timestamp = vouch.vouch.timestamp,
                         isLoading = false
                     )
                 } else {
@@ -173,6 +177,10 @@ class SingleVouchViewModel @Inject constructor(
         _uiState.update { it.copy(description = value) }
     }
 
+    fun onDateChange(timestamp: Long) {
+        _uiState.update { it.copy(timestamp = timestamp) }
+    }
+
     fun saveVouch(onSaved: (VouchWithPerson?) -> Unit = {}) {
         viewModelScope.launch {
             val saved = saveVouchInternal()
@@ -201,7 +209,8 @@ class SingleVouchViewModel @Inject constructor(
                 vouch = originalVouch!!.vouch.copy(
                     amount = amountLong,
                     description = currentState.description.trim(),
-                    given = currentState.given
+                    given = currentState.given,
+                    timestamp = currentState.timestamp
                 ),
                 persons = listOf(PersonWithAmount(Person(name = personName), amountLong))
             )
@@ -212,7 +221,8 @@ class SingleVouchViewModel @Inject constructor(
                 vouch = Vouch(
                     amount = amountLong,
                     description = currentState.description.trim(),
-                    given = currentState.given
+                    given = currentState.given,
+                    timestamp = currentState.timestamp
                 ),
                 persons = listOf(PersonWithAmount(Person(name = personName), amountLong))
             )

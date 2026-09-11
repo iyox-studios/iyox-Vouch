@@ -65,6 +65,7 @@
     <string name="placeholder_amount">0,00</string>
     <string name="label_person">Person</string>
     <string name="label_description">Beschreibung</string>
+    <string name="label_date">Datum</string>
     <string name="label_no_description">Keine Beschreibung</string>
     <string name="label_given">Gegeben</string>
     <string name="label_received">Erhalten</string>
