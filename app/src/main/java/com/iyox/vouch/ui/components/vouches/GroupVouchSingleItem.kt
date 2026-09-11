@@ -173,12 +173,11 @@ fun GroupVouchSingleItem(
                                 tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(16.dp)
                             )
-                            val nonSelfCount = vouch.persons.count { !it.isSelf }
                             Text(
                                 text = pluralStringResource(
                                     R.plurals.person_count,
-                                    nonSelfCount,
-                                    nonSelfCount
+                                    vouch.persons.size,
+                                    vouch.persons.size
                                 ),
                                 style = MaterialTheme.typography.labelMedium,
                                 fontWeight = FontWeight.SemiBold,

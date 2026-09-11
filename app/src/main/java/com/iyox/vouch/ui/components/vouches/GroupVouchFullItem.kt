@@ -178,8 +178,8 @@ fun GroupVouchFullItem(
                             Text(
                                 text = pluralStringResource(
                                     R.plurals.person_count,
-                                    nonSelfPersons.size,
-                                    nonSelfPersons.size
+                                    vouch.persons.size,
+                                    vouch.persons.size
                                 ),
                                 style = MaterialTheme.typography.labelMedium,
                                 fontWeight = FontWeight.SemiBold,
