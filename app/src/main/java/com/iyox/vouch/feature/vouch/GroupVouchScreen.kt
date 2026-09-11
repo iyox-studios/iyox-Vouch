@@ -28,11 +28,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.GroupAdd
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.RestartAlt
 import androidx.compose.material.icons.outlined.ArrowOutward
+import androidx.compose.material.icons.outlined.Group
 import androidx.compose.material.icons.outlined.SouthWest
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
@@ -90,6 +90,8 @@ import com.iyox.vouch.core.model.PersonTotal
 import com.iyox.vouch.core.utils.rememberToastManager
 import com.iyox.vouch.ui.components.PersonAvatar
 import com.iyox.vouch.ui.components.VouchBackButton
+import com.iyox.vouch.ui.components.vouches.GroupSplitSection
+import com.iyox.vouch.ui.components.vouches.GroupVouchSplitSlider
 import kotlin.math.abs
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -237,7 +239,6 @@ fun GroupVouchScreen(
                     GroupVouchSummaryCard(
                         amount = uiState.amount,
                         isGiven = uiState.given,
-                        description = uiState.description,
                         members = uiState.members,
                         onResetAllToEqual = viewModel::resetAllToEqualSplit
                     )
@@ -273,7 +274,6 @@ fun GroupVouchScreen(
 fun GroupVouchSummaryCard(
     amount: String,
     isGiven: Boolean,
-    description: String,
     members: List<GroupMemberInput>,
     onResetAllToEqual: () -> Unit,
     modifier: Modifier = Modifier
@@ -302,73 +302,101 @@ fun GroupVouchSummaryCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column {
-                    Text(
-                        text = stringResource(R.string.group_vouch_split_summary).uppercase(),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = CurrencyManager.formatAmountWithSymbol(totalAmountMinor),
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-
-                Surface(
-                    shape = CircleShape,
-                    color = if (isGiven) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.tertiaryContainer
+                Row(
+                    modifier = Modifier.weight(1f, fill = false),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    Surface(
+                        shape = MaterialTheme.shapes.medium,
+                        color = if (isGiven) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.errorContainer,
+                        modifier = Modifier.size(42.dp)
                     ) {
-                        Icon(
-                            imageVector = if (isGiven) Icons.Outlined.ArrowOutward else Icons.Outlined.SouthWest,
-                            contentDescription = null,
-                            tint = if (isGiven) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onTertiaryContainer,
-                            modifier = Modifier.size(16.dp)
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = if (isGiven) Icons.Outlined.ArrowOutward else Icons.Outlined.SouthWest,
+                                contentDescription = null,
+                                tint = if (isGiven) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onErrorContainer,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
+
+                    Column(modifier = Modifier.weight(1f, fill = false)) {
+                        Text(
+                            text = stringResource(R.string.group_vouch_split_summary).uppercase(),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                         Text(
-                            text = if (isGiven) stringResource(R.string.label_given) else stringResource(
-                                R.string.label_received
-                            ),
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = if (isGiven) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onTertiaryContainer
+                            text = CurrencyManager.formatAmountWithSymbol(totalAmountMinor),
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
+                    }
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                if (members.isNotEmpty()) {
+                    Surface(
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.surfaceContainerHigh
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Group,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Text(
+                                text = pluralStringResource(
+                                    R.plurals.person_count,
+                                    members.size,
+                                    members.size
+                                ),
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
                     }
                 }
             }
 
-            if (description.isNotBlank()) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Description,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Text(
-                        text = description,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
+            val trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
+            val fillColor = when {
+                remainingMinor < 0L -> MaterialTheme.colorScheme.error
+                else -> MaterialTheme.colorScheme.primary
+            }
+            val activeMembers = members.mapNotNull {
+                val memberAmount = CurrencyManager.parseToMinorUnits(it.amount) ?: 0L
+                if (memberAmount > 0L) memberAmount else null
+            }
+            val sections = mutableListOf<GroupSplitSection>()
+            for (amount in activeMembers) {
+                sections.add(GroupSplitSection(amount = amount, color = fillColor))
+            }
+            if (remainingMinor > 0L) {
+                sections.add(GroupSplitSection(amount = remainingMinor, color = trackColor))
             }
 
             GroupVouchSplitSlider(
                 totalAmountMinor = totalAmountMinor,
-                members = members,
-                isOverallocated = remainingMinor < 0L
+                sections = sections
             )
 
             Row(
@@ -443,103 +471,7 @@ fun GroupVouchSummaryCard(
                             containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
                         )
                     )
-                } else if (members.isNotEmpty()) {
-                    Text(
-                        text = pluralStringResource(
-                            R.plurals.person_count,
-                            members.size,
-                            members.size
-                        ),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontWeight = FontWeight.Medium
-                    )
                 }
-            }
-        }
-    }
-}
-
-private data class GroupSplitSection(
-    val amount: Long,
-    val color: Color
-)
-
-@Composable
-private fun GroupVouchSplitSlider(
-    totalAmountMinor: Long,
-    members: List<GroupMemberInput>,
-    isOverallocated: Boolean,
-    modifier: Modifier = Modifier
-) {
-    val trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
-    val fillColor = when {
-        isOverallocated -> MaterialTheme.colorScheme.error
-        else -> MaterialTheme.colorScheme.primary
-    }
-
-    Canvas(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(8.dp)
-            .clip(CircleShape)
-    ) {
-        val width = size.width
-        val height = size.height
-
-        val memberAmounts = members.map {
-            CurrencyManager.parseToMinorUnits(it.amount) ?: 0L
-        }
-        val sumAssignedMinor = memberAmounts.sum()
-        val remainingMinor = totalAmountMinor - sumAssignedMinor
-        val activeMembers = memberAmounts.filter { it > 0L }
-
-        val sections = mutableListOf<GroupSplitSection>()
-        for (amount in activeMembers) {
-            sections.add(GroupSplitSection(amount = amount, color = fillColor))
-        }
-        if (remainingMinor > 0L) {
-            sections.add(GroupSplitSection(amount = remainingMinor, color = trackColor))
-        }
-
-        if (sections.isEmpty()) {
-            drawRoundRect(
-                color = trackColor,
-                size = size,
-                cornerRadius = CornerRadius(height / 2f, height / 2f)
-            )
-            return@Canvas
-        }
-
-        val baseAmount =
-            if (sumAssignedMinor > totalAmountMinor) sumAssignedMinor else totalAmountMinor
-        val gap = if (sections.size > 1) 4.dp.toPx() else 0f
-        val totalGaps = (sections.size - 1) * gap
-        val availableWidth = (width - totalGaps).coerceAtLeast(0f)
-
-        var currentX = 0f
-
-        for (section in sections) {
-            val sectionWidth = if (baseAmount > 0L) {
-                (availableWidth * (section.amount.toFloat() / baseAmount.toFloat())).coerceAtLeast(
-                    0f
-                )
-            } else {
-                0f
-            }
-
-            if (sectionWidth > 0f) {
-                val segmentCornerRadius = CornerRadius(
-                    minOf(sectionWidth / 2f, height / 2f),
-                    height / 2f
-                )
-                drawRoundRect(
-                    color = section.color,
-                    topLeft = Offset(x = currentX, y = 0f),
-                    size = Size(width = sectionWidth, height = height),
-                    cornerRadius = segmentCornerRadius
-                )
-                currentX += sectionWidth + gap
             }
         }
     }
