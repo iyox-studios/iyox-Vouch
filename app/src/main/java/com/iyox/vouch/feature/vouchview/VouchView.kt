@@ -343,42 +343,17 @@ fun VouchViewContent(
                                     .fillMaxWidth()
                                     .animateItem()
                             ) {
-                                VouchSwipeToDismiss(
-                                    enableDismissFromStartToEnd = true,
-                                    enableDismissFromEndToStart = false,
-                                    onStartToEnd = {
-                                        val isParticipantSettled = personWithAmount.settled
-                                        val settleMessage = if (isParticipantSettled) msgVouchUnsettled else msgVouchSettled
-                                        toastManager.executeWithUndo(
-                                            message = settleMessage,
-                                            actionLabel = actionUndo,
-                                            errorMessage = msgSettleFailed,
-                                            performAction = {
-                                                sharedActions.setVouchPersonSettlement(
-                                                    vouchId = vouch.vouch.id,
-                                                    personId = personWithAmount.person.id,
-                                                    settled = !isParticipantSettled
-                                                )
-                                            },
-                                            undoAction = { _: Unit ->
-                                                sharedActions.setVouchPersonSettlement(
-                                                    vouchId = vouch.vouch.id,
-                                                    personId = personWithAmount.person.id,
-                                                    settled = isParticipantSettled
-                                                )
-                                            }
-                                        )
-                                    },
-                                    settleText = if (personWithAmount.settled) {
-                                        stringResource(R.string.action_unsettle)
-                                    } else {
-                                        stringResource(R.string.action_settle)
-                                    },
-                                    deleteText = ""
-                                ) {
+                                if (personWithAmount.isSelf) {
                                     GroupVouchParticipantItem(
                                         personWithAmount = personWithAmount,
-                                        onSettleToggle = {
+                                        onSettleToggle = {},
+                                        onPersonClick = {}
+                                    )
+                                } else {
+                                    VouchSwipeToDismiss(
+                                        enableDismissFromStartToEnd = true,
+                                        enableDismissFromEndToStart = false,
+                                        onStartToEnd = {
                                             val isParticipantSettled = personWithAmount.settled
                                             val settleMessage = if (isParticipantSettled) msgVouchUnsettled else msgVouchSettled
                                             toastManager.executeWithUndo(
@@ -401,8 +376,41 @@ fun VouchViewContent(
                                                 }
                                             )
                                         },
-                                        onPersonClick = onNavigateToPerson
-                                    )
+                                        settleText = if (personWithAmount.settled) {
+                                            stringResource(R.string.action_unsettle)
+                                        } else {
+                                            stringResource(R.string.action_settle)
+                                        },
+                                        deleteText = ""
+                                    ) {
+                                        GroupVouchParticipantItem(
+                                            personWithAmount = personWithAmount,
+                                            onSettleToggle = {
+                                                val isParticipantSettled = personWithAmount.settled
+                                                val settleMessage = if (isParticipantSettled) msgVouchUnsettled else msgVouchSettled
+                                                toastManager.executeWithUndo(
+                                                    message = settleMessage,
+                                                    actionLabel = actionUndo,
+                                                    errorMessage = msgSettleFailed,
+                                                    performAction = {
+                                                        sharedActions.setVouchPersonSettlement(
+                                                            vouchId = vouch.vouch.id,
+                                                            personId = personWithAmount.person.id,
+                                                            settled = !isParticipantSettled
+                                                        )
+                                                    },
+                                                    undoAction = { _: Unit ->
+                                                        sharedActions.setVouchPersonSettlement(
+                                                            vouchId = vouch.vouch.id,
+                                                            personId = personWithAmount.person.id,
+                                                            settled = isParticipantSettled
+                                                        )
+                                                    }
+                                                )
+                                            },
+                                            onPersonClick = onNavigateToPerson
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -469,7 +477,7 @@ fun GroupVouchParticipantItem(
                     name = personWithAmount.person.name,
                     size = 40.dp
                 )
-                if (isSettled) {
+                if (isSettled && !isSelf) {
                     Surface(
                         shape = CircleShape,
                         color = MaterialTheme.colorScheme.primary,
@@ -500,18 +508,26 @@ fun GroupVouchParticipantItem(
                     text = personWithAmount.person.name,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
-                    color = if (isSettled) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
+                    color = if (isSettled && !isSelf) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    text = if (isSettled) {
+                    text = if (isSelf) {
+                        stringResource(R.string.label_own_share)
+                    } else if (isSettled) {
                         stringResource(R.string.label_settled)
                     } else {
                         stringResource(R.string.filter_unsettled)
                     },
                     style = MaterialTheme.typography.labelSmall,
-                    color = if (isSettled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
+                    color = if (isSelf) {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    } else if (isSettled) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.outline
+                    },
                     fontWeight = FontWeight.Medium
                 )
             }
@@ -524,35 +540,37 @@ fun GroupVouchParticipantItem(
                     text = CurrencyManager.formatAmountWithSymbol(personWithAmount.amount),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = if (isSettled) MaterialTheme.colorScheme.outline else MaterialTheme.colorScheme.onSurface,
-                    textDecoration = if (isSettled) TextDecoration.LineThrough else TextDecoration.None
+                    color = if (isSettled && !isSelf) MaterialTheme.colorScheme.outline else MaterialTheme.colorScheme.onSurface,
+                    textDecoration = if (isSettled && !isSelf) TextDecoration.LineThrough else TextDecoration.None
                 )
 
-                FilledTonalIconButton(
-                    onClick = onSettleToggle,
-                    modifier = Modifier.size(36.dp),
-                    colors = IconButtonDefaults.filledTonalIconButtonColors(
-                        containerColor = if (isSettled) {
-                            MaterialTheme.colorScheme.primaryContainer
-                        } else {
-                            MaterialTheme.colorScheme.surfaceContainerHighest
-                        },
-                        contentColor = if (isSettled) {
-                            MaterialTheme.colorScheme.onPrimaryContainer
-                        } else {
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                        }
-                    )
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Check,
-                        contentDescription = if (isSettled) {
-                            stringResource(R.string.action_unsettle)
-                        } else {
-                            stringResource(R.string.action_settle)
-                        },
-                        modifier = Modifier.size(18.dp)
-                    )
+                if (!isSelf) {
+                    FilledTonalIconButton(
+                        onClick = onSettleToggle,
+                        modifier = Modifier.size(36.dp),
+                        colors = IconButtonDefaults.filledTonalIconButtonColors(
+                            containerColor = if (isSettled) {
+                                MaterialTheme.colorScheme.primaryContainer
+                            } else {
+                                MaterialTheme.colorScheme.surfaceContainerHighest
+                            },
+                            contentColor = if (isSettled) {
+                                MaterialTheme.colorScheme.onPrimaryContainer
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            }
+                        )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Check,
+                            contentDescription = if (isSettled) {
+                                stringResource(R.string.action_unsettle)
+                            } else {
+                                stringResource(R.string.action_settle)
+                            },
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
                 }
             }
         }
@@ -823,10 +841,10 @@ fun SingleVouchExportTemplate(
                                 text = CurrencyManager.formatAmountWithSymbol(participant.amount),
                                 style = MaterialTheme.typography.bodyMedium,
                                 fontWeight = FontWeight.Bold,
-                                color = if (participant.settled) MaterialTheme.colorScheme.outline else MaterialTheme.colorScheme.onSurface,
-                                textDecoration = if (participant.settled) TextDecoration.LineThrough else TextDecoration.None
+                                color = if (participant.settled && !participant.isSelf) MaterialTheme.colorScheme.outline else MaterialTheme.colorScheme.onSurface,
+                                textDecoration = if (participant.settled && !participant.isSelf) TextDecoration.LineThrough else TextDecoration.None
                             )
-                            if (participant.settled) {
+                            if (participant.settled && !participant.isSelf) {
                                 Icon(
                                     imageVector = Icons.Filled.Check,
                                     contentDescription = null,

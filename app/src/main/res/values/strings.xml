@@ -249,4 +249,5 @@
         <item quantity="one">%1$d currency</item>
         <item quantity="other">%1$d currencies</item>
     </plurals>
+    <string name="label_own_share">Own share</string>
 </resources>

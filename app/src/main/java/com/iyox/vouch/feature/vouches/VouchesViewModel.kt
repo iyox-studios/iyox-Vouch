@@ -63,7 +63,7 @@ class VouchesViewModel @Inject constructor(
         var totalOwed = 0L
         for (vouch in activeVouches) {
             for (personEntry in vouch.persons) {
-                if (!personEntry.settled) {
+                if (!personEntry.settled && !personEntry.isSelf) {
                     if (vouch.vouch.given) {
                         totalGiven += personEntry.amount
                     } else {

@@ -66,9 +66,11 @@ fun GroupVouchFullItem(
         stringResource(R.string.action_unsettle)
     }
     val deleteLabel = stringResource(R.string.action_delete)
-    val settledAmount = vouch.persons.filter { it.settled }.sumOf { it.amount }
+    val nonSelfPersons = vouch.persons.filterNot { it.isSelf }
+    val settledAmount = nonSelfPersons.filter { it.settled }.sumOf { it.amount }
+    val totalNonSelfAmount = nonSelfPersons.sumOf { it.amount }
     val progressRatio =
-        if (vouch.vouch.amount > 0L) (settledAmount.toFloat() / vouch.vouch.amount.toFloat()).coerceIn(
+        if (totalNonSelfAmount > 0L) (settledAmount.toFloat() / totalNonSelfAmount.toFloat()).coerceIn(
             0f,
             1f
         ) else 0f
@@ -176,8 +178,8 @@ fun GroupVouchFullItem(
                             Text(
                                 text = pluralStringResource(
                                     R.plurals.person_count,
-                                    vouch.persons.size,
-                                    vouch.persons.size
+                                    nonSelfPersons.size,
+                                    nonSelfPersons.size
                                 ),
                                 style = MaterialTheme.typography.labelMedium,
                                 fontWeight = FontWeight.SemiBold,

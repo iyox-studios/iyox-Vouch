@@ -138,7 +138,7 @@ interface VouchDao {
         """
         UPDATE vouch_person_cross_ref
         SET settled = :settled
-        WHERE vouchId = :vouchId AND personId = :personId
+        WHERE vouchId = :vouchId AND personId = :personId AND isSelf = 0
         """
     )
     suspend fun updateCrossRefSettlement(vouchId: Long, personId: Long, settled: Boolean)
