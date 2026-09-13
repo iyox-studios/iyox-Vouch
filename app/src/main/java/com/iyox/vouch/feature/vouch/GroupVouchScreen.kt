@@ -406,13 +406,24 @@ fun GroupVouchSummaryCard(
                 remainingMinor < 0L -> MaterialTheme.colorScheme.error
                 else -> MaterialTheme.colorScheme.primary
             }
-            val activeMembers = members.mapNotNull {
-                val memberAmount = CurrencyManager.parseToMinorUnits(it.amount) ?: 0L
-                if (memberAmount > 0L) memberAmount else null
+            val activeMembers = members.mapNotNull { member ->
+                val memberAmount = CurrencyManager.parseToMinorUnits(member.amount) ?: 0L
+                if (memberAmount > 0L) member to memberAmount else null
             }
             val sections = mutableListOf<GroupSplitSection>()
-            for (amount in activeMembers) {
-                sections.add(GroupSplitSection(amount = amount, color = fillColor))
+            for ((member, amount) in activeMembers) {
+                val memberLabel = if (member.isSelf) {
+                    stringResource(R.string.group_vouch_self_member)
+                } else {
+                    member.personName
+                }
+                sections.add(
+                    GroupSplitSection(
+                        amount = amount,
+                        color = fillColor,
+                        label = memberLabel
+                    )
+                )
             }
             if (remainingMinor > 0L) {
                 sections.add(GroupSplitSection(amount = remainingMinor, color = trackColor))
