@@ -178,10 +178,8 @@ fun VouchViewContent(
                             actionLabel = actionUndo,
                             errorMessage = msgDeleteFailed,
                             performAction = { sharedActions.deleteVouch(vouch.vouch.id) },
-                            undoAction = { _: Unit -> sharedActions.restoreVouch(vouch) }
-                        )
-                    },
-                    colors = ButtonDefaults.buttonColors(
+                            undoAction = { _: Unit -> sharedActions.restoreVouch(vouch) })
+                    }, colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.error,
                         contentColor = MaterialTheme.colorScheme.onError
                     )
@@ -193,79 +191,69 @@ fun VouchViewContent(
                 OutlinedButton(onClick = { showDeleteConfirmDialog = false }) {
                     Text(text = stringResource(R.string.action_cancel))
                 }
-            }
-        )
+            })
     }
 
     if (showSettleConfirmDialog && uiState.vouch != null) {
         val vouch = uiState.vouch
         val isSettled = vouch.isSettled()
-        AlertDialog(
-            onDismissRequest = { showSettleConfirmDialog = false },
-            title = {
+        AlertDialog(onDismissRequest = { showSettleConfirmDialog = false }, title = {
+            Text(
+                text = if (isSettled) {
+                    stringResource(R.string.title_unsettle_vouch_confirm)
+                } else {
+                    stringResource(R.string.title_settle_vouch_confirm)
+                }
+            )
+        }, text = {
+            Text(
+                text = if (isSettled) {
+                    stringResource(R.string.msg_unsettle_vouch_confirm)
+                } else {
+                    stringResource(R.string.msg_settle_vouch_confirm)
+                }
+            )
+        }, confirmButton = {
+            Button(
+                onClick = {
+                    showSettleConfirmDialog = false
+                    val message = if (isSettled) msgVouchUnsettled else msgVouchSettled
+                    toastManager.executeWithUndo(
+                        message = message,
+                        actionLabel = actionUndo,
+                        errorMessage = msgSettleFailed,
+                        performAction = {
+                            if (isSettled) sharedActions.unSettleVouch(vouch) else sharedActions.settleVouch(
+                                vouch
+                            )
+                        },
+                        undoAction = { _: Unit ->
+                            if (isSettled) sharedActions.settleVouch(vouch) else sharedActions.unSettleVouch(
+                                vouch
+                            )
+                        })
+                }) {
                 Text(
                     text = if (isSettled) {
-                        stringResource(R.string.title_unsettle_vouch_confirm)
+                        stringResource(R.string.action_unsettle)
                     } else {
-                        stringResource(R.string.title_settle_vouch_confirm)
+                        stringResource(R.string.action_settle)
                     }
                 )
-            },
-            text = {
-                Text(
-                    text = if (isSettled) {
-                        stringResource(R.string.msg_unsettle_vouch_confirm)
-                    } else {
-                        stringResource(R.string.msg_settle_vouch_confirm)
-                    }
-                )
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        showSettleConfirmDialog = false
-                        val message = if (isSettled) msgVouchUnsettled else msgVouchSettled
-                        toastManager.executeWithUndo(
-                            message = message,
-                            actionLabel = actionUndo,
-                            errorMessage = msgSettleFailed,
-                            performAction = {
-                                if (isSettled) sharedActions.unSettleVouch(vouch) else sharedActions.settleVouch(vouch)
-                            },
-                            undoAction = { _: Unit ->
-                                if (isSettled) sharedActions.settleVouch(vouch) else sharedActions.unSettleVouch(vouch)
-                            }
-                        )
-                    }
-                ) {
-                    Text(
-                        text = if (isSettled) {
-                            stringResource(R.string.action_unsettle)
-                        } else {
-                            stringResource(R.string.action_settle)
-                        }
-                    )
-                }
-            },
-            dismissButton = {
-                OutlinedButton(onClick = { showSettleConfirmDialog = false }) {
-                    Text(text = stringResource(R.string.action_cancel))
-                }
             }
-        )
+        }, dismissButton = {
+            OutlinedButton(onClick = { showSettleConfirmDialog = false }) {
+                Text(text = stringResource(R.string.action_cancel))
+            }
+        })
     }
 
     Scaffold(
-        modifier = modifier,
-        topBar = {
-            CenterAlignedTopAppBar(
-                title = {},
-                navigationIcon = {
-                    VouchBackButton(onClick = safeNavigateBack)
-                }
-            )
-        }
-    ) { innerPadding ->
+        modifier = modifier, topBar = {
+            CenterAlignedTopAppBar(title = {}, navigationIcon = {
+                VouchBackButton(onClick = safeNavigateBack)
+            })
+        }) { innerPadding ->
         if (uiState.isLoading) {
             Box(
                 contentAlignment = Alignment.Center,
@@ -290,8 +278,7 @@ fun VouchViewContent(
                             .padding(horizontal = 16.dp)
                     ) {
                         GroupVouchDetailHero(
-                            vouch = vouch,
-                            onPersonClick = onNavigateToPerson
+                            vouch = vouch, onPersonClick = onNavigateToPerson
                         )
                     }
 
@@ -317,8 +304,7 @@ fun VouchViewContent(
                             }
                         },
                         onEditClick = { onNavigateToEdit(vouch.vouch.id) },
-                        onDeleteClick = { showDeleteConfirmDialog = true }
-                    )
+                        onDeleteClick = { showDeleteConfirmDialog = true })
 
                     Spacer(modifier = Modifier.height(16.dp))
 
@@ -328,17 +314,12 @@ fun VouchViewContent(
                             .fillMaxWidth()
                             .weight(1f),
                         contentPadding = PaddingValues(
-                            start = 16.dp,
-                            end = 16.dp,
-                            top = 0.dp,
-                            bottom = 24.dp
+                            start = 16.dp, end = 16.dp, top = 0.dp, bottom = 24.dp
                         ),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         items(
-                            vouch.persons,
-                            key = { it.person.id }
-                        ) { personWithAmount ->
+                            vouch.persons, key = { it.person.id }) { personWithAmount ->
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -348,12 +329,12 @@ fun VouchViewContent(
                                     GroupVouchParticipantItem(
                                         personWithAmount = personWithAmount,
                                         onSettleToggle = {},
-                                        onPersonClick = {}
-                                    )
+                                        onPersonClick = {})
                                 } else {
                                     val isParticipantSettled = personWithAmount.settled
                                     val toggleParticipantSettlement: () -> Unit = {
-                                        val settleMessage = if (isParticipantSettled) msgVouchUnsettled else msgVouchSettled
+                                        val settleMessage =
+                                            if (isParticipantSettled) msgVouchUnsettled else msgVouchSettled
                                         toastManager.executeWithUndo(
                                             message = settleMessage,
                                             actionLabel = actionUndo,
@@ -371,8 +352,7 @@ fun VouchViewContent(
                                                     personId = personWithAmount.person.id,
                                                     settled = isParticipantSettled
                                                 )
-                                            }
-                                        )
+                                            })
                                     }
                                     val deleteParticipant: () -> Unit = {
                                         toastManager.executeWithUndo(
@@ -385,8 +365,11 @@ fun VouchViewContent(
                                                     personId = personWithAmount.person.id
                                                 )
                                             },
-                                            undoAction = { _: Unit -> sharedActions.restoreVouch(vouch) }
-                                        )
+                                            undoAction = { _: Unit ->
+                                                sharedActions.restoreVouch(
+                                                    vouch
+                                                )
+                                            })
                                     }
                                     val canSettle = !isParticipantSettled
                                     val settleLabel = if (canSettle) {
@@ -445,8 +428,7 @@ fun VouchViewContent(
                             exportLayer.record {
                                 this@drawWithContent.drawContent()
                             }
-                        }
-                ) {
+                        }) {
                     SingleVouchExportTemplate(vouch = uiState.vouch)
                 }
             }
@@ -457,9 +439,7 @@ fun VouchViewContent(
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun GroupVouchDetailHero(
-    vouch: VouchWithPerson,
-    onPersonClick: (String) -> Unit,
-    modifier: Modifier = Modifier
+    vouch: VouchWithPerson, onPersonClick: (String) -> Unit, modifier: Modifier = Modifier
 ) {
     var showParticipantsDialog by remember { mutableStateOf(false) }
     val dateFormat =
@@ -535,8 +515,7 @@ fun GroupVouchDetailHero(
                         color = MaterialTheme.colorScheme.surfaceContainerHigh,
                         modifier = Modifier
                             .clip(CircleShape)
-                            .clickable { showParticipantsDialog = true }
-                    ) {
+                            .clickable { showParticipantsDialog = true }) {
                         Row(
                             modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
                             verticalAlignment = Alignment.CenterVertically,
@@ -550,9 +529,7 @@ fun GroupVouchDetailHero(
                             )
                             Text(
                                 text = pluralStringResource(
-                                    R.plurals.person_count,
-                                    vouch.persons.size,
-                                    vouch.persons.size
+                                    R.plurals.person_count, vouch.persons.size, vouch.persons.size
                                 ),
                                 style = MaterialTheme.typography.labelMedium,
                                 fontWeight = FontWeight.SemiBold,
@@ -599,19 +576,30 @@ fun GroupVouchDetailHero(
             val sumAssignedMinor = activePersons.sumOf { it.amount }
             val remainingMinor = vouch.vouch.amount - sumAssignedMinor
 
+            val sortedPersons =
+                activePersons.sortedWith(compareByDescending<PersonWithAmount> { it.settled || it.isSelf }.thenByDescending { it.amount })
+
             val sections = mutableListOf<GroupSplitSection>()
-            for (p in activePersons) {
+            for (p in sortedPersons) {
                 val isSettled = p.settled || p.isSelf
                 val color = if (isSettled) settledColor else trackColor
-                sections.add(GroupSplitSection(amount = p.amount, color = color))
+                val personName = if (p.isSelf) {
+                    stringResource(R.string.group_vouch_self_member)
+                } else {
+                    p.person.name
+                }
+                sections.add(
+                    GroupSplitSection(
+                        amount = p.amount, color = color, label = personName
+                    )
+                )
             }
             if (remainingMinor > 0L) {
                 sections.add(GroupSplitSection(amount = remainingMinor, color = trackColor))
             }
 
             GroupVouchSplitSlider(
-                totalAmountMinor = vouch.vouch.amount,
-                sections = sections
+                totalAmountMinor = vouch.vouch.amount, sections = sections
             )
         }
     }
@@ -660,14 +648,15 @@ fun GroupVouchParticipantItem(
         ) {
             Box {
                 PersonAvatar(
-                    name = personWithAmount.person.name,
-                    size = 40.dp
+                    name = personWithAmount.person.name, size = 40.dp
                 )
                 if (isSettled && !isSelf) {
                     Surface(
                         shape = CircleShape,
                         color = MaterialTheme.colorScheme.primary,
-                        border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.surfaceContainerHigh),
+                        border = BorderStroke(
+                            1.5.dp, MaterialTheme.colorScheme.surfaceContainerHigh
+                        ),
                         modifier = Modifier
                             .size(16.dp)
                             .align(Alignment.BottomEnd)
@@ -687,8 +676,7 @@ fun GroupVouchParticipantItem(
             Spacer(modifier = Modifier.width(12.dp))
 
             Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.Center
+                modifier = Modifier.weight(1f), verticalArrangement = Arrangement.Center
             ) {
                 Text(
                     text = personWithAmount.person.name,
@@ -705,16 +693,13 @@ fun GroupVouchParticipantItem(
                         stringResource(R.string.label_settled)
                     } else {
                         stringResource(R.string.filter_unsettled)
-                    },
-                    style = MaterialTheme.typography.labelSmall,
-                    color = if (isSelf) {
+                    }, style = MaterialTheme.typography.labelSmall, color = if (isSelf) {
                         MaterialTheme.colorScheme.onSurfaceVariant
                     } else if (isSettled) {
                         MaterialTheme.colorScheme.primary
                     } else {
                         MaterialTheme.colorScheme.outline
-                    },
-                    fontWeight = FontWeight.Medium
+                    }, fontWeight = FontWeight.Medium
                 )
             }
 
@@ -739,8 +724,7 @@ fun GroupVouchParticipantItem(
                                 MaterialTheme.colorScheme.primaryContainer
                             } else {
                                 MaterialTheme.colorScheme.surfaceContainerHighest
-                            },
-                            contentColor = if (isSettled) {
+                            }, contentColor = if (isSettled) {
                                 MaterialTheme.colorScheme.onPrimaryContainer
                             } else {
                                 MaterialTheme.colorScheme.onSurfaceVariant
@@ -748,13 +732,11 @@ fun GroupVouchParticipantItem(
                         )
                     ) {
                         Icon(
-                            imageVector = Icons.Filled.Check,
-                            contentDescription = if (isSettled) {
+                            imageVector = Icons.Filled.Check, contentDescription = if (isSettled) {
                                 stringResource(R.string.action_unsettle)
                             } else {
                                 stringResource(R.string.action_settle)
-                            },
-                            modifier = Modifier.size(18.dp)
+                            }, modifier = Modifier.size(18.dp)
                         )
                     }
                 }
@@ -850,10 +832,10 @@ fun VouchViewShortcutBar(
 
 @Composable
 fun SingleVouchExportTemplate(
-    vouch: VouchWithPerson,
-    modifier: Modifier = Modifier
+    vouch: VouchWithPerson, modifier: Modifier = Modifier
 ) {
-    val dateFormat = SimpleDateFormat(stringResource(R.string.format_vouch_date), Locale.getDefault())
+    val dateFormat =
+        SimpleDateFormat(stringResource(R.string.format_vouch_date), Locale.getDefault())
     val formattedDate = dateFormat.format(vouch.vouch.timestamp)
     val hasDescription = vouch.vouch.description.isNotBlank()
     val isGroup = vouch.persons.size > 1
@@ -939,7 +921,9 @@ fun SingleVouchExportTemplate(
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = if (vouch.vouch.given) stringResource(R.string.label_given) else stringResource(R.string.label_received),
+                        text = if (vouch.vouch.given) stringResource(R.string.label_given) else stringResource(
+                            R.string.label_received
+                        ),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -947,8 +931,7 @@ fun SingleVouchExportTemplate(
 
                 if (isSettled) {
                     Surface(
-                        shape = CircleShape,
-                        color = MaterialTheme.colorScheme.primaryContainer
+                        shape = CircleShape, color = MaterialTheme.colorScheme.primaryContainer
                     ) {
                         Row(
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
@@ -1047,11 +1030,7 @@ fun SingleVouchExportTemplate(
 }
 
 private fun shareVouchBitmap(
-    context: Context,
-    bitmap: Bitmap,
-    vouchId: Long,
-    shareLabel: String,
-    shareTitle: String
+    context: Context, bitmap: Bitmap, vouchId: Long, shareLabel: String, shareTitle: String
 ) {
     val cachePath = File(context.cacheDir, "images")
     cachePath.mkdirs()
@@ -1071,17 +1050,14 @@ private fun shareVouchBitmap(
         type = "image/png"
         putExtra(Intent.EXTRA_STREAM, uri)
         clipData = ClipData.newUri(
-            context.contentResolver,
-            shareLabel,
-            uri
+            context.contentResolver, shareLabel, uri
         )
         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     }
 
     context.startActivity(
         Intent.createChooser(
-            shareIntent,
-            shareTitle
+            shareIntent, shareTitle
         )
     )
 
