@@ -9,7 +9,7 @@
     <string name="screen_vouches">&vouches;</string>
     <string name="screen_people">Personen</string>
     <string name="screen_settings">Einstellungen</string>
-    <string name="screen_settled_space">Erledigt</string>
+    <string name="screen_settled_space">Erledigt-Bereich</string>
     <string name="title_person_settled_space">Erledigt: %1$s</string>
     <string name="title_select_currency">Währung auswählen</string>
     <string name="title_select_language">Sprache auswählen</string>
@@ -98,7 +98,7 @@
     <string name="empty_settled_vouches_title">Keine erledigten &vouches;</string>
     <string name="empty_settled_vouches_subtitle">&vouches;, die beglichen wurden, erscheinen hier.</string>
     <string name="empty_person_settled_vouches">Keine beglichenen &vouches; für %1$s</string>
-    <string name="action_view_settled_space">Erledigt</string>
+    <string name="action_view_settled_space">Erledigte</string>
     <string name="action_view_settled_history">Beglichene &vouches; (%1$d)</string>
     <string name="action_show_all_settled">Alle erledigten anzeigen</string>
     <string name="all_settled_title">Alles beglichen!</string>
