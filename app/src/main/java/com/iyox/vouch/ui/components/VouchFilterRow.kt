@@ -56,33 +56,6 @@ fun VouchFilterRow(
         onSearchQueryChange = onSearchQueryChange,
         searchPlaceholder = searchPlaceholder,
         modifier = modifier,
-        trailingActions = if (onSettledClick != null) {
-            {
-                Spacer(modifier = Modifier.width(6.dp))
-                FilledTonalButton(
-                    onClick = onSettledClick,
-                    shape = FilterChipDefaults.shape,
-                    colors = ButtonDefaults.filledTonalButtonColors(
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-                    ),
-                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 0.dp),
-                    modifier = Modifier.height(32.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Archive,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(Modifier.width(6.dp))
-                    Text(
-                        text = stringResource(R.string.action_view_settled_space),
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                }
-            }
-        } else null
     ) {
         // Sort Chip
         FilterChip(
@@ -122,5 +95,31 @@ fun VouchFilterRow(
                 }
             }
         )
+
+        if (onSettledClick != null) {
+            Spacer(modifier = Modifier.width(6.dp))
+            FilledTonalButton(
+                onClick = onSettledClick,
+                shape = FilterChipDefaults.shape,
+                colors = ButtonDefaults.filledTonalButtonColors(
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                ),
+                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 0.dp),
+                modifier = Modifier.height(32.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Archive,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(Modifier.width(6.dp))
+                Text(
+                    text = stringResource(R.string.action_view_settled_space),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+        }
     }
 }
