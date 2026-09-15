@@ -137,6 +137,7 @@
     <string name="error_group_min_members">Group must have at least 2 members</string>
     <string name="error_invalid_total_amount">Invalid total amount</string>
     <string name="error_invalid_member_amount">Invalid member amount</string>
+    <string name="error_group_overallocated">&group_vouch; is over-allocated</string>
 
     <string name="settle_person_message_with_detail">All &vouches; with this person (given and received) will be settled.\n%1$s.</string>
     <string name="settle_person_message_no_detail">All &vouches; with this person (given and received) will be settled.</string>

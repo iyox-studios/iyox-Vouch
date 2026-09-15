@@ -157,6 +157,12 @@ fun GroupVouchScreen(
                             Text(stringResource(R.string.action_continue))
                         }
                     } else {
+                        val totalAmountMinor = CurrencyManager.parseToMinorUnits(uiState.amount) ?: 0L
+                        val sumAssignedMinor = uiState.members.sumOf { CurrencyManager.parseToMinorUnits(it.amount) ?: 0L }
+                        val isOverallocated = totalAmountMinor > 0L && sumAssignedMinor > totalAmountMinor
+                        val hasInvalidMemberAmount = uiState.members.any { CurrencyManager.parseToMinorUnits(it.amount) == null }
+                        val canSave = uiState.members.count { !it.isSelf } >= 2 && !isOverallocated && !hasInvalidMemberAmount && totalAmountMinor > 0L
+
                         Button(
                             modifier = Modifier.padding(end = 16.dp),
                             onClick = {
@@ -176,7 +182,7 @@ fun GroupVouchScreen(
                                     viewModel.saveGroupVouches()
                                 }
                             },
-                            enabled = uiState.members.count { !it.isSelf } >= 2
+                            enabled = canSave
                         ) {
                             Text(
                                 if (edit) stringResource(R.string.action_update) else stringResource(
@@ -263,8 +269,11 @@ fun GroupVouchScreen(
                         focusManager = focusManager
                     )
 
+                    val totalAmountMinor = CurrencyManager.parseToMinorUnits(uiState.amount) ?: 0L
+
                     GroupMemberList(
                         members = uiState.members,
+                        totalAmountMinor = totalAmountMinor,
                         onAmountChange = viewModel::onMemberAmountChange,
                         onResetMember = viewModel::resetMemberToEqualSplit,
                         onRemove = viewModel::removeMember,
@@ -702,6 +711,7 @@ private fun GroupMemberSelector(
 @Composable
 private fun GroupMemberList(
     members: List<GroupMemberInput>,
+    totalAmountMinor: Long = 0L,
     onAmountChange: (GroupMemberInput, String) -> Unit,
     onResetMember: (GroupMemberInput) -> Unit,
     onRemove: (GroupMemberInput) -> Unit,
@@ -757,9 +767,14 @@ private fun GroupMemberList(
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         items(members, key = { if (it.isSelf) "__self__" else it.personName }) { member ->
+            val memberAmountMinor = CurrencyManager.parseToMinorUnits(member.amount)
+            val isError = (member.amount.isNotBlank() && memberAmountMinor == null) ||
+                (memberAmountMinor != null && totalAmountMinor > 0L && memberAmountMinor > totalAmountMinor)
+
             GroupMemberCard(
                 member = member,
                 currencySymbol = currency.symbol,
+                isError = isError,
                 onAmountChange = { onAmountChange(member, it) },
                 onResetToEqual = { onResetMember(member) },
                 onRemove = { onRemove(member) },
@@ -774,6 +789,7 @@ private fun GroupMemberList(
 private fun GroupMemberCard(
     member: GroupMemberInput,
     currencySymbol: String,
+    isError: Boolean = false,
     onAmountChange: (String) -> Unit,
     onResetToEqual: () -> Unit,
     onRemove: () -> Unit,
@@ -848,13 +864,14 @@ private fun GroupMemberCard(
             OutlinedTextField(
                 value = member.amount,
                 onValueChange = onAmountChange,
+                isError = isError,
                 modifier = Modifier.width(115.dp),
                 prefix = {
                     Text(
                         text = currencySymbol,
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
+                        color = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
                     )
                 },
                 keyboardOptions = KeyboardOptions(

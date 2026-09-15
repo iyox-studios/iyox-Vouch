@@ -296,7 +296,7 @@ class GroupVouchViewModel @Inject constructor(
     private suspend fun saveGroupVouchesInternal(): VouchWithPerson? {
         val currentState = _uiState.value
         val totalAmount = currencyManager.parseToMinorUnits(currentState.amount)
-        if (totalAmount == null) {
+        if (totalAmount == null || totalAmount <= 0L) {
             _uiState.update {
                 it.copy(
                     saveSuccess = false,
@@ -342,6 +342,17 @@ class GroupVouchViewModel @Inject constructor(
                 return null
             }
             allMemberAmounts += member to amount
+        }
+
+        val totalAssigned = allMemberAmounts.sumOf { it.second }
+        if (totalAssigned > totalAmount) {
+            _uiState.update {
+                it.copy(
+                    saveSuccess = false,
+                    errorMessageRes = R.string.error_group_overallocated
+                )
+            }
+            return null
         }
 
         val vouchTotalAmount = totalAmount
