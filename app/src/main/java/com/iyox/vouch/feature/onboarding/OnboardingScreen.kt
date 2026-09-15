@@ -566,6 +566,7 @@ private fun PeopleSlide() {
                 amountGiven = 4500L,
                 amountOwed = 1500L,
                 total = 3000L,
+                vouchCount = 3,
                 modifier = Modifier.fillMaxWidth()
             )
 
