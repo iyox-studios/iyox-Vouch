@@ -1,6 +1,7 @@
 package com.iyox.vouch.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -26,6 +27,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -40,7 +42,8 @@ fun VouchBalanceHeroCard(
     amountOwed: Long,
     modifier: Modifier = Modifier,
     total: Long = amountGiven - amountOwed,
-    title: String = stringResource(R.string.label_total_balance)
+    title: String = stringResource(R.string.label_total_balance),
+    vouchCount: Int? = null
 ) {
     val totalVolume = amountGiven + amountOwed
     val givenRatio = if (totalVolume > 0L) (amountGiven.toFloat() / totalVolume.toFloat()) else 0.5f
@@ -63,69 +66,78 @@ fun VouchBalanceHeroCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column(
+                Row(
                     modifier = Modifier.weight(1f, fill = false),
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
-                    Text(
-                        text = title.uppercase(),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontWeight = FontWeight.Bold,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Text(
-                        text = CurrencyManager.formatAmountWithSymbol(total),
-                        style = MaterialTheme.typography.headlineLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = if (total >= 0L) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.error,
-                        maxLines = 1,
-                        softWrap = false,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-
-                Surface(
-                    shape = CircleShape,
-                    color = when {
-                        total > 0L -> MaterialTheme.colorScheme.primaryContainer
-                        total < 0L -> MaterialTheme.colorScheme.errorContainer
-                        else -> MaterialTheme.colorScheme.surfaceContainerHighest
-                    }
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    Surface(
+                        shape = MaterialTheme.shapes.medium,
+                        color = when {
+                            total > 0L -> MaterialTheme.colorScheme.primaryContainer
+                            total < 0L -> MaterialTheme.colorScheme.errorContainer
+                            else -> MaterialTheme.colorScheme.surfaceContainerHighest
+                        },
+                        modifier = Modifier.size(42.dp)
                     ) {
-                        Icon(
-                            imageVector = when {
-                                total > 0L -> Icons.Outlined.ArrowOutward
-                                total < 0L -> Icons.Outlined.SouthWest
-                                else -> Icons.Filled.CheckCircle
-                            },
-                            contentDescription = null,
-                            tint = when {
-                                total > 0L -> MaterialTheme.colorScheme.onPrimaryContainer
-                                total < 0L -> MaterialTheme.colorScheme.onErrorContainer
-                                else -> MaterialTheme.colorScheme.onSurfaceVariant
-                            },
-                            modifier = Modifier.size(16.dp)
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = when {
+                                    total > 0L -> Icons.Outlined.ArrowOutward
+                                    total < 0L -> Icons.Outlined.SouthWest
+                                    else -> Icons.Filled.CheckCircle
+                                },
+                                contentDescription = null,
+                                tint = when {
+                                    total > 0L -> MaterialTheme.colorScheme.onPrimaryContainer
+                                    total < 0L -> MaterialTheme.colorScheme.onErrorContainer
+                                    else -> MaterialTheme.colorScheme.onSurfaceVariant
+                                },
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
+
+                    Column(modifier = Modifier.weight(1f, fill = false)) {
+                        Text(
+                            text = title.uppercase(),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                         Text(
-                            text = when {
-                                total > 0L -> stringResource(R.string.label_given)
-                                total < 0L -> stringResource(R.string.label_received)
-                                else -> stringResource(R.string.label_settled)
-                            },
+                            text = CurrencyManager.formatAmountWithSymbol(total),
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = if (total >= 0L) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.error,
+                            maxLines = 1,
+                            softWrap = false,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
+
+                if (vouchCount != null) {
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Surface(
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.surfaceContainerHigh
+                    ) {
+                        Text(
+                            text = pluralStringResource(
+                                R.plurals.vouch_count,
+                                vouchCount,
+                                vouchCount
+                            ),
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.SemiBold,
-                            color = when {
-                                total > 0L -> MaterialTheme.colorScheme.onPrimaryContainer
-                                total < 0L -> MaterialTheme.colorScheme.onErrorContainer
-                                else -> MaterialTheme.colorScheme.onSurfaceVariant
-                            }
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
                         )
                     }
                 }

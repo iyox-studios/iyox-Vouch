@@ -185,7 +185,8 @@ fun PersonScreen(
                 PersonInfoCard(
                     personData = state.personData,
                     amountGiven = state.amountGiven,
-                    amountOwed = state.amountOwed
+                    amountOwed = state.amountOwed,
+                    vouchCount = state.personData?.vouchCount ?: state.vouches.size
                 )
 
                 QuickActionsCard(
@@ -406,12 +407,14 @@ fun PersonInfoCard(
     personData: PersonTotal?,
     amountGiven: Long,
     amountOwed: Long,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    vouchCount: Int = personData?.vouchCount ?: 0
 ) {
     VouchBalanceHeroCard(
         amountGiven = amountGiven,
         amountOwed = amountOwed,
         total = personData?.amount ?: (amountGiven - amountOwed),
+        vouchCount = vouchCount,
         modifier = modifier
             .padding(horizontal = 16.dp)
             .padding(bottom = 10.dp)

@@ -82,4 +82,23 @@ class VouchBalanceHeroCardTest {
         val expectedTotal = CurrencyManager.formatAmountWithSymbol(0L)
         composeTestRule.onNodeWithText(expectedTotal).assertIsDisplayed()
     }
+
+    @Test
+    fun testVouchCountBadge_displayedWhenProvided() {
+        CurrencyManager.setCurrency("EUR")
+
+        composeTestRule.setContent {
+            IyoxVouchTheme {
+                VouchBalanceHeroCard(
+                    amountGiven = 5000L,
+                    amountOwed = 2000L,
+                    total = 3000L,
+                    vouchCount = 5
+                )
+            }
+        }
+
+        val expectedCount = context.resources.getQuantityString(R.plurals.vouch_count, 5, 5)
+        composeTestRule.onNodeWithText(expectedCount).assertIsDisplayed()
+    }
 }
