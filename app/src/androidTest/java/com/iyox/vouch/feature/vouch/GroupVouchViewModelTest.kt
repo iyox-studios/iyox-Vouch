@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.SavedStateHandle
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.iyox.vouch.R
 import com.iyox.vouch.core.currency.CurrencyManager
 import com.iyox.vouch.core.data.AppDatabase
 import com.iyox.vouch.core.data.PersonRepository
@@ -309,5 +310,44 @@ class GroupVouchViewModelTest {
         assertEquals(2, viewModel.uiState.value.members.size)
         assertEquals(currencyManager.formatAmount(2000L), viewModel.uiState.value.members[0].amount)
         assertEquals(currencyManager.formatAmount(2000L), viewModel.uiState.value.members[1].amount)
+    }
+
+    @Test
+    fun testSaveGroupVouch_cannotSaveWhenIndividualAmountExceedsTotal() = runTest {
+        val viewModel = createViewModel()
+        viewModel.onAmountChange("50")
+        viewModel.onDescriptionChange("Dinner")
+        viewModel.continueToMembers()
+
+        viewModel.addMember("Alice")
+        viewModel.addMember("Bob")
+
+        // Alice's amount is set higher than the total of 50
+        viewModel.onMemberAmountChange("Alice", "60")
+
+        val saved = viewModel.saveGroupVouchesDirect()
+        assertNull(saved)
+        assertFalse(viewModel.uiState.value.saveSuccess)
+        assertEquals(R.string.error_group_overallocated, viewModel.uiState.value.errorMessageRes)
+    }
+
+    @Test
+    fun testSaveGroupVouch_cannotSaveWhenSumExceedsTotal() = runTest {
+        val viewModel = createViewModel()
+        viewModel.onAmountChange("50")
+        viewModel.onDescriptionChange("Dinner")
+        viewModel.continueToMembers()
+
+        viewModel.addMember("Alice")
+        viewModel.addMember("Bob")
+
+        // Alice is 30, Bob is 30 -> total 60 > 50
+        viewModel.onMemberAmountChange("Alice", "30")
+        viewModel.onMemberAmountChange("Bob", "30")
+
+        val saved = viewModel.saveGroupVouchesDirect()
+        assertNull(saved)
+        assertFalse(viewModel.uiState.value.saveSuccess)
+        assertEquals(R.string.error_group_overallocated, viewModel.uiState.value.errorMessageRes)
     }
 }
