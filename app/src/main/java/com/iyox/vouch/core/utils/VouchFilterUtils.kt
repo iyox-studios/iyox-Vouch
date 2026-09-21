@@ -5,6 +5,7 @@ import com.iyox.vouch.core.model.PersonTotal
 import com.iyox.vouch.core.model.VouchSortOrder
 import com.iyox.vouch.core.model.VouchTypeFilter
 import com.iyox.vouch.core.model.VouchWithPerson
+import kotlin.math.abs
 
 /**
  * Filter, search, and sort utilities for Vouch and Person collections.
@@ -72,7 +73,9 @@ object VouchFilterUtils {
         return filter { pt ->
             pt.person.name.lowercase().contains(q) ||
                     CurrencyManager.formatAmount(pt.amount).contains(q) ||
-                    CurrencyManager.formatAmountWithSymbol(pt.amount).lowercase().contains(q)
+                    CurrencyManager.formatAmountWithSymbol(pt.amount).lowercase().contains(q) ||
+                    CurrencyManager.formatAmount(abs(pt.amount)).contains(q) ||
+                    CurrencyManager.formatAmountWithSymbol(abs(pt.amount)).lowercase().contains(q)
         }
     }
 }
