@@ -6,7 +6,6 @@ import android.content.Intent
 import android.graphics.Bitmap
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,6 +20,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -46,10 +46,8 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -291,16 +289,21 @@ fun VouchViewContent(
                         onExportClick = {
                             coroutineScope.launch {
                                 capturing = true
-                                awaitFrame()
-                                val bitmap = exportLayer.toImageBitmap().asAndroidBitmap()
-                                shareVouchBitmap(
-                                    context = context,
-                                    bitmap = bitmap,
-                                    vouchId = vouch.vouch.id,
-                                    shareLabel = shareVouchLabel,
-                                    shareTitle = shareVouchTitle
-                                )
-                                capturing = false
+                                try {
+                                    awaitFrame()
+                                    val bitmap = exportLayer.toImageBitmap().asAndroidBitmap()
+                                    shareVouchBitmap(
+                                        context = context,
+                                        bitmap = bitmap,
+                                        vouchId = vouch.vouch.id,
+                                        shareLabel = shareVouchLabel,
+                                        shareTitle = shareVouchTitle
+                                    )
+                                } catch (e: Exception) {
+                                    toastManager.showError(R.string.msg_share_failed)
+                                } finally {
+                                    capturing = false
+                                }
                             }
                         },
                         onEditClick = { onNavigateToEdit(vouch.vouch.id) },
@@ -328,6 +331,8 @@ fun VouchViewContent(
                                 if (personWithAmount.isSelf) {
                                     GroupVouchParticipantItem(
                                         personWithAmount = personWithAmount,
+                                        isGiven = vouch.vouch.given,
+                                        description = vouch.vouch.description,
                                         onSettleToggle = {},
                                         onPersonClick = {})
                                 } else {
@@ -381,33 +386,22 @@ fun VouchViewContent(
                                     val participantContent = @Composable {
                                         GroupVouchParticipantItem(
                                             personWithAmount = personWithAmount,
+                                            isGiven = vouch.vouch.given,
+                                            description = vouch.vouch.description,
                                             onSettleToggle = toggleParticipantSettlement,
                                             onPersonClick = onNavigateToPerson
                                         )
                                     }
 
-                                    if (canSettle) {
-                                        VouchSwipeToDismiss(
-                                            enableDismissFromStartToEnd = true,
-                                            enableDismissFromEndToStart = true,
-                                            onStartToEnd = toggleParticipantSettlement,
-                                            onEndToStart = deleteParticipant,
-                                            settleText = settleLabel,
-                                            deleteText = deleteLabel
-                                        ) {
-                                            participantContent()
-                                        }
-                                    } else {
-                                        VouchSwipeToDismiss(
-                                            enableDismissFromStartToEnd = true,
-                                            enableDismissFromEndToStart = true,
-                                            onStartToEnd = toggleParticipantSettlement,
-                                            onEndToStart = deleteParticipant,
-                                            settleText = settleLabel,
-                                            deleteText = deleteLabel
-                                        ) {
-                                            participantContent()
-                                        }
+                                    VouchSwipeToDismiss(
+                                        enableDismissFromStartToEnd = true,
+                                        enableDismissFromEndToStart = true,
+                                        onStartToEnd = toggleParticipantSettlement,
+                                        onEndToStart = deleteParticipant,
+                                        settleText = settleLabel,
+                                        deleteText = deleteLabel
+                                    ) {
+                                        participantContent()
                                     }
                                 }
                             }
@@ -615,13 +609,27 @@ fun GroupVouchDetailHero(
 
 @Composable
 fun GroupVouchParticipantItem(
+    modifier: Modifier = Modifier,
     personWithAmount: PersonWithAmount,
+    isGiven: Boolean = true,
+    description: String = "",
     onSettleToggle: () -> Unit,
-    onPersonClick: (String) -> Unit,
-    modifier: Modifier = Modifier
+    onPersonClick: (String) -> Unit
 ) {
     val isSettled = personWithAmount.settled
     val isSelf = personWithAmount.isSelf
+    val displayName = if (isSelf) {
+        stringResource(R.string.group_vouch_self_member)
+    } else {
+        personWithAmount.person.name
+    }
+    val hasDescription = description.isNotBlank()
+    val descriptionText = if (hasDescription) {
+        description
+    } else {
+        stringResource(R.string.label_no_description)
+    }
+
     val cardModifier = if (isSelf) {
         modifier
             .fillMaxWidth()
@@ -637,109 +645,137 @@ fun GroupVouchParticipantItem(
         modifier = cardModifier,
         shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+            containerColor = MaterialTheme.colorScheme.surfaceContainer
         )
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .padding(horizontal = 16.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box {
-                PersonAvatar(
-                    name = personWithAmount.person.name, size = 40.dp
-                )
-                if (isSettled && !isSelf) {
-                    Surface(
-                        shape = CircleShape,
-                        color = MaterialTheme.colorScheme.primary,
-                        border = BorderStroke(
-                            1.5.dp, MaterialTheme.colorScheme.surfaceContainerHigh
-                        ),
-                        modifier = Modifier
-                            .size(16.dp)
-                            .align(Alignment.BottomEnd)
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(
-                                imageVector = Icons.Filled.Check,
-                                contentDescription = stringResource(R.string.label_settled),
-                                tint = MaterialTheme.colorScheme.onPrimary,
-                                modifier = Modifier.size(10.dp)
-                            )
-                        }
-                    }
+            val isParticipantSettled = isSettled && !isSelf
+            val badgeContainerColor = if (isParticipantSettled || isGiven) {
+                MaterialTheme.colorScheme.primaryContainer
+            } else {
+                MaterialTheme.colorScheme.errorContainer
+            }
+            val badgeContentColor = if (isParticipantSettled || isGiven) {
+                MaterialTheme.colorScheme.onPrimaryContainer
+            } else {
+                MaterialTheme.colorScheme.onErrorContainer
+            }
+            val badgeIcon = if (isParticipantSettled) {
+                Icons.Filled.Check
+            } else if (isGiven) {
+                Icons.Outlined.ArrowOutward
+            } else {
+                Icons.Outlined.SouthWest
+            }
+
+            Surface(
+                shape = MaterialTheme.shapes.medium,
+                color = badgeContainerColor,
+                modifier = if (!isSelf) {
+                    Modifier
+                        .size(42.dp)
+                        .clip(MaterialTheme.shapes.medium)
+                        .clickable(onClick = onSettleToggle)
+                } else {
+                    Modifier.size(42.dp)
                 }
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = badgeIcon,
+                        contentDescription = if (isParticipantSettled) {
+                            stringResource(R.string.label_settled)
+                        } else null,
+                        tint = badgeContentColor,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.width(14.dp))
+
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                Text(
+                    text = CurrencyManager.formatAmountWithSymbol(personWithAmount.amount),
+                    style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp),
+                    fontWeight = FontWeight.Bold,
+                    color = if (isSettled && !isSelf) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    softWrap = false,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = descriptionText,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = if (hasDescription) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.outline,
+                    maxLines = 1,
+                    softWrap = false,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
 
             Spacer(modifier = Modifier.width(12.dp))
 
             Column(
-                modifier = Modifier.weight(1f), verticalArrangement = Arrangement.Center
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                Text(
-                    text = personWithAmount.person.name,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = if (isSettled && !isSelf) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(
-                    text = if (isSelf) {
-                        stringResource(R.string.label_own_share)
-                    } else if (isSettled) {
-                        stringResource(R.string.label_settled)
-                    } else {
-                        stringResource(R.string.filter_unsettled)
-                    }, style = MaterialTheme.typography.labelSmall, color = if (isSelf) {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    } else if (isSettled) {
-                        MaterialTheme.colorScheme.primary
-                    } else {
-                        MaterialTheme.colorScheme.outline
-                    }, fontWeight = FontWeight.Medium
-                )
-            }
-
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text(
-                    text = CurrencyManager.formatAmountWithSymbol(personWithAmount.amount),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = if (isSettled && !isSelf) MaterialTheme.colorScheme.outline else MaterialTheme.colorScheme.onSurface,
-                    textDecoration = if (isSettled && !isSelf) TextDecoration.LineThrough else TextDecoration.None
-                )
-
-                if (!isSelf) {
-                    FilledTonalIconButton(
-                        onClick = onSettleToggle,
-                        modifier = Modifier.size(36.dp),
-                        colors = IconButtonDefaults.filledTonalIconButtonColors(
-                            containerColor = if (isSettled) {
-                                MaterialTheme.colorScheme.primaryContainer
-                            } else {
-                                MaterialTheme.colorScheme.surfaceContainerHighest
-                            }, contentColor = if (isSettled) {
-                                MaterialTheme.colorScheme.onPrimaryContainer
-                            } else {
-                                MaterialTheme.colorScheme.onSurfaceVariant
-                            }
+                Surface(
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    modifier = Modifier
+                        .widthIn(max = 130.dp)
+                        .clip(CircleShape)
+                        .then(
+                            if (!isSelf) Modifier.clickable { onPersonClick(personWithAmount.person.name) }
+                            else Modifier
                         )
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        Icon(
-                            imageVector = Icons.Filled.Check, contentDescription = if (isSettled) {
-                                stringResource(R.string.action_unsettle)
-                            } else {
-                                stringResource(R.string.action_settle)
-                            }, modifier = Modifier.size(18.dp)
+                        PersonAvatar(name = displayName, size = 18.dp)
+                        Text(
+                            text = displayName,
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
+
+                Text(
+                    text = when {
+                        isSelf -> stringResource(R.string.label_own_share)
+                        isSettled -> stringResource(R.string.label_settled)
+                        else -> stringResource(R.string.filter_unsettled)
+                    },
+                    style = MaterialTheme.typography.labelSmall,
+                    color = when {
+                        isSelf -> MaterialTheme.colorScheme.onSurfaceVariant
+                        isSettled -> MaterialTheme.colorScheme.primary
+                        else -> MaterialTheme.colorScheme.outline
+                    },
+                    fontWeight = if (isSettled) FontWeight.SemiBold else FontWeight.Medium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = if (!isSelf) {
+                        Modifier
+                            .clip(MaterialTheme.shapes.extraSmall)
+                    } else Modifier
+                )
             }
         }
     }

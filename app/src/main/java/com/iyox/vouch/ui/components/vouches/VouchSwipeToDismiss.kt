@@ -22,6 +22,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -32,6 +38,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.launch
 import kotlin.math.abs
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -46,11 +53,17 @@ fun VouchSwipeToDismiss(
     content: @Composable () -> Unit
 ) {
     val haptics = LocalHapticFeedback.current
+    val coroutineScope = rememberCoroutineScope()
+    val currentOnStartToEnd by rememberUpdatedState(onStartToEnd)
+    val currentOnEndToStart by rememberUpdatedState(onEndToStart)
+    var isDismissing by remember { mutableStateOf(false) }
 
     lateinit var dismissState: SwipeToDismissBoxState
     val strictConfirmValueChange: (SwipeToDismissBoxValue) -> Boolean = { targetValue ->
         if (targetValue == SwipeToDismissBoxValue.Settled) {
             true
+        } else if (isDismissing) {
+            false
         } else {
             val currentOffset = try {
                 dismissState.requireOffset()
@@ -72,17 +85,32 @@ fun VouchSwipeToDismiss(
         }
     }
 
+    val handleDismiss: (SwipeToDismissBoxValue) -> Unit = remember {
+        { value ->
+            if (!isDismissing) {
+                isDismissing = true
+                haptics.performHapticFeedback(HapticFeedbackType.GestureEnd)
+                coroutineScope.launch {
+                    try {
+                        dismissState.reset()
+                    } catch (_: Exception) {
+                        dismissState.snapTo(SwipeToDismissBoxValue.Settled)
+                    } finally {
+                        isDismissing = false
+                    }
+                }
+                if (value == SwipeToDismissBoxValue.StartToEnd) {
+                    currentOnStartToEnd()
+                } else if (value == SwipeToDismissBoxValue.EndToStart) {
+                    currentOnEndToStart()
+                }
+            }
+        }
+    }
+
     SwipeToDismissBox(
         state = dismissState,
-        onDismiss = {
-            haptics.performHapticFeedback(HapticFeedbackType.GestureEnd)
-            if (it == SwipeToDismissBoxValue.StartToEnd) {
-                onStartToEnd()
-            }
-            if (it == SwipeToDismissBoxValue.EndToStart) {
-                onEndToStart()
-            }
-        },
+        onDismiss = handleDismiss,
         backgroundContent = {
             val direction = dismissState.dismissDirection
 
