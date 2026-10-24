@@ -128,9 +128,11 @@ fun PersonScreen(
     val actionUndo = stringResource(R.string.action_undo)
     val vouchSummaryLabel = stringResource(R.string.vouch_summary_label)
     val shareVouchSummaryTitle = stringResource(R.string.share_vouch_summary_title)
+    val msgNoActiveVouches = stringResource(R.string.msg_no_active_vouches_to_settle)
 
     var showSettleDialog by remember { mutableStateOf(false) }
     var showRenameDialog by remember { mutableStateOf(false) }
+    var renameErrorMessage by remember { mutableStateOf<String?>(null) }
     var capturing by remember { mutableStateOf(false) }
 
     val listState = remember(state.showOnlyGiven, state.sortedBy) {
@@ -157,7 +159,10 @@ fun PersonScreen(
                     VouchBackButton(onClick = onNavigateBack)
                 },
                 actions = {
-                    IconButton(onClick = { showRenameDialog = true }) {
+                    IconButton(onClick = {
+                        renameErrorMessage = null
+                        showRenameDialog = true
+                    }) {
                         Icon(
                             imageVector = Icons.Outlined.Edit,
                             contentDescription = stringResource(R.string.cd_rename_person)
@@ -200,16 +205,21 @@ fun PersonScreen(
                     onShareClick = {
                         coroutineScope.launch {
                             capturing = true
-                            awaitFrame()
-                            val bitmap = exportLayer.toImageBitmap().asAndroidBitmap()
-                            shareBitmap(
-                                context = context,
-                                bitmap = bitmap,
-                                personName = currentPersonName,
-                                vouchSummaryLabel = vouchSummaryLabel,
-                                shareVouchSummaryTitle = shareVouchSummaryTitle
-                            )
-                            capturing = false
+                            try {
+                                awaitFrame()
+                                val bitmap = exportLayer.toImageBitmap().asAndroidBitmap()
+                                shareBitmap(
+                                    context = context,
+                                    bitmap = bitmap,
+                                    personName = currentPersonName,
+                                    vouchSummaryLabel = vouchSummaryLabel,
+                                    shareVouchSummaryTitle = shareVouchSummaryTitle
+                                )
+                            } catch (_: Exception) {
+                                toastManager.showError(R.string.msg_share_failed)
+                            } finally {
+                                capturing = false
+                            }
                         }
                     }
                 )
@@ -348,21 +358,25 @@ fun PersonScreen(
         if (showRenameDialog) {
             RenamePersonDialog(
                 currentName = currentPersonName,
-                onDismiss = { showRenameDialog = false },
+                errorMessage = renameErrorMessage,
+                onDismiss = {
+                    showRenameDialog = false
+                    renameErrorMessage = null
+                },
                 onConfirm = { newName ->
                     coroutineScope.launch {
                         val result = viewModel.renamePerson(newName)
                         if (result.isSuccess) {
                             showRenameDialog = false
+                            renameErrorMessage = null
                             toastManager.show(msgPersonRenamed)
                         } else {
                             val error = result.exceptionOrNull()
-                            val msg = if (error is IllegalStateException) {
+                            renameErrorMessage = if (error is IllegalStateException) {
                                 msgPersonAlreadyExists
                             } else {
                                 msgRenameFailed
                             }
-                            toastManager.showError(msg)
                         }
                     }
                 }
@@ -376,6 +390,10 @@ fun PersonScreen(
                 onDismiss = { showSettleDialog = false },
                 onConfirm = { fullySettle ->
                     showSettleDialog = false
+                    if (state.vouches.isEmpty()) {
+                        toastManager.show(msgNoActiveVouches)
+                        return@SettlePersonDialog
+                    }
                     if (fullySettle) {
                         toastManager.executeWithUndo(
                             message = msgPersonSettled,
@@ -392,8 +410,10 @@ fun PersonScreen(
                             actionLabel = actionUndo,
                             errorMessage = msgSettleFailed,
                             performAction = { viewModel.netVouches(nettingDescription) },
-                            undoAction = { (settled, nettingVouch) ->
-                                viewModel.undoNetVouches(settled, nettingVouch)
+                            undoAction = { result ->
+                                result?.let { (settled, nettingVouch) ->
+                                    viewModel.undoNetVouches(settled, nettingVouch)
+                                }
                             }
                         )
                     }

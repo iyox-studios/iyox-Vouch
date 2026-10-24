@@ -3,6 +3,7 @@ package com.iyox.vouch.feature.vouch
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,10 +29,10 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.material3.rememberDatePickerState
@@ -54,6 +55,8 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.error
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -69,43 +72,69 @@ fun VouchAmountHeader(
     onAmountChange: (String) -> Unit,
     focusManager: FocusManager,
     amountFocusRequester: FocusRequester,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isError: Boolean = false,
+    errorMessage: String? = null
 ) {
-    Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
-        val currency = CurrencyManager.getCurrency()
-        Text(
-            text = currency.symbol,
-            style = MaterialTheme.typography.displayLarge,
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
-        )
-        OutlinedTextField(
-            value = amount,
-            onValueChange = onAmountChange,
-            modifier = Modifier
-                .weight(1f)
-                .focusRequester(amountFocusRequester),
-            textStyle = MaterialTheme.typography.displayLarge,
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Decimal,
-                imeAction = ImeAction.Next
-            ),
-            keyboardActions = KeyboardActions(
-                onNext = { focusManager.moveFocus(FocusDirection.Next) }
-            ),
-            singleLine = true,
-            placeholder = {
-                Text(
-                    stringResource(R.string.placeholder_amount),
-                    style = MaterialTheme.typography.displayLarge
-                )
-            },
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = Color.Transparent,
-                unfocusedContainerColor = Color.Transparent,
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent
+    Column(modifier = modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            val currency = CurrencyManager.getCurrency()
+            val textColor = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
+            Text(
+                text = currency.symbol,
+                style = MaterialTheme.typography.displayLarge,
+                color = textColor,
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
             )
-        )
+            OutlinedTextField(
+                value = amount,
+                onValueChange = onAmountChange,
+                isError = isError,
+                modifier = Modifier
+                    .weight(1f)
+                    .focusRequester(amountFocusRequester)
+                    .semantics {
+                        if (isError && errorMessage != null) {
+                            error(errorMessage)
+                        }
+                    },
+                textStyle = MaterialTheme.typography.displayLarge.copy(color = textColor),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Decimal,
+                    imeAction = ImeAction.Next
+                ),
+                keyboardActions = KeyboardActions(
+                    onNext = { focusManager.moveFocus(FocusDirection.Next) }
+                ),
+                singleLine = true,
+                placeholder = {
+                    Text(
+                        stringResource(R.string.placeholder_amount),
+                        style = MaterialTheme.typography.displayLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                    )
+                },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    errorContainerColor = Color.Transparent,
+                    focusedBorderColor = Color.Transparent,
+                    unfocusedBorderColor = Color.Transparent,
+                    errorBorderColor = Color.Transparent
+                )
+            )
+        }
+        if (isError && errorMessage != null) {
+            Text(
+                text = errorMessage,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+            )
+        }
     }
 }
 
@@ -200,7 +229,9 @@ fun PersonAutocompleteField(
     onValueChange: (String) -> Unit,
     onPersonSelected: (Person) -> Unit,
     focusManager: FocusManager,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isError: Boolean = false,
+    errorMessage: String? = null
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -219,6 +250,10 @@ fun PersonAutocompleteField(
                 onValueChange(it)
                 expanded = true
             },
+            isError = isError,
+            supportingText = if (isError && errorMessage != null) {
+                { Text(errorMessage, color = MaterialTheme.colorScheme.error) }
+            } else null,
             modifier = Modifier
                 .fillMaxWidth()
                 .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable),
@@ -231,7 +266,11 @@ fun PersonAutocompleteField(
                 }
             ),
             leadingIcon = {
-                Icon(Icons.Filled.Person, null, tint = MaterialTheme.colorScheme.primary)
+                Icon(
+                    Icons.Filled.Person,
+                    null,
+                    tint = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                )
             },
             singleLine = true,
             shape = MaterialTheme.shapes.medium

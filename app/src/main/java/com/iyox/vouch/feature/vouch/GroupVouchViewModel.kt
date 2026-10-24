@@ -45,6 +45,7 @@ data class GroupVouchUiState(
     val members: List<GroupMemberInput> = emptyList(),
     val saveSuccess: Boolean = false,
     @StringRes val errorMessageRes: Int? = null,
+    @StringRes val amountError: Int? = null,
     val isLoading: Boolean = false
 )
 
@@ -156,7 +157,7 @@ class GroupVouchViewModel @Inject constructor(
     }
 
     fun onAmountChange(value: String) {
-        _uiState.update { it.copy(amount = value) }
+        _uiState.update { it.copy(amount = value, amountError = null) }
         recomputeDefaultSplitAmounts()
     }
 
@@ -175,8 +176,10 @@ class GroupVouchViewModel @Inject constructor(
     fun continueToMembers() {
         val parsed = currencyManager.parseToMinorUnits(_uiState.value.amount)
         if (parsed != null && parsed > 0) {
-            _uiState.update { it.copy(step = STEP_MEMBERS, errorMessageRes = null) }
+            _uiState.update { it.copy(step = STEP_MEMBERS, errorMessageRes = null, amountError = null) }
             recomputeDefaultSplitAmounts()
+        } else {
+            _uiState.update { it.copy(amountError = R.string.error_amount_required) }
         }
     }
 
