@@ -1,7 +1,6 @@
 package com.iyox.vouch.feature.vouch
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -69,11 +68,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -107,6 +105,7 @@ fun GroupVouchScreen(
     val uiState by viewModel.uiState.collectAsState()
     val toastManager = rememberToastManager()
     val focusManager = LocalFocusManager.current
+    val haptic = LocalHapticFeedback.current
     val amountFocusRequester = remember { FocusRequester() }
     val msgGroupVouchCreated = stringResource(R.string.msg_group_vouch_created)
     val msgSaveFailed = stringResource(R.string.msg_save_failed)
@@ -152,7 +151,16 @@ fun GroupVouchScreen(
                     if (uiState.step == STEP_DETAILS) {
                         Button(
                             modifier = Modifier.padding(end = 16.dp),
-                            onClick = viewModel::continueToMembers
+                            onClick = {
+                                viewModel.continueToMembers()
+                                if (viewModel.uiState.value.amountError != null) {
+                                    haptic.performHapticFeedback(HapticFeedbackType.Reject)
+                                    try {
+                                        amountFocusRequester.requestFocus()
+                                    } catch (_: Exception) {
+                                    }
+                                }
+                            }
                         ) {
                             Text(stringResource(R.string.action_continue))
                         }
@@ -228,7 +236,9 @@ fun GroupVouchScreen(
                         amount = uiState.amount,
                         onAmountChange = viewModel::onAmountChange,
                         focusManager = focusManager,
-                        amountFocusRequester = amountFocusRequester
+                        amountFocusRequester = amountFocusRequester,
+                        isError = uiState.amountError != null,
+                        errorMessage = uiState.amountError?.let { stringResource(it) }
                     )
 
                     VouchDirectionToggle(
@@ -710,13 +720,13 @@ private fun GroupMemberSelector(
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun GroupMemberList(
+    modifier: Modifier = Modifier,
     members: List<GroupMemberInput>,
     totalAmountMinor: Long = 0L,
     onAmountChange: (GroupMemberInput, String) -> Unit,
     onResetMember: (GroupMemberInput) -> Unit,
     onRemove: (GroupMemberInput) -> Unit,
-    focusManager: FocusManager,
-    modifier: Modifier = Modifier
+    focusManager: FocusManager
 ) {
     val currency = CurrencyManager.getCurrency()
 
@@ -787,14 +797,14 @@ private fun GroupMemberList(
 
 @Composable
 private fun GroupMemberCard(
+    modifier: Modifier = Modifier,
     member: GroupMemberInput,
     currencySymbol: String,
     isError: Boolean = false,
     onAmountChange: (String) -> Unit,
     onResetToEqual: () -> Unit,
     onRemove: () -> Unit,
-    focusManager: FocusManager,
-    modifier: Modifier = Modifier
+    focusManager: FocusManager
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -865,7 +875,22 @@ private fun GroupMemberCard(
                 value = member.amount,
                 onValueChange = onAmountChange,
                 isError = isError,
-                modifier = Modifier.width(115.dp),
+                supportingText = if (isError) {
+                    {
+                        val parsed = CurrencyManager.parseToMinorUnits(member.amount)
+                        val errText = if (parsed == null) {
+                            stringResource(R.string.error_invalid_member_amount)
+                        } else {
+                            stringResource(R.string.error_group_overallocated)
+                        }
+                        Text(
+                            errText,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.labelSmall
+                        )
+                    }
+                } else null,
+                modifier = Modifier.width(135.dp),
                 prefix = {
                     Text(
                         text = currencySymbol,

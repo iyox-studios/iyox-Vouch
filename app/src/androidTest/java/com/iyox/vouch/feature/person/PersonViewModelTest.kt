@@ -146,8 +146,8 @@ class PersonViewModelTest {
 
         // Settle person
         val settledChanges = viewModel.settlePerson()
-        assertEquals(1, settledChanges.size)
-        assertEquals(v1.vouch.id, settledChanges[0].vouchId)
+        assertEquals(1, settledChanges?.size)
+        assertEquals(v1.vouch.id, settledChanges?.get(0)?.vouchId)
 
         viewModel.loadPerson("Charlie")
         val settledState = viewModel.uiState.first { !it.isLoading && it.settledCount == 1 }
@@ -182,7 +182,7 @@ class PersonViewModelTest {
         viewModel.loadPerson("Dave")
         viewModel.uiState.first { !it.isLoading && it.vouches.size == 2 }
 
-        val (settled, nettingVouch) = viewModel.netVouches(application.getString(R.string.vouch_description_netting))
+        val (settled, nettingVouch) = viewModel.netVouches(application.getString(R.string.vouch_description_netting))!!
         assertEquals(2, settled.size)
         assertNotNull(nettingVouch)
         assertEquals(2000L, nettingVouch?.vouch?.amount)

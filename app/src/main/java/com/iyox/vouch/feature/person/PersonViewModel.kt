@@ -191,7 +191,7 @@ class PersonViewModel @Inject constructor(
         return result
     }
 
-    suspend fun settlePerson(): List<PersonSettlementChange> {
+    suspend fun settlePerson(): List<PersonSettlementChange>? {
         val personName = _personName.value
         val currentVouches = uiState.value.vouches
         val unsettledEntries = currentVouches.mapNotNull { vouch ->
@@ -200,7 +200,7 @@ class PersonViewModel @Inject constructor(
             if (personEntry.settled) return@mapNotNull null
             PersonSettlementChange(vouchId = vouch.vouch.id, personId = personEntry.person.id)
         }
-        if (unsettledEntries.isEmpty()) return emptyList()
+        if (unsettledEntries.isEmpty()) return null
 
         unsettledEntries.groupBy { it.personId }.forEach { (personId, changes) ->
             vouchRepository.setPersonSettlements(personId, changes.map { it.vouchId }, true)
@@ -208,9 +208,9 @@ class PersonViewModel @Inject constructor(
         return unsettledEntries
     }
 
-    suspend fun netVouches(description: String = "Netting"): Pair<List<PersonSettlementChange>, VouchWithPerson?> {
+    suspend fun netVouches(description: String = "Netting"): Pair<List<PersonSettlementChange>, VouchWithPerson?>? {
         val diff = uiState.value.amountGiven - uiState.value.amountOwed
-        val settledVouches = settlePerson()
+        val settledVouches = settlePerson() ?: return null
         var newNettingVouch: VouchWithPerson? = null
 
         val personName = _personName.value
@@ -238,25 +238,24 @@ class PersonViewModel @Inject constructor(
         return Pair(settledVouches, newNettingVouch)
     }
 
-    fun undoSettlePerson(previouslySettled: List<PersonSettlementChange>) {
+    fun undoSettlePerson(previouslySettled: List<PersonSettlementChange>?) {
+        if (previouslySettled.isNullOrEmpty()) return
         viewModelScope.launch {
-            if (previouslySettled.isNotEmpty()) {
-                previouslySettled.groupBy { it.personId }.forEach { (personId, changes) ->
-                    vouchRepository.setPersonSettlements(personId, changes.map { it.vouchId }, false)
-                }
+            previouslySettled.groupBy { it.personId }.forEach { (personId, changes) ->
+                vouchRepository.setPersonSettlements(personId, changes.map { it.vouchId }, false)
             }
         }
     }
 
     fun undoNetVouches(
-        previouslySettled: List<PersonSettlementChange>,
+        previouslySettled: List<PersonSettlementChange>?,
         nettingVouch: VouchWithPerson?
     ) {
         viewModelScope.launch {
             if (nettingVouch != null) {
                 vouchRepository.delete(nettingVouch.vouch.id)
             }
-            if (previouslySettled.isNotEmpty()) {
+            if (!previouslySettled.isNullOrEmpty()) {
                 previouslySettled.groupBy { it.personId }.forEach { (personId, changes) ->
                     vouchRepository.setPersonSettlements(personId, changes.map { it.vouchId }, false)
                 }

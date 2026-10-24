@@ -22,6 +22,7 @@ import androidx.compose.material.icons.outlined.ArrowOutward
 import androidx.compose.material.icons.outlined.SouthWest
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -76,8 +77,11 @@ fun PersonsScreen(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(top = innerPadding.calculateTopPadding())
-            )
+                    .padding(top = innerPadding.calculateTopPadding()),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
         } else if (uiState.persons.isEmpty()) {
             if (uiState.searchQuery.isNotBlank()) {
                 EmptySearchContent(

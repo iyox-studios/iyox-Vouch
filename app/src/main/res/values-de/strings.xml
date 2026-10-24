@@ -250,4 +250,9 @@
         <item quantity="other">%1$d Währungen</item>
     </plurals>
     <string name="label_own_share">Eigenanteil</string>
+    <string name="error_amount_required">Bitte einen gültigen Betrag eingeben</string>
+    <string name="error_person_name_required">Name der Person darf nicht leer sein</string>
+    <string name="error_name_empty">Name darf nicht leer sein</string>
+    <string name="msg_share_failed">Teilen fehlgeschlagen</string>
+    <string name="msg_no_active_vouches_to_settle">Keine offenen Vouches zum Begleichen</string>
 </resources>

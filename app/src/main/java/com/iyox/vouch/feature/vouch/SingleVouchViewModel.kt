@@ -1,8 +1,10 @@
 package com.iyox.vouch.feature.vouch
 
+import androidx.annotation.StringRes
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.iyox.vouch.R
 import com.iyox.vouch.core.currency.CurrencyManager
 import com.iyox.vouch.core.data.PersonRepository
 import com.iyox.vouch.core.data.VouchRepository
@@ -29,7 +31,9 @@ data class VouchUiState(
     val timestamp: Long = System.currentTimeMillis(),
     val isLoading: Boolean = false,
     val saveSuccess: Boolean = false,
-    val personSearchResults: List<PersonTotal> = emptyList()
+    val personSearchResults: List<PersonTotal> = emptyList(),
+    @StringRes val amountError: Int? = null,
+    @StringRes val personNameError: Int? = null
 )
 
 @HiltViewModel
@@ -144,7 +148,7 @@ class SingleVouchViewModel @Inject constructor(
     }
 
     fun onAmountChange(value: String) {
-        _uiState.update { it.copy(amount = value) }
+        _uiState.update { it.copy(amount = value, amountError = null) }
     }
 
     fun onGivenChange(value: Boolean) {
@@ -152,7 +156,7 @@ class SingleVouchViewModel @Inject constructor(
     }
 
     fun onPersonChange(value: String) {
-        _uiState.update { it.copy(personName = value) }
+        _uiState.update { it.copy(personName = value, personNameError = null) }
         searchJob?.cancel()
         searchJob = viewModelScope.launch {
             if (value.isNotBlank()) {
@@ -168,7 +172,8 @@ class SingleVouchViewModel @Inject constructor(
         _uiState.update {
             it.copy(
                 personName = person.name,
-                personSearchResults = emptyList()
+                personSearchResults = emptyList(),
+                personNameError = null
             )
         }
     }
@@ -190,18 +195,30 @@ class SingleVouchViewModel @Inject constructor(
 
     suspend fun saveVouchDirect(): VouchWithPerson? = saveVouchInternal()
 
+    fun validateForm(): Boolean {
+        var isValid = false
+        _uiState.update { state ->
+            val amountLong = currencyManager.parseToMinorUnits(state.amount)
+            val isAmountValid = amountLong != null && amountLong > 0
+            val isPersonValid = state.personName.trim().isNotBlank()
+            isValid = isAmountValid && isPersonValid
+            state.copy(
+                amountError = if (!isAmountValid) R.string.error_amount_required else null,
+                personNameError = if (!isPersonValid) R.string.error_person_name_required else null
+            )
+        }
+        return isValid
+    }
+
     private suspend fun saveVouchInternal(): VouchWithPerson? {
+        if (!validateForm()) {
+            _uiState.update { it.copy(saveSuccess = false) }
+            return null
+        }
+
         val currentState = _uiState.value
-        val amountLong = currencyManager.parseToMinorUnits(currentState.amount)
-        if (amountLong == null || amountLong <= 0) {
-            _uiState.update { it.copy(saveSuccess = false) }
-            return null
-        }
+        val amountLong = currencyManager.parseToMinorUnits(currentState.amount) ?: return null
         val personName = currentState.personName.trim()
-        if (personName.isBlank()) {
-            _uiState.update { it.copy(saveSuccess = false) }
-            return null
-        }
 
         val savedVouch: VouchWithPerson?
         if (editingVouchId != null && originalVouch != null) {
@@ -228,7 +245,13 @@ class SingleVouchViewModel @Inject constructor(
             )
             savedVouch = repository.insert(vouch)
         }
-        _uiState.update { it.copy(saveSuccess = true) }
+        _uiState.update {
+            it.copy(
+                saveSuccess = true,
+                amountError = null,
+                personNameError = null
+            )
+        }
         return savedVouch
     }
 

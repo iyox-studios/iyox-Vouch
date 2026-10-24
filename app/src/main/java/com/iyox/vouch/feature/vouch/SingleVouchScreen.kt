@@ -20,7 +20,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -38,6 +40,10 @@ fun SingleVouchScreen(
     viewModel: SingleVouchViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    val haptic = LocalHapticFeedback.current
+    val amountErrorMessage = uiState.amountError?.let { stringResource(it) }
+    val personErrorMessage = uiState.personNameError?.let { stringResource(it) }
 
     val toastManager = rememberToastManager()
     val focusManager = LocalFocusManager.current
@@ -76,6 +82,14 @@ fun SingleVouchScreen(
                     Button(
                         modifier = Modifier.padding(end = 16.dp),
                         onClick = {
+                            if (!viewModel.validateForm()) {
+                                haptic.performHapticFeedback(HapticFeedbackType.Reject)
+                                if (viewModel.uiState.value.amountError != null) {
+                                    try { amountFocusRequester.requestFocus() } catch (_: Exception) {}
+                                }
+                                return@Button
+                            }
+
                             if (!edit) {
                                 toastManager.executeWithUndo(
                                     message = msgVouchCreated,
@@ -127,7 +141,9 @@ fun SingleVouchScreen(
                     amount = uiState.amount,
                     onAmountChange = viewModel::onAmountChange,
                     focusManager = focusManager,
-                    amountFocusRequester = amountFocusRequester
+                    amountFocusRequester = amountFocusRequester,
+                    isError = uiState.amountError != null,
+                    errorMessage = amountErrorMessage
                 )
 
                 VouchDirectionToggle(
@@ -140,7 +156,9 @@ fun SingleVouchScreen(
                     results = uiState.personSearchResults,
                     onValueChange = viewModel::onPersonChange,
                     onPersonSelected = viewModel::onPersonSelected,
-                    focusManager = focusManager
+                    focusManager = focusManager,
+                    isError = uiState.personNameError != null,
+                    errorMessage = personErrorMessage
                 )
 
                 VouchDescriptionField(

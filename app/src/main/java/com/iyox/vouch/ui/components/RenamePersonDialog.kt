@@ -31,7 +31,8 @@ import com.iyox.vouch.R
 fun RenamePersonDialog(
     currentName: String,
     onDismiss: () -> Unit,
-    onConfirm: (String) -> Unit
+    onConfirm: (String) -> Unit,
+    errorMessage: String? = null
 ) {
     var textFieldValue by remember(currentName) {
         mutableStateOf(
@@ -66,6 +67,10 @@ fun RenamePersonDialog(
                 OutlinedTextField(
                     value = textFieldValue,
                     onValueChange = { textFieldValue = it },
+                    isError = errorMessage != null,
+                    supportingText = if (errorMessage != null) {
+                        { Text(errorMessage, color = MaterialTheme.colorScheme.error) }
+                    } else null,
                     label = { Text(stringResource(R.string.label_person)) },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(
