@@ -106,6 +106,14 @@
     <string name="all_settled_title">All settled up!</string>
     <string name="all_settled_subtitle">No active &vouches; with %1$s</string>
     <string name="all_settled_global_subtitle">You have no active &vouches; right now</string>
+    <string name="all_settled_filtered_subtitle">With the current filters all &vouches; are settled</string>
+    <string name="all_settled_people_subtitle">All people are settled up</string>
+    <string name="empty_vouches_given_title">No given &vouches;</string>
+    <string name="empty_vouches_given_subtitle">You have no active given &vouches;</string>
+    <string name="empty_vouches_received_title">No received &vouches;</string>
+    <string name="empty_vouches_received_subtitle">You have no active received &vouches;</string>
+    <string name="action_show_all_vouches">Show all &vouches;</string>
+    <string name="action_show_all_people">Show all people</string>
 
     <plurals name="vouch_count">
         <item quantity="one">%1$d &vouch;</item>

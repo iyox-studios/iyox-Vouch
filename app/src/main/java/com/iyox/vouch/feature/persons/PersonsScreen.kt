@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Group
+import androidx.compose.material.icons.outlined.Archive
 import androidx.compose.material.icons.outlined.ArrowOutward
 import androidx.compose.material.icons.outlined.SouthWest
 import androidx.compose.material3.Card
@@ -28,6 +29,7 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -38,6 +40,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -90,6 +93,22 @@ fun PersonsScreen(
                     modifier = Modifier.padding(top = innerPadding.calculateTopPadding())
                 )
             } else {
+                val emptyIcon: ImageVector
+                val emptyTitle: String
+                val emptySubtitle: String
+                var showResetFilterButton = false
+
+                if (uiState.totalPersonsCount == 0) {
+                    emptyIcon = Icons.Filled.Group
+                    emptyTitle = stringResource(R.string.empty_people_title)
+                    emptySubtitle = stringResource(R.string.empty_people_subtitle)
+                } else {
+                    emptyIcon = Icons.Outlined.Archive
+                    emptyTitle = stringResource(R.string.all_settled_title)
+                    emptySubtitle = stringResource(R.string.all_settled_people_subtitle)
+                    showResetFilterButton = uiState.showOnlyNonZero
+                }
+
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -108,7 +127,7 @@ fun PersonsScreen(
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 Icon(
-                                    imageVector = Icons.Filled.Group,
+                                    imageVector = emptyIcon,
                                     contentDescription = null,
                                     tint = MaterialTheme.colorScheme.onPrimaryContainer,
                                     modifier = Modifier.size(44.dp)
@@ -116,17 +135,25 @@ fun PersonsScreen(
                             }
                         }
                         Text(
-                            text = stringResource(R.string.empty_people_title),
+                            text = emptyTitle,
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = stringResource(R.string.empty_people_subtitle),
+                            text = emptySubtitle,
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Center
                         )
+                        if (showResetFilterButton) {
+                            OutlinedButton(
+                                onClick = viewModel::toggleShowOnlyNonZero,
+                                modifier = Modifier.padding(top = 8.dp)
+                            ) {
+                                Text(text = stringResource(R.string.action_show_all_people))
+                            }
+                        }
                     }
                 }
             }

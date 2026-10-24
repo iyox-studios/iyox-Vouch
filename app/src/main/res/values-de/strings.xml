@@ -104,6 +104,14 @@
     <string name="all_settled_title">Alles beglichen!</string>
     <string name="all_settled_subtitle">Keine offenen &vouches; mit %1$s</string>
     <string name="all_settled_global_subtitle">Du hast aktuell keine offenen &vouches;</string>
+    <string name="all_settled_filtered_subtitle">Mit den aktuellen Filtern sind alle &vouches; beglichen</string>
+    <string name="all_settled_people_subtitle">Alle Personen sind beglichen</string>
+    <string name="empty_vouches_given_title">Keine gegebenen &vouches;</string>
+    <string name="empty_vouches_given_subtitle">Du hast keine offenen gegebenen &vouches;</string>
+    <string name="empty_vouches_received_title">Keine erhaltenen &vouches;</string>
+    <string name="empty_vouches_received_subtitle">Du hast keine offenen erhaltenen &vouches;</string>
+    <string name="action_show_all_vouches">Alle &vouches; anzeigen</string>
+    <string name="action_show_all_people">Alle Personen anzeigen</string>
 
     <plurals name="vouch_count">
         <item quantity="one">%1$d &vouch;</item>
