@@ -16,6 +16,8 @@ import javax.inject.Inject
 
 data class PersonsUiState(
     val persons: List<PersonTotal> = emptyList(),
+    val totalPersonsCount: Int = 0,
+    val activePersonsCount: Int = 0,
     val showOnlyNonZero: Boolean = true,
     val searchQuery: String = "",
     val isLoading: Boolean = false,
@@ -39,6 +41,8 @@ class PersonsViewModel @Inject constructor(
         currencyCode: String = "",
         isLoading: Boolean = false
     ): PersonsUiState {
+        val totalPersonsCount = personsList.size
+        val activePersonsCount = personsList.count { it.vouchCount > 0 }
         val filtered = if (showOnlyNonZero) {
             personsList.filter { it.vouchCount > 0 }
         } else {
@@ -47,6 +51,8 @@ class PersonsViewModel @Inject constructor(
         val searched = filtered.filterBySearchQuery(searchQuery)
         return PersonsUiState(
             persons = searched,
+            totalPersonsCount = totalPersonsCount,
+            activePersonsCount = activePersonsCount,
             showOnlyNonZero = showOnlyNonZero,
             searchQuery = searchQuery,
             isLoading = isLoading,

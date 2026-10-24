@@ -33,12 +33,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.iyox.vouch.R
+import com.iyox.vouch.core.model.VouchTypeFilter
 import com.iyox.vouch.ui.components.EmptySearchContent
 import com.iyox.vouch.ui.components.PageHeader
 import com.iyox.vouch.ui.components.VouchFilterRow
@@ -126,6 +128,70 @@ fun VouchesScreen(
                         onClearSearch = { viewModel.setSearchQuery("") }
                     )
                 } else {
+                    val emptyIcon: ImageVector
+                    val emptyTitle: String
+                    val emptySubtitle: String
+                    var showSettledButton = false
+                    var settledButtonCount = 0
+                    var showResetFilterButton = false
+
+                    when {
+                        uiState.totalVouchesCount == 0 -> {
+                            emptyIcon = Icons.Filled.Payments
+                            emptyTitle = stringResource(R.string.empty_vouches_title)
+                            emptySubtitle = stringResource(R.string.empty_vouches_subtitle)
+                        }
+                        uiState.showOnlyGiven == VouchTypeFilter.ALL -> {
+                            emptyIcon = Icons.Outlined.Archive
+                            emptyTitle = stringResource(R.string.all_settled_title)
+                            emptySubtitle = stringResource(R.string.all_settled_global_subtitle)
+                            showSettledButton = uiState.settledCount > 0
+                            settledButtonCount = uiState.settledCount
+                        }
+                        uiState.showOnlyGiven == VouchTypeFilter.GIVEN -> {
+                            if (uiState.settledGivenCount > 0) {
+                                emptyIcon = Icons.Outlined.Archive
+                                emptyTitle = stringResource(R.string.all_settled_title)
+                                emptySubtitle = stringResource(R.string.all_settled_filtered_subtitle)
+                                showSettledButton = true
+                                settledButtonCount = uiState.settledGivenCount
+                                showResetFilterButton = true
+                            } else {
+                                emptyIcon = if (uiState.activeVouchesCount == 0) Icons.Outlined.Archive else Icons.Filled.Payments
+                                emptyTitle = stringResource(R.string.empty_vouches_given_title)
+                                emptySubtitle = if (uiState.activeVouchesCount == 0) {
+                                    stringResource(R.string.all_settled_global_subtitle)
+                                } else {
+                                    stringResource(R.string.empty_vouches_given_subtitle)
+                                }
+                                showSettledButton = uiState.settledCount > 0
+                                settledButtonCount = uiState.settledCount
+                                showResetFilterButton = true
+                            }
+                        }
+                        else -> { // VouchTypeFilter.RECEIVED
+                            if (uiState.settledReceivedCount > 0) {
+                                emptyIcon = Icons.Outlined.Archive
+                                emptyTitle = stringResource(R.string.all_settled_title)
+                                emptySubtitle = stringResource(R.string.all_settled_filtered_subtitle)
+                                showSettledButton = true
+                                settledButtonCount = uiState.settledReceivedCount
+                                showResetFilterButton = true
+                            } else {
+                                emptyIcon = if (uiState.activeVouchesCount == 0) Icons.Outlined.Archive else Icons.Filled.Payments
+                                emptyTitle = stringResource(R.string.empty_vouches_received_title)
+                                emptySubtitle = if (uiState.activeVouchesCount == 0) {
+                                    stringResource(R.string.all_settled_global_subtitle)
+                                } else {
+                                    stringResource(R.string.empty_vouches_received_subtitle)
+                                }
+                                showSettledButton = uiState.settledCount > 0
+                                settledButtonCount = uiState.settledCount
+                                showResetFilterButton = true
+                            }
+                        }
+                    }
+
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
@@ -143,7 +209,7 @@ fun VouchesScreen(
                             ) {
                                 Box(contentAlignment = Alignment.Center) {
                                     Icon(
-                                        imageVector = if (uiState.settledCount > 0) Icons.Outlined.Archive else Icons.Filled.Payments,
+                                        imageVector = emptyIcon,
                                         contentDescription = null,
                                         tint = MaterialTheme.colorScheme.onPrimaryContainer,
                                         modifier = Modifier.size(44.dp)
@@ -151,22 +217,18 @@ fun VouchesScreen(
                                 }
                             }
                             Text(
-                                text = if (uiState.settledCount > 0) stringResource(R.string.all_settled_title) else stringResource(
-                                    R.string.empty_vouches_title
-                                ),
+                                text = emptyTitle,
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
-                                text = if (uiState.settledCount > 0) stringResource(R.string.all_settled_global_subtitle) else stringResource(
-                                    R.string.empty_vouches_subtitle
-                                ),
+                                text = emptySubtitle,
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 textAlign = TextAlign.Center
                             )
-                            if (uiState.settledCount > 0) {
+                            if (showSettledButton) {
                                 OutlinedButton(
                                     onClick = onNavigateToSettledSpace,
                                     modifier = Modifier.padding(top = 8.dp)
@@ -179,10 +241,18 @@ fun VouchesScreen(
                                     Text(
                                         text = stringResource(
                                             R.string.action_view_settled_history,
-                                            uiState.settledCount
+                                            settledButtonCount
                                         ),
                                         modifier = Modifier.padding(start = 8.dp)
                                     )
+                                }
+                            }
+                            if (showResetFilterButton) {
+                                OutlinedButton(
+                                    onClick = viewModel::resetTypeFilter,
+                                    modifier = Modifier.padding(top = if (showSettledButton) 4.dp else 8.dp)
+                                ) {
+                                    Text(text = stringResource(R.string.action_show_all_vouches))
                                 }
                             }
                         }
