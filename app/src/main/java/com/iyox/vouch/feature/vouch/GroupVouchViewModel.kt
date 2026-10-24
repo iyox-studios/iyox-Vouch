@@ -193,7 +193,9 @@ class GroupVouchViewModel @Inject constructor(
         searchJob = viewModelScope.launch {
             if (query.isNotBlank()) {
                 val results = personRepository.getPersonTotal(query)
-                _uiState.update { it.copy(personSearchResults = results) }
+                val currentNames = _uiState.value.members.map { it.personName.trim().lowercase() }.toSet()
+                val filtered = results.filter { it.person.name.trim().lowercase() !in currentNames }
+                _uiState.update { it.copy(personSearchResults = filtered) }
             } else {
                 _uiState.update { it.copy(personSearchResults = emptyList()) }
             }

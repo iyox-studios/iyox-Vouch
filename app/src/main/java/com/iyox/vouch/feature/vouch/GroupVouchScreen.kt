@@ -545,20 +545,26 @@ private fun GroupMemberSelector(
     focusManager: FocusManager,
     modifier: Modifier = Modifier
 ) {
+    val currentMemberNames = remember(currentMembers) {
+        currentMembers.map { it.personName.trim().lowercase() }.toSet()
+    }
+
+    val filteredResults = remember(results, currentMemberNames) {
+        results.filter { it.person.name.trim().lowercase() !in currentMemberNames }
+    }
+
     var expanded by remember { mutableStateOf(false) }
 
-    LaunchedEffect(results) {
-        expanded = results.isNotEmpty()
+    LaunchedEffect(filteredResults) {
+        expanded = filteredResults.isNotEmpty()
     }
 
     val isSelfAdded = currentMembers.any { it.isSelf }
     val selfLabel = stringResource(R.string.group_vouch_self_member)
 
-    val availableSuggestions = remember(suggestedPersons, currentMembers) {
-        val currentNames =
-            currentMembers.filterNot { it.isSelf }.map { it.personName.lowercase() }.toSet()
+    val availableSuggestions = remember(suggestedPersons, currentMemberNames) {
         suggestedPersons
-            .filter { it.person.name.lowercase() !in currentNames }
+            .filter { it.person.name.trim().lowercase() !in currentMemberNames }
             .sortedByDescending { it.vouchCount }
             .take(5)
     }
@@ -615,11 +621,11 @@ private fun GroupMemberSelector(
             )
 
             ExposedDropdownMenu(
-                expanded = expanded && results.isNotEmpty(),
+                expanded = expanded && filteredResults.isNotEmpty(),
                 onDismissRequest = { expanded = false },
                 containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
             ) {
-                results.forEach { searchResult ->
+                filteredResults.forEach { searchResult ->
                     DropdownMenuItem(
                         text = {
                             PersonListItem(
