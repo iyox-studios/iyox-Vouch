@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.GroupAdd
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.outlined.Archive
@@ -132,7 +133,6 @@ fun VouchesScreen(
                     val emptyTitle: String
                     val emptySubtitle: String
                     var showSettledButton = false
-                    var settledButtonCount = 0
                     var showResetFilterButton = false
 
                     when {
@@ -141,54 +141,17 @@ fun VouchesScreen(
                             emptyTitle = stringResource(R.string.empty_vouches_title)
                             emptySubtitle = stringResource(R.string.empty_vouches_subtitle)
                         }
-                        uiState.showOnlyGiven == VouchTypeFilter.ALL -> {
+                        uiState.activeVouchesCount == 0 -> {
                             emptyIcon = Icons.Outlined.Archive
                             emptyTitle = stringResource(R.string.all_settled_title)
                             emptySubtitle = stringResource(R.string.all_settled_global_subtitle)
                             showSettledButton = uiState.settledCount > 0
-                            settledButtonCount = uiState.settledCount
                         }
-                        uiState.showOnlyGiven == VouchTypeFilter.GIVEN -> {
-                            if (uiState.settledGivenCount > 0) {
-                                emptyIcon = Icons.Outlined.Archive
-                                emptyTitle = stringResource(R.string.all_settled_title)
-                                emptySubtitle = stringResource(R.string.all_settled_filtered_subtitle)
-                                showSettledButton = true
-                                settledButtonCount = uiState.settledGivenCount
-                                showResetFilterButton = true
-                            } else {
-                                emptyIcon = if (uiState.activeVouchesCount == 0) Icons.Outlined.Archive else Icons.Filled.Payments
-                                emptyTitle = stringResource(R.string.empty_vouches_given_title)
-                                emptySubtitle = if (uiState.activeVouchesCount == 0) {
-                                    stringResource(R.string.all_settled_global_subtitle)
-                                } else {
-                                    stringResource(R.string.empty_vouches_given_subtitle)
-                                }
-                                showSettledButton = uiState.settledCount > 0
-                                settledButtonCount = uiState.settledCount
-                                showResetFilterButton = true
-                            }
-                        }
-                        else -> { // VouchTypeFilter.RECEIVED
-                            if (uiState.settledReceivedCount > 0) {
-                                emptyIcon = Icons.Outlined.Archive
-                                emptyTitle = stringResource(R.string.all_settled_title)
-                                emptySubtitle = stringResource(R.string.all_settled_filtered_subtitle)
-                                showSettledButton = true
-                                settledButtonCount = uiState.settledReceivedCount
-                                showResetFilterButton = true
-                            } else {
-                                emptyIcon = if (uiState.activeVouchesCount == 0) Icons.Outlined.Archive else Icons.Filled.Payments
-                                emptyTitle = stringResource(R.string.empty_vouches_received_title)
-                                emptySubtitle = if (uiState.activeVouchesCount == 0) {
-                                    stringResource(R.string.all_settled_global_subtitle)
-                                } else {
-                                    stringResource(R.string.empty_vouches_received_subtitle)
-                                }
-                                showSettledButton = uiState.settledCount > 0
-                                settledButtonCount = uiState.settledCount
-                                showResetFilterButton = true
-                            }
+                        else -> {
+                            emptyIcon = Icons.Default.FilterList
+                            emptyTitle = stringResource(R.string.empty_vouches_filtered_title)
+                            emptySubtitle = stringResource(R.string.empty_vouches_filtered_subtitle)
+                            showResetFilterButton = true
                         }
                     }
 
@@ -241,7 +204,7 @@ fun VouchesScreen(
                                     Text(
                                         text = stringResource(
                                             R.string.action_view_settled_history,
-                                            settledButtonCount
+                                            uiState.settledCount
                                         ),
                                         modifier = Modifier.padding(start = 8.dp)
                                     )
@@ -250,9 +213,9 @@ fun VouchesScreen(
                             if (showResetFilterButton) {
                                 OutlinedButton(
                                     onClick = viewModel::resetTypeFilter,
-                                    modifier = Modifier.padding(top = if (showSettledButton) 4.dp else 8.dp)
+                                    modifier = Modifier.padding(top = 8.dp)
                                 ) {
-                                    Text(text = stringResource(R.string.action_show_all_vouches))
+                                    Text(text = stringResource(R.string.action_clear_filter))
                                 }
                             }
                         }

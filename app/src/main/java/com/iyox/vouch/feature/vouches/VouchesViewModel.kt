@@ -23,10 +23,6 @@ data class VouchesUiState(
     val totalVouchesCount: Int = 0,
     val activeVouchesCount: Int = 0,
     val settledCount: Int = 0,
-    val activeGivenCount: Int = 0,
-    val settledGivenCount: Int = 0,
-    val activeReceivedCount: Int = 0,
-    val settledReceivedCount: Int = 0,
     val showOnlyGiven: VouchTypeFilter = VouchTypeFilter.ALL,
     val sortedBy: VouchSortOrder = VouchSortOrder.DATE,
     val searchQuery: String = "",
@@ -61,11 +57,6 @@ class VouchesViewModel @Inject constructor(
         val totalVouchesCount = allVouches.size
         val activeVouchesCount = activeVouches.size
 
-        val activeGivenCount = activeVouches.count { it.vouch.given }
-        val settledGivenCount = allVouches.count { it.isSettled() && it.vouch.given }
-        val activeReceivedCount = activeVouches.count { !it.vouch.given }
-        val settledReceivedCount = allVouches.count { it.isSettled() && !it.vouch.given }
-
         val displayed = activeVouches.filterSearchAndSort(
             typeFilter = showOnlyGiven,
             searchQuery = searchQuery,
@@ -91,10 +82,6 @@ class VouchesViewModel @Inject constructor(
             totalVouchesCount = totalVouchesCount,
             activeVouchesCount = activeVouchesCount,
             settledCount = settledCount,
-            activeGivenCount = activeGivenCount,
-            settledGivenCount = settledGivenCount,
-            activeReceivedCount = activeReceivedCount,
-            settledReceivedCount = settledReceivedCount,
             showOnlyGiven = showOnlyGiven,
             sortedBy = sortedBy,
             searchQuery = searchQuery,
