@@ -87,4 +87,37 @@ class OnboardingScreenTest {
         composeTestRule.onNode(hasText(getStartedAction, substring = false) and hasClickAction()).performClick()
         assertTrue(finished)
     }
+
+    @Test
+    fun testOnboardingScreen_groupVouchesSlide_addPerson() {
+        composeTestRule.setContent {
+            IyoxVouchTheme {
+                OnboardingScreen(
+                    onFinish = {},
+                    currentCurrencyCode = "EUR"
+                )
+            }
+        }
+
+        val nextAction = context.getString(R.string.onboarding_next)
+
+        // Slide 0 -> 1
+        composeTestRule.onNode(hasText(nextAction, substring = false) and hasClickAction()).performClick()
+        composeTestRule.waitForIdle()
+
+        // Slide 1 -> 2 (Group Vouches)
+        composeTestRule.onNode(hasText(nextAction, substring = false) and hasClickAction()).performClick()
+        composeTestRule.waitForIdle()
+
+        // Verify initial member is visible
+        val selfLabel = context.getString(R.string.group_vouch_self_member)
+        composeTestRule.onNodeWithText(selfLabel, substring = true).assertIsDisplayed()
+
+        // Tap quick add chip "Sarah"
+        composeTestRule.onNode(hasText("Sarah", substring = false) and hasClickAction()).performClick()
+        composeTestRule.waitForIdle()
+
+        // Verify Sarah was added to the members list
+        composeTestRule.onNodeWithText("Sarah", substring = false).assertIsDisplayed()
+    }
 }

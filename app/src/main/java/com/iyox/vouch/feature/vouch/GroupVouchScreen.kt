@@ -644,78 +644,100 @@ private fun GroupMemberSelector(
             }
         }
 
-        if (query.isBlank() && (!isSelfAdded || availableSuggestions.isNotEmpty())) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                if (!isSelfAdded) {
-                    SuggestionChip(
-                        onClick = {
-                            onAddSelf(selfLabel)
-                            focusManager.clearFocus()
-                        },
-                        label = {
-                            Text(
-                                text = selfLabel,
-                                style = MaterialTheme.typography.labelMedium
-                            )
-                        },
-                        icon = {
-                            Icon(
-                                imageVector = Icons.Default.Add,
-                                contentDescription = null,
-                                modifier = Modifier.size(16.dp)
-                            )
-                        },
-                        shape = MaterialTheme.shapes.medium
-                    )
+        if (query.isBlank()) {
+            GroupMemberSuggestionsRow(
+                isSelfAdded = isSelfAdded,
+                selfLabel = selfLabel,
+                availableSuggestions = availableSuggestions,
+                onAddSelf = onAddSelf,
+                onPersonSelected = onPersonSelected,
+                focusManager = focusManager
+            )
+        }
+    }
+}
 
-                    if (availableSuggestions.isNotEmpty()) {
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Box(
-                            modifier = Modifier
-                                .width(1.dp)
-                                .height(22.dp)
-                                .background(
-                                    color = MaterialTheme.colorScheme.outlineVariant,
-                                    shape = CircleShape
-                                )
+@Composable
+fun GroupMemberSuggestionsRow(
+    isSelfAdded: Boolean,
+    selfLabel: String,
+    availableSuggestions: List<PersonTotal>,
+    onAddSelf: (String) -> Unit,
+    onPersonSelected: (Person) -> Unit,
+    focusManager: FocusManager,
+    modifier: Modifier = Modifier
+) {
+    if (!isSelfAdded || availableSuggestions.isNotEmpty()) {
+        Row(
+            modifier = modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (!isSelfAdded) {
+                SuggestionChip(
+                    onClick = {
+                        onAddSelf(selfLabel)
+                        focusManager.clearFocus()
+                    },
+                    label = {
+                        Text(
+                            text = selfLabel,
+                            style = MaterialTheme.typography.labelMedium
                         )
-                        Spacer(modifier = Modifier.width(8.dp))
-                    }
-                }
+                    },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    },
+                    shape = MaterialTheme.shapes.medium
+                )
 
                 if (availableSuggestions.isNotEmpty()) {
-                    Row(
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Box(
                         modifier = Modifier
-                            .weight(1f)
-                            .horizontalScroll(rememberScrollState()),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        availableSuggestions.forEach { personTotal ->
-                            SuggestionChip(
-                                onClick = {
-                                    onPersonSelected(personTotal.person)
-                                    focusManager.clearFocus()
-                                },
-                                label = {
-                                    Text(
-                                        text = personTotal.person.name,
-                                        style = MaterialTheme.typography.labelMedium
-                                    )
-                                },
-                                icon = {
-                                    Icon(
-                                        imageVector = Icons.Default.Add,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(16.dp)
-                                    )
-                                },
-                                shape = MaterialTheme.shapes.medium
+                            .width(1.dp)
+                            .height(22.dp)
+                            .background(
+                                color = MaterialTheme.colorScheme.outlineVariant,
+                                shape = CircleShape
                             )
-                        }
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                }
+            }
+
+            if (availableSuggestions.isNotEmpty()) {
+                Row(
+                    modifier = Modifier
+                        .weight(1f)
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    availableSuggestions.forEach { personTotal ->
+                        SuggestionChip(
+                            onClick = {
+                                onPersonSelected(personTotal.person)
+                                focusManager.clearFocus()
+                            },
+                            label = {
+                                Text(
+                                    text = personTotal.person.name,
+                                    style = MaterialTheme.typography.labelMedium
+                                )
+                            },
+                            icon = {
+                                Icon(
+                                    imageVector = Icons.Default.Add,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            },
+                            shape = MaterialTheme.shapes.medium
+                        )
                     }
                 }
             }
@@ -725,7 +747,7 @@ private fun GroupMemberSelector(
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun GroupMemberList(
+fun GroupMemberList(
     modifier: Modifier = Modifier,
     members: List<GroupMemberInput>,
     totalAmountMinor: Long = 0L,
