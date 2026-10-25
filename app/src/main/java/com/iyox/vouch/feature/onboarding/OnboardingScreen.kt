@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -68,6 +69,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -78,11 +80,14 @@ import com.iyox.vouch.R
 import com.iyox.vouch.core.currency.CurrencyGridSlot
 import com.iyox.vouch.core.currency.CurrencyManager
 import com.iyox.vouch.core.model.Person
+import com.iyox.vouch.core.model.PersonTotal
 import com.iyox.vouch.core.model.PersonWithAmount
 import com.iyox.vouch.core.model.Vouch
 import com.iyox.vouch.core.model.VouchWithPerson
 import com.iyox.vouch.feature.person.QuickActionsCard
 import com.iyox.vouch.feature.vouch.GroupMemberInput
+import com.iyox.vouch.feature.vouch.GroupMemberList
+import com.iyox.vouch.feature.vouch.GroupMemberSuggestionsRow
 import com.iyox.vouch.feature.vouch.GroupVouchSummaryCard
 import com.iyox.vouch.ui.components.CurrencyCard
 import com.iyox.vouch.ui.components.CurrencySearchCard
@@ -181,11 +186,11 @@ fun OnboardingScreen(
 
 @Composable
 private fun OnboardingBottomNavigation(
+    modifier: Modifier = Modifier,
     currentPage: Int,
     pageCount: Int = PAGE_COUNT,
     onBack: () -> Unit,
-    onNext: () -> Unit,
-    modifier: Modifier = Modifier
+    onNext: () -> Unit
 ) {
     Surface(
         color = MaterialTheme.colorScheme.surface,
@@ -447,17 +452,72 @@ private fun VouchesSlide() {
     }
 }
 
+private const val ONBOARDING_GROUP_VOUCH_TOTAL_MINOR = 21000L
+
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun GroupVouchesSlide() {
-    val sampleDesc = stringResource(R.string.onboarding_slide2_sample_desc)
+    val selfLabel = stringResource(R.string.group_vouch_self_member)
+    val haptic = LocalHapticFeedback.current
+    val focusManager = LocalFocusManager.current
 
-    val sampleMembers = remember {
-        listOf(
-            GroupMemberInput(personName = "Me", amount = "20.00", isCustom = false, isSelf = true),
-            GroupMemberInput(personName = "Sarah", amount = "20.00", isCustom = false, isSelf = false),
-            GroupMemberInput(personName = "Tom", amount = "20.00", isCustom = false, isSelf = false)
+    val vouchTotalMinor = ONBOARDING_GROUP_VOUCH_TOTAL_MINOR
+    val totalAmountString = remember(vouchTotalMinor) {
+        CurrencyManager.formatAmount(vouchTotalMinor)
+    }
+
+    fun recomputeSplits(inputMembers: List<GroupMemberInput>): List<GroupMemberInput> {
+        if (inputMembers.isEmpty()) return emptyList()
+
+        val customSum = inputMembers
+            .filter { it.isCustom }
+            .sumOf { CurrencyManager.parseToMinorUnits(it.amount) ?: 0L }
+
+        val nonCustomCount = inputMembers.count { !it.isCustom }
+        if (nonCustomCount == 0) return inputMembers
+
+        val remaining = maxOf(0L, vouchTotalMinor - customSum)
+        val defaultAmount = remaining / nonCustomCount
+        val defaultAmountStr = CurrencyManager.formatAmount(defaultAmount)
+
+        return inputMembers.map { member ->
+            if (member.isCustom) {
+                member
+            } else {
+                member.copy(amount = defaultAmountStr)
+            }
+        }
+    }
+
+    var members by remember {
+        mutableStateOf(
+            recomputeSplits(
+                listOf(
+                    GroupMemberInput(personName = selfLabel, amount = "", isCustom = false, isSelf = true)
+                )
+            )
         )
+    }
+
+    val suggestedPersons = remember {
+        listOf(
+            PersonTotal(person = Person(id = 1, name = "Sarah"), amount = 0L, vouchCount = 10),
+            PersonTotal(person = Person(id = 2, name = "Tom"), amount = 0L, vouchCount = 8),
+            PersonTotal(person = Person(id = 3, name = "Alex"), amount = 0L, vouchCount = 5),
+            PersonTotal(person = Person(id = 4, name = "Emma"), amount = 0L, vouchCount = 4),
+            PersonTotal(person = Person(id = 5, name = "Lucas"), amount = 0L, vouchCount = 3)
+        )
+    }
+
+    val currentMemberNames = remember(members) {
+        members.map { it.personName.trim().lowercase() }.toSet()
+    }
+    val isSelfAdded = remember(members) { members.any { it.isSelf } }
+    val availableSuggestions = remember(suggestedPersons, currentMemberNames) {
+        suggestedPersons
+            .filter { it.person.name.trim().lowercase() !in currentMemberNames }
+            .sortedByDescending { it.vouchCount }
+            .take(5)
     }
 
     Column(
@@ -473,39 +533,86 @@ private fun GroupVouchesSlide() {
         )
 
         Column(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+                .padding(vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             GroupVouchSummaryCard(
-                amount = "60.00",
+                amount = totalAmountString,
                 isGiven = true,
-                members = sampleMembers,
-                onResetAllToEqual = {}
+                members = members,
+                onResetAllToEqual = {
+                    haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
+                    members = recomputeSplits(members.map { it.copy(isCustom = false) })
+                }
             )
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                listOf("Me (20 €)", "Sarah (20 €)", "Tom (20 €)").forEach { memberText ->
-                    Surface(
-                        shape = CircleShape,
-                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text(
-                            text = memberText,
-                            style = MaterialTheme.typography.labelSmall,
-                            textAlign = TextAlign.Center,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.padding(vertical = 4.dp, horizontal = 4.dp),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+            GroupMemberSuggestionsRow(
+                isSelfAdded = isSelfAdded,
+                selfLabel = selfLabel,
+                availableSuggestions = availableSuggestions,
+                onAddSelf = { selfName ->
+                    haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
+                    val newMember = GroupMemberInput(
+                        personName = selfName,
+                        amount = "",
+                        isCustom = false,
+                        isSelf = true
+                    )
+                    members = recomputeSplits(listOf(newMember) + members)
+                },
+                onPersonSelected = { person ->
+                    haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
+                    val newMember = GroupMemberInput(
+                        personName = person.name,
+                        amount = "",
+                        isCustom = false,
+                        isSelf = false
+                    )
+                    members = recomputeSplits(members + newMember)
+                },
+                focusManager = focusManager
+            )
+
+            GroupMemberList(
+                members = members,
+                totalAmountMinor = vouchTotalMinor,
+                onAmountChange = { target, newAmount ->
+                    val updated = members.map { member ->
+                        if (member.personName == target.personName) {
+                            member.copy(amount = newAmount, isCustom = true)
+                        } else {
+                            member
+                        }
                     }
-                }
-            }
+                    members = recomputeSplits(updated)
+                },
+                onResetMember = { target ->
+                    haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
+                    val updated = members.map { member ->
+                        if (member.personName == target.personName) {
+                            member.copy(isCustom = false)
+                        } else {
+                            member
+                        }
+                    }
+                    members = recomputeSplits(updated)
+                },
+                onRemove = { target ->
+                    haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
+                    members = recomputeSplits(members.filter { it.personName != target.personName })
+                },
+                focusManager = focusManager,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f, fill = false)
+                    .heightIn(max = 160.dp)
+            )
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
 
         TipCard(
             icon = Icons.Outlined.Lightbulb,
