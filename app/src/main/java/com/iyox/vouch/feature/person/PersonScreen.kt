@@ -669,20 +669,14 @@ fun VouchExportTemplate(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
-                    Text(
-                        text = when {
-                            totalAmount > 0L -> stringResource(R.string.label_given)
-                            totalAmount < 0L -> stringResource(R.string.label_received)
-                            else -> stringResource(R.string.label_settled)
-                        },
-                        style = MaterialTheme.typography.labelMedium,
-                        color = when {
-                            totalAmount > 0L -> MaterialTheme.colorScheme.primary
-                            totalAmount < 0L -> MaterialTheme.colorScheme.error
-                            else -> MaterialTheme.colorScheme.outline
-                        },
-                        fontWeight = FontWeight.Medium
-                    )
+                    if (totalAmount == 0L) {
+                        Text(
+                            text = stringResource(R.string.label_settled),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.outline,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
                 }
 
                 Text(
@@ -697,62 +691,6 @@ fun VouchExportTemplate(
                 )
             }
 
-            // Subtotals summary if both given and owed exist
-            if (amountGiven > 0L && amountOwed > 0L) {
-                Surface(
-                    shape = MaterialTheme.shapes.medium,
-                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 14.dp, vertical = 10.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Icon(
-                                imageVector = Icons.Outlined.ArrowOutward,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Text(
-                                text = stringResource(R.string.label_given),
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Text(
-                                text = CurrencyManager.formatAmountWithSymbol(amountGiven),
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Icon(
-                                imageVector = Icons.Outlined.SouthWest,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.error,
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Text(
-                                text = stringResource(R.string.label_received),
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Text(
-                                text = CurrencyManager.formatAmountWithSymbol(amountOwed),
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-                    }
-                }
-            }
 
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
