@@ -147,27 +147,35 @@ fun PersonScreen(
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
-                    Text(
-                        text = currentPersonName,
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Spacer(modifier = Modifier.size(48.dp))
+                        Text(
+                            text = currentPersonName,
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.weight(1f, fill = false)
+                        )
+                        IconButton(
+                            onClick = {
+                                renameErrorMessage = null
+                                showRenameDialog = true
+                            },
+                            modifier = Modifier.size(48.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Edit,
+                                contentDescription = stringResource(R.string.cd_rename_person)
+                            )
+                        }
+                    }
                 },
                 navigationIcon = {
                     VouchBackButton(onClick = onNavigateBack)
-                },
-                actions = {
-                    IconButton(onClick = {
-                        renameErrorMessage = null
-                        showRenameDialog = true
-                    }) {
-                        Icon(
-                            imageVector = Icons.Outlined.Edit,
-                            contentDescription = stringResource(R.string.cd_rename_person)
-                        )
-                    }
                 }
             )
         }
