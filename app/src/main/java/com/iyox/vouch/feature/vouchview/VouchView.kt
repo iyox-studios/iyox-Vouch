@@ -949,21 +949,13 @@ fun SingleVouchExportTemplate(
                     }
                 }
 
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = CurrencyManager.formatAmountWithSymbol(vouch.vouch.amount),
-                        style = MaterialTheme.typography.headlineMedium.copy(fontSize = 24.sp),
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = if (vouch.vouch.given) stringResource(R.string.label_given) else stringResource(
-                            R.string.label_received
-                        ),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+                Text(
+                    text = CurrencyManager.formatAmountWithSymbol(vouch.vouch.amount),
+                    style = MaterialTheme.typography.headlineMedium.copy(fontSize = 24.sp),
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.weight(1f)
+                )
 
                 if (isSettled) {
                     Surface(
