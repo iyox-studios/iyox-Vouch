@@ -53,30 +53,30 @@ fun VouchSwipeToDismiss(
     content: @Composable () -> Unit
 ) {
     val haptics = LocalHapticFeedback.current
+    val density = LocalDensity.current
+    val minDragDistancePx = with(density) { 100.dp.toPx() }
     val coroutineScope = rememberCoroutineScope()
     val currentOnStartToEnd by rememberUpdatedState(onStartToEnd)
     val currentOnEndToStart by rememberUpdatedState(onEndToStart)
     var isDismissing by remember { mutableStateOf(false) }
 
     lateinit var dismissState: SwipeToDismissBoxState
-    val strictConfirmValueChange: (SwipeToDismissBoxValue) -> Boolean = { targetValue ->
-        if (targetValue == SwipeToDismissBoxValue.Settled) {
-            true
-        } else if (isDismissing) {
-            false
-        } else {
-            val currentOffset = try {
-                dismissState.requireOffset()
-            } catch (e: Exception) {
-                0f
-            }
-            abs(currentOffset) >= 500
-        }
-    }
-
-
     dismissState = rememberSwipeToDismissBoxState(
-        confirmValueChange = strictConfirmValueChange
+        positionalThreshold = { totalDistance -> totalDistance * 0.4f },
+        confirmValueChange = { targetValue ->
+            if (targetValue == SwipeToDismissBoxValue.Settled) {
+                true
+            } else if (isDismissing) {
+                false
+            } else {
+                val offset = try {
+                    dismissState.requireOffset()
+                } catch (_: Exception) {
+                    0f
+                }
+                abs(offset) >= minDragDistancePx
+            }
+        }
     )
 
     LaunchedEffect(Unit) {
@@ -111,6 +111,7 @@ fun VouchSwipeToDismiss(
     SwipeToDismissBox(
         state = dismissState,
         onDismiss = handleDismiss,
+        gesturesEnabled = !isDismissing,
         backgroundContent = {
             val direction = dismissState.dismissDirection
 
