@@ -1,8 +1,3 @@
-iyox Vouch ist ein moderner und übersichtlicher Schulden- und Ausgaben-Manager. Behalte geliehenes und verliehenes Geld mit Freunden, Familie oder Gruppen immer im Blick.
+iyox Vouch ist eine übersichtliche und einfache App zur Verwaltung persönlicher Schulden und IOUs. Mit ihr können Sie geliehenes oder verliehenes Geld nachverfolgen und Gruppenausgaben über eine gut strukturierte, übersichtliche Benutzeroberfläche aufteilen. Behalten Sie den Überblick über individuelle Salden, verwalten Sie Schuldscheine und begleichen Sie Rechnungen mit einem einzigen Fingertipp.
 
-Funktionen:
-• Schnelle Einzel- und Gruppen-Vouches: Rechnungen und Ausgaben mühelos aufteilen
-• Mehrwährungsunterstützung: Beliebige Währungen mit automatischer Formatierung
-• Personen & Settled Space: Vollständige Übersicht über beglichene Schulden
-• Datenschutz an erster Stelle: Lokale Datenspeicherung mit optionalem biometrischem Schutz und verschlüsselten Backups
-• Modernes Material 3 Design: Dynamische Farben mit Dark- und Light-Themes
+iyox Vouch besticht durch ein ansprechendes „Material You“-Design und legt besonderen Wert darauf, Ihre Daten lokal und sicher zu speichern. Ganz gleich, ob Sie die Rechnung für ein Abendessen aufteilen, Haushaltsausgaben teilen oder private Kredite im Blick behalten möchten, die App bietet Ihnen eine übersichtliche und zuverlässige Möglichkeit, Ihre privaten Schulden im Griff zu behalten. Dank biometrischer Sperren, vollständiger Offline-Funktionalität und einfacher JSON-Backups behalten Sie die volle Kontrolle über Ihre privaten Finanzdaten.

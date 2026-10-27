@@ -6,15 +6,16 @@ default_platform(:android)
 platform :android do
   before_all do
     # Load SOPS encrypted secrets if secrets.yaml is present
-    if File.exist?("secrets.yaml") && (ENV["KEYSTORE_PASSWORD"].nil? || ENV["KEYSTORE_PASSWORD"].empty?)
+    secrets_path = ["secrets.yaml", "../secrets.yaml"].find { |f| File.exist?(f) }
+    if secrets_path && (ENV["KEYSTORE_PASSWORD"].nil? || ENV["KEYSTORE_PASSWORD"].empty?)
       require "yaml"
       begin
-        decrypted_raw = `sops -d secrets.yaml 2>/dev/null`
+        decrypted_raw = `sops -d #{secrets_path} 2>/dev/null`
         if $?.success? && !decrypted_raw.empty?
           decrypted = YAML.safe_load(decrypted_raw)
           if decrypted.is_a?(Hash)
             decrypted.each { |k, v| ENV[k.to_s] ||= v.to_s }
-            UI.message("Loaded secrets from secrets.yaml via SOPS")
+            UI.message("Loaded secrets from #{secrets_path} via SOPS")
           end
         end
       rescue => e
@@ -41,12 +42,39 @@ platform :android do
 
     # 2. Upload to Google Play
     upload_options = {
+      package_name: "com.iyox.vouch",
       track: track,
       validate_only: validate_only,
       skip_upload_metadata: options[:skip_metadata] || false,
       skip_upload_images: options[:skip_images] || false,
       skip_upload_screenshots: options[:skip_screenshots] || false,
       skip_upload_changelogs: options[:skip_changelogs] || false
+    }
+
+    if ENV["SUPPLY_JSON_KEY_DATA"] && !ENV["SUPPLY_JSON_KEY_DATA"].empty?
+      upload_options[:json_key_data] = ENV["SUPPLY_JSON_KEY_DATA"]
+    elsif ENV["SUPPLY_JSON_KEY"] && !ENV["SUPPLY_JSON_KEY"].empty?
+      upload_options[:json_key] = ENV["SUPPLY_JSON_KEY"]
+    end
+
+    upload_to_play_store(upload_options)
+  end
+
+  desc "Upload screenshots and store listing metadata to Google Play without a new release"
+  lane :publish_screenshots do |options|
+    track = options[:track] || ENV["PLAY_STORE_TRACK"] || "internal"
+    validate_only = options[:validate_only] || false
+
+    upload_options = {
+      package_name: "com.iyox.vouch",
+      track: track,
+      skip_upload_apk: true,
+      skip_upload_aab: true,
+      skip_upload_changelogs: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: false,
+      skip_upload_metadata: options[:upload_metadata] ? false : true,
+      validate_only: validate_only
     }
 
     if ENV["SUPPLY_JSON_KEY_DATA"] && !ENV["SUPPLY_JSON_KEY_DATA"].empty?

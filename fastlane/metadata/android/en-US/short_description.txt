@@ -1,1 +1,1 @@
-Track debts, shared expenses, and group vouches simply and privately.
+Clean and simple, local debt and IOU tracker.
