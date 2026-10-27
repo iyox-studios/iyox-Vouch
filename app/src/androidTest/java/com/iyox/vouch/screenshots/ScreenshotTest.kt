@@ -72,7 +72,16 @@ class ScreenshotTest {
             .commit()
 
         try {
-            InstrumentationRegistry.getInstrumentation().uiAutomation.executeShellCommand("cmd uimode night yes")
+            val uiAutomation = InstrumentationRegistry.getInstrumentation().uiAutomation
+            uiAutomation.executeShellCommand("cmd uimode night yes")
+            uiAutomation.executeShellCommand("settings put global sysui_demo_allowed 1")
+            uiAutomation.executeShellCommand("settings put system time_12_24 24")
+            uiAutomation.executeShellCommand("settings put system status_bar_show_battery_percent 1")
+            uiAutomation.executeShellCommand("am broadcast -a com.android.systemui.demo -e command enter")
+            uiAutomation.executeShellCommand("am broadcast -a com.android.systemui.demo -e command clock -e hhmm 1700")
+            uiAutomation.executeShellCommand("am broadcast -a com.android.systemui.demo -e command battery -e level 100 -e plugged false")
+            uiAutomation.executeShellCommand("am broadcast -a com.android.systemui.demo -e command network -e wifi show -e level 4 -e fully true")
+            uiAutomation.executeShellCommand("am broadcast -a com.android.systemui.demo -e command notifications -e visible false")
         } catch (_: Exception) {
         }
 
