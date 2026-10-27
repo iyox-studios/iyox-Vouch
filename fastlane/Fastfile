@@ -64,6 +64,7 @@ platform :android do
       task: "assembleDebug assembleAndroidTest",
       project_dir: "./"
     )
+    sh("adb shell cmd uimode night yes")
     screengrab
   end
 end

@@ -1,6 +1,7 @@
 package com.iyox.vouch.screenshots
 
 import android.app.Application
+import android.app.UiModeManager
 import android.content.Context
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.SemanticsProperties
@@ -61,13 +62,19 @@ class ScreenshotTest {
         val isGerman = Locale.getDefault().language == "de"
         val currencyCode = if (isGerman) "EUR" else "USD"
 
-        // 1. Initialize preferences: mark onboarding complete, disable biometrics, and set currency
+        // 1. Initialize preferences: mark onboarding complete, disable biometrics, dark mode, and set currency
         val prefs = context.getSharedPreferences(PreferenceKeys.PREFS_SETTINGS, Context.MODE_PRIVATE)
         prefs.edit()
             .putBoolean(PreferenceKeys.KEY_ONBOARDING_COMPLETED, true)
             .putBoolean(PreferenceKeys.KEY_BIOMETRIC_ENABLED, false)
             .putString(PreferenceKeys.KEY_CURRENCY_CODE, currencyCode)
+            .putInt(PreferenceKeys.KEY_THEME, UiModeManager.MODE_NIGHT_YES)
             .commit()
+
+        try {
+            InstrumentationRegistry.getInstrumentation().uiAutomation.executeShellCommand("cmd uimode night yes")
+        } catch (_: Exception) {
+        }
 
         // 2. Pre-populate database from localized .iyxv backup files
         val database = AppDatabase.getDatabase(context)
