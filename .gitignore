@@ -42,6 +42,7 @@ app/release/
 !.env.example
 fastlane/report.xml
 fastlane/Preview.html
+fastlane/metadata/android/screenshots.html
 fastlane/test_output
 *play-store-credentials*.json
 *.secret.env
