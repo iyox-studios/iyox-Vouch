@@ -13,4 +13,8 @@ clear_previous_screenshots(true)
 # Output directory matching fastlane play store metadata structure
 output_directory('fastlane/metadata/android')
 
-stop_on_failure(false)
+app_apk_path('app/build/outputs/apk/debug/app-debug.apk')
+tests_apk_path('app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk')
+
+skip_open_summary(true)
+exit_on_test_failure(false)
