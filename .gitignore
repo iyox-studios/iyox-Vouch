@@ -36,6 +36,7 @@ google-services.json
 app/release/
 
 # Fastlane & Environment Secrets
+.direnv
 .env
 .env.*
 !.env.example
