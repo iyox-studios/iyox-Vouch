@@ -34,3 +34,15 @@ google-services.json
 *.hprof
 
 app/release/
+
+# Fastlane & Environment Secrets
+.env
+.env.*
+!.env.example
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/test_output
+*play-store-credentials*.json
+*.secret.env
+secrets.dec.*
+
