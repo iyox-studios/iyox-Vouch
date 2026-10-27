@@ -1,0 +1,37 @@
+opt_out_usage
+
+# Fastfile for iyox-Vouch
+default_platform(:android)
+
+platform :android do
+  before_all do
+    # Fastlane automatically loads .env files when dotenv is present
+  end
+
+  desc "Build the signed Android App Bundle (.aab)"
+  lane :build_release do
+    gradle(
+      task: "bundleRelease",
+      project_dir: "./"
+    )
+  end
+
+  desc "Build and upload release AAB to Google Play Store (default track: internal)"
+  lane :release do |options|
+    track = options[:track] || ENV["PLAY_STORE_TRACK"] || "internal"
+    validate_only = options[:validate_only] || false
+
+    # 1. Build the release bundle
+    build_release
+
+    # 2. Upload to Google Play
+    upload_to_play_store(
+      track: track,
+      validate_only: validate_only,
+      skip_upload_metadata: options[:skip_metadata] || false,
+      skip_upload_images: options[:skip_images] || false,
+      skip_upload_screenshots: options[:skip_screenshots] || false,
+      skip_upload_changelogs: options[:skip_changelogs] || false
+    )
+  end
+end
