@@ -9,7 +9,21 @@
   outputs = { self, nixpkgs, flake-utils }:
     flake-utils.lib.eachDefaultSystem (system:
       let
-        pkgs = nixpkgs.legacyPackages.${system};
+        pkgs = import nixpkgs {
+          inherit system;
+          config = {
+            android_sdk.accept_license = true;
+            allowUnfree = true;
+          };
+        };
+
+        androidComposition = pkgs.androidenv.composeAndroidPackages {
+          platformVersions = [ "36" ];
+          buildToolsVersions = [ "37.0.0" ];
+          includeNDK = false;
+        };
+
+        androidSdk = androidComposition.androidsdk;
       in
       {
         devShells.default = pkgs.mkShell {
@@ -17,7 +31,19 @@
             fastlane
             sops
             ruby
+            jdk17
+            androidSdk
           ];
+
+          env = {
+            JAVA_HOME = "${pkgs.jdk17}";
+            ANDROID_HOME = "${androidSdk}/libexec/android-sdk";
+            ANDROID_SDK_ROOT = "${androidSdk}/libexec/android-sdk";
+          };
+
+          shellHook = ''
+            echo "sdk.dir=''${ANDROID_HOME}" > local.properties
+          '';
         };
       }
     );
