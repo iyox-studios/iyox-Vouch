@@ -71,7 +71,7 @@ class SingleVouchViewModelTest {
         viewModel.onGivenChange(true)
         viewModel.onDescriptionChange(" Lunch with Alice ")
 
-        val saved = viewModel.saveVouch()
+        val saved = viewModel.saveVouchDirect()
         assertNotNull(saved)
         assertTrue(viewModel.uiState.value.saveSuccess)
         assertEquals(2550L, saved?.vouch?.amount)
@@ -90,7 +90,7 @@ class SingleVouchViewModelTest {
         viewModel.onAmountChange("abc")
         viewModel.onPersonChange("Bob")
 
-        val saved = viewModel.saveVouch()
+        val saved = viewModel.saveVouchDirect()
         assertNull(saved)
         assertFalse(viewModel.uiState.value.saveSuccess)
     }
@@ -113,7 +113,7 @@ class SingleVouchViewModelTest {
         viewModel.onDescriptionChange("New Description")
         viewModel.onGivenChange(false)
 
-        val saved = viewModel.saveVouch()
+        val saved = viewModel.saveVouchDirect()
         assertNotNull(saved)
         assertEquals(3000L, saved?.vouch?.amount)
         assertEquals("New Description", saved?.vouch?.description)

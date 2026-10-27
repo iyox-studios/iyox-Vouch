@@ -286,7 +286,7 @@ class GroupVouchViewModelTest {
         assertFalse(savedBob?.isSelf == true)
 
         // Reload the saved vouch: self member should be loaded first and have isSelf = true
-        val reloadedViewModel = createViewModel(saved.vouch.id)
+        val reloadedViewModel = createViewModel(saved!!.vouch.id)
         val loadedMembers = reloadedViewModel.uiState.value.members
         assertEquals(3, loadedMembers.size)
         val loadedMe = loadedMembers.find { it.isSelf }

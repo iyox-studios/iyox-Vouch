@@ -18,8 +18,8 @@
         };
 
         androidComposition = pkgs.androidenv.composeAndroidPackages {
-          platformVersions = [ "36" ];
-          buildToolsVersions = [ "37.0.0" ];
+          platformVersions = [ "35" "36" ];
+          buildToolsVersions = [ "35.0.0" "36.0.0" ];
           includeNDK = false;
         };
 
@@ -31,14 +31,15 @@
             fastlane
             sops
             ruby
-            jdk17
+            jdk21
             androidSdk
           ];
 
           env = {
-            JAVA_HOME = "${pkgs.jdk17}";
+            JAVA_HOME = "${pkgs.jdk21}";
             ANDROID_HOME = "${androidSdk}/libexec/android-sdk";
             ANDROID_SDK_ROOT = "${androidSdk}/libexec/android-sdk";
+            GRADLE_OPTS = "-Dorg.gradle.java.installations.auto-download=false -Dorg.gradle.java.installations.paths=${pkgs.jdk21}";
           };
 
           shellHook = ''

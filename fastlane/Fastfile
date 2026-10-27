@@ -34,4 +34,13 @@ platform :android do
       skip_upload_changelogs: options[:skip_changelogs] || false
     )
   end
+
+  desc "Generate localized screenshots for all configured locales via screengrab"
+  lane :screenshots do
+    gradle(
+      task: "assembleDebug assembleAndroidTest",
+      project_dir: "./"
+    )
+    screengrab
+  end
 end
