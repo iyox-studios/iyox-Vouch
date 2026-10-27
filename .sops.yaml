@@ -1,0 +1,8 @@
+keys:
+  - &basti age1psstc5ve5jm2afnjy3qwex4h0r54030pf3nwzf5sp2eqtt02jf9q3jhw38
+
+creation_rules:
+  - path_regex: ^secrets\.enc\.(yaml|env)$
+    key_groups:
+      - age:
+          - *basti

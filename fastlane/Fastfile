@@ -5,7 +5,22 @@ default_platform(:android)
 
 platform :android do
   before_all do
-    # Fastlane automatically loads .env files when dotenv is present
+    # Load SOPS encrypted secrets if secrets.enc.yaml is present
+    if File.exist?("secrets.enc.yaml") && (ENV["KEYSTORE_PASSWORD"].nil? || ENV["KEYSTORE_PASSWORD"].empty?)
+      require "yaml"
+      begin
+        decrypted_raw = `sops -d secrets.enc.yaml 2>/dev/null`
+        if $?.success? && !decrypted_raw.empty?
+          decrypted = YAML.safe_load(decrypted_raw)
+          if decrypted.is_a?(Hash)
+            decrypted.each { |k, v| ENV[k.to_s] ||= v.to_s }
+            UI.message("Loaded secrets from secrets.enc.yaml via SOPS")
+          end
+        end
+      rescue => e
+        UI.important("SOPS decryption skipped: #{e.message}")
+      end
+    end
   end
 
   desc "Build the signed Android App Bundle (.aab)"
@@ -25,14 +40,22 @@ platform :android do
     build_release
 
     # 2. Upload to Google Play
-    upload_to_play_store(
+    upload_options = {
       track: track,
       validate_only: validate_only,
       skip_upload_metadata: options[:skip_metadata] || false,
       skip_upload_images: options[:skip_images] || false,
       skip_upload_screenshots: options[:skip_screenshots] || false,
       skip_upload_changelogs: options[:skip_changelogs] || false
-    )
+    }
+
+    if ENV["SUPPLY_JSON_KEY_DATA"] && !ENV["SUPPLY_JSON_KEY_DATA"].empty?
+      upload_options[:json_key_data] = ENV["SUPPLY_JSON_KEY_DATA"]
+    elsif ENV["SUPPLY_JSON_KEY"] && !ENV["SUPPLY_JSON_KEY"].empty?
+      upload_options[:json_key] = ENV["SUPPLY_JSON_KEY"]
+    end
+
+    upload_to_play_store(upload_options)
   end
 
   desc "Generate localized screenshots for all configured locales via screengrab"
