@@ -5,16 +5,16 @@ default_platform(:android)
 
 platform :android do
   before_all do
-    # Load SOPS encrypted secrets if secrets.enc.yaml is present
-    if File.exist?("secrets.enc.yaml") && (ENV["KEYSTORE_PASSWORD"].nil? || ENV["KEYSTORE_PASSWORD"].empty?)
+    # Load SOPS encrypted secrets if secrets.yaml is present
+    if File.exist?("secrets.yaml") && (ENV["KEYSTORE_PASSWORD"].nil? || ENV["KEYSTORE_PASSWORD"].empty?)
       require "yaml"
       begin
-        decrypted_raw = `sops -d secrets.enc.yaml 2>/dev/null`
+        decrypted_raw = `sops -d secrets.yaml 2>/dev/null`
         if $?.success? && !decrypted_raw.empty?
           decrypted = YAML.safe_load(decrypted_raw)
           if decrypted.is_a?(Hash)
             decrypted.each { |k, v| ENV[k.to_s] ||= v.to_s }
-            UI.message("Loaded secrets from secrets.enc.yaml via SOPS")
+            UI.message("Loaded secrets from secrets.yaml via SOPS")
           end
         end
       rescue => e
