@@ -26,6 +26,7 @@ import com.iyox.vouch.R
 import com.iyox.vouch.core.backup.BackupPreview
 import com.iyox.vouch.core.backup.BackupRepository
 import com.iyox.vouch.core.backup.IyoxEnvelope
+import com.iyox.vouch.core.currency.CurrencyManager
 import com.iyox.vouch.core.data.AppDatabase
 import com.iyox.vouch.core.data.VouchRepository
 import com.iyox.vouch.core.utils.PreferenceKeys
@@ -59,7 +60,8 @@ class ScreenshotTest {
     fun captureAppScreenshots() {
         val context: Application = ApplicationProvider.getApplicationContext()
         val instrumentationContext = InstrumentationRegistry.getInstrumentation().context
-        val isGerman = Locale.getDefault().language == "de"
+        val testLocaleArg = InstrumentationRegistry.getArguments().getString("testLocale")
+        val isGerman = testLocaleArg?.startsWith("de") == true || Locale.getDefault().language == "de"
         val currencyCode = if (isGerman) "EUR" else "USD"
 
         // 1. Initialize preferences: mark onboarding complete, disable biometrics, dark mode, and set currency
@@ -70,6 +72,8 @@ class ScreenshotTest {
             .putString(PreferenceKeys.KEY_CURRENCY_CODE, currencyCode)
             .putInt(PreferenceKeys.KEY_THEME, UiModeManager.MODE_NIGHT_YES)
             .commit()
+
+        CurrencyManager.setCurrency(currencyCode)
 
         try {
             val uiAutomation = InstrumentationRegistry.getInstrumentation().uiAutomation
@@ -116,7 +120,10 @@ class ScreenshotTest {
         val backDesc = context.getString(R.string.cd_back)
 
         // 4. Launch MainActivity and capture all 7 screens
-        ActivityScenario.launch(MainActivity::class.java).use {
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            scenario.onActivity {
+                CurrencyManager.setCurrency(currencyCode)
+            }
             composeTestRule.waitForIdle()
             Thread.sleep(1000)
 
@@ -189,7 +196,13 @@ class ScreenshotTest {
             val sampleDesc = if (isGerman) "Schlaraffenland" else "Food Paradise"
             composeTestRule.onNodeWithText(descLabel).performTextInput(sampleDesc)
             composeTestRule.waitForIdle()
+            composeTestRule.onNodeWithText(sampleDesc).performImeAction()
+            composeTestRule.waitForIdle()
             Espresso.closeSoftKeyboard()
+            scenario.onActivity { activity ->
+                activity.currentFocus?.clearFocus()
+            }
+            composeTestRule.waitForIdle()
             Thread.sleep(700)
             Screengrab.screenshot("05_add_vouch")
 
