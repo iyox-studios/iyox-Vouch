@@ -1,0 +1,8 @@
+iyox Vouch ist ein moderner und übersichtlicher Schulden- und Ausgaben-Manager. Behalte geliehenes und verliehenes Geld mit Freunden, Familie oder Gruppen immer im Blick.
+
+Funktionen:
+• Schnelle Einzel- und Gruppen-Vouches: Rechnungen und Ausgaben mühelos aufteilen
+• Mehrwährungsunterstützung: Beliebige Währungen mit automatischer Formatierung
+• Personen & Settled Space: Vollständige Übersicht über beglichene Schulden
+• Datenschutz an erster Stelle: Lokale Datenspeicherung mit optionalem biometrischem Schutz und verschlüsselten Backups
+• Modernes Material 3 Design: Dynamische Farben mit Dark- und Light-Themes

@@ -1,0 +1,8 @@
+iyox Vouch is a clean, modern debt and expense tracker designed to help you keep track of money lent to or borrowed from friends, family, and groups.
+
+Features:
+• Quick Single & Group Vouches: Split bills and expenses easily
+• Multi-Currency Support: Custom currencies with automatic formatting
+• People & Settled Spaces: Clear history of settled balances
+• Privacy First: Local storage with optional biometric lock and encrypted backups
+• Beautiful Material 3 Design: Dynamic colors with dark and light themes
