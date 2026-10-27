@@ -66,9 +66,11 @@ platform :android do
     )
     # Enable dark mode & Developer Settings' System UI Demo Mode on device
     sh("adb shell cmd uimode night yes")
+    sh('adb shell \'settings put secure theme_customization_overlay_packages "{\"android.theme.customization.system_palette\":\"AAB0D5\",\"android.theme.customization.accent_color\":\"AAB0D5\",\"android.theme.customization.theme_style\":\"TONAL_SPOT\",\"android.theme.customization.color_source\":\"preset\"}"\'')
     sh("adb shell settings put global sysui_demo_allowed 1")
     sh("adb shell settings put system time_12_24 24")
     sh("adb shell settings put system status_bar_show_battery_percent 1")
+    sh("adb shell settings put system font_scale 1.0")
     sh("adb shell am broadcast -a com.android.systemui.demo -e command enter")
     sh("adb shell am broadcast -a com.android.systemui.demo -e command clock -e hhmm 1700")
     sh("adb shell am broadcast -a com.android.systemui.demo -e command battery -e level 100 -e plugged false")

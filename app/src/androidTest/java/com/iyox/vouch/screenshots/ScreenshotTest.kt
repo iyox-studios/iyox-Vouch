@@ -74,9 +74,11 @@ class ScreenshotTest {
         try {
             val uiAutomation = InstrumentationRegistry.getInstrumentation().uiAutomation
             uiAutomation.executeShellCommand("cmd uimode night yes")
+            uiAutomation.executeShellCommand("settings put secure theme_customization_overlay_packages \"{\\\"android.theme.customization.system_palette\\\":\\\"AAB0D5\\\",\\\"android.theme.customization.accent_color\\\":\\\"AAB0D5\\\",\\\"android.theme.customization.theme_style\\\":\\\"TONAL_SPOT\\\",\\\"android.theme.customization.color_source\\\":\\\"preset\\\"}\"")
             uiAutomation.executeShellCommand("settings put global sysui_demo_allowed 1")
             uiAutomation.executeShellCommand("settings put system time_12_24 24")
             uiAutomation.executeShellCommand("settings put system status_bar_show_battery_percent 1")
+            uiAutomation.executeShellCommand("settings put system font_scale 1.0")
             uiAutomation.executeShellCommand("am broadcast -a com.android.systemui.demo -e command enter")
             uiAutomation.executeShellCommand("am broadcast -a com.android.systemui.demo -e command clock -e hhmm 1700")
             uiAutomation.executeShellCommand("am broadcast -a com.android.systemui.demo -e command battery -e level 100 -e plugged false")
