@@ -41,9 +41,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.iyox.vouch.R
-import com.iyox.vouch.core.model.VouchTypeFilter
 import com.iyox.vouch.ui.components.EmptySearchContent
 import com.iyox.vouch.ui.components.PageHeader
+import com.iyox.vouch.ui.components.VouchBalanceHeroCard
 import com.iyox.vouch.ui.components.VouchFilterRow
 import com.iyox.vouch.ui.components.vouches.VouchList
 
@@ -71,18 +71,7 @@ fun VouchesScreen(
         topBar = {
             PageHeader(
                 title = stringResource(R.string.screen_vouches)
-            ) {
-                VouchFilterRow(
-                    sortedBy = uiState.sortedBy,
-                    showOnlyGiven = uiState.showOnlyGiven,
-                    onToggleSort = viewModel::toggleSortedBy,
-                    onToggleGiven = viewModel::toggleShowOnlyGiven,
-                    onSettledClick = onNavigateToSettledSpace,
-                    searchQuery = uiState.searchQuery,
-                    onSearchQueryChange = viewModel::setSearchQuery,
-                    searchPlaceholder = stringResource(R.string.search_vouches_placeholder)
-                )
-            }
+            )
         },
         floatingActionButton = {
             FloatingActionButtonMenu(
@@ -122,6 +111,29 @@ fun VouchesScreen(
                 .fillMaxSize()
                 .padding(top = innerPadding.calculateTopPadding())
         ) {
+            VouchBalanceHeroCard(
+                amountGiven = uiState.totalGiven,
+                amountOwed = uiState.totalOwed,
+                total = uiState.netTotal,
+                vouchCount = uiState.activeVouchesCount,
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .padding(top = 8.dp, bottom = 12.dp)
+            )
+
+            VouchFilterRow(
+                sortedBy = uiState.sortedBy,
+                showOnlyGiven = uiState.showOnlyGiven,
+                onToggleSort = viewModel::toggleSortedBy,
+                onToggleGiven = viewModel::toggleShowOnlyGiven,
+                onSettledClick = onNavigateToSettledSpace,
+                searchQuery = uiState.searchQuery,
+                onSearchQueryChange = viewModel::setSearchQuery,
+                searchPlaceholder = stringResource(R.string.search_vouches_placeholder),
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .padding(bottom = 8.dp)
+            )
             if (uiState.vouches.isEmpty()) {
                 if (uiState.searchQuery.isNotBlank()) {
                     EmptySearchContent(
