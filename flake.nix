@@ -42,10 +42,6 @@
             ANDROID_SDK_ROOT = "${androidSdk}/libexec/android-sdk";
             GRADLE_OPTS = "-Dorg.gradle.java.installations.auto-download=false -Dorg.gradle.java.installations.paths=${pkgs.jdk21}";
           };
-
-          shellHook = ''
-            echo "sdk.dir=''${ANDROID_HOME}" > local.properties
-          '';
         };
       }
     );
