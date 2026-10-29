@@ -63,6 +63,14 @@ Pull current store listing metadata and graphics from Google Play Store into rep
 
 Generate localized screenshots for all configured locales via screengrab
 
+### android frame_screenshots
+
+```sh
+[bundle exec] fastlane android frame_screenshots
+```
+
+Frame raw screenshots with Material 3 Expressive containers and titles for Google Play
+
 ----
 
 This README.md is auto-generated and will be re-generated every time [_fastlane_](https://fastlane.tools) is run.

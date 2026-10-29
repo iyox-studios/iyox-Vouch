@@ -33,6 +33,7 @@
             ruby
             jdk21
             androidSdk
+            chromium
           ];
 
           env = {

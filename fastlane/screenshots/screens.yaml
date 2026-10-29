@@ -1,0 +1,87 @@
+# Configuration for Play Store framed screenshot generation
+# Maps each raw screenshot to its M3 theme, shapes, and localized titles/descriptions.
+
+screens:
+  - id: "01_vouches_overview"
+    theme: "theme-1"
+    shape_a: "circle"
+    shape_b: "pill"
+    locales:
+      en-US:
+        title: "Track Your Expenses"
+        description: "Easily manage all your vouches and settled debts in one clear overview."
+      de-DE:
+        title: "Ausgaben im Blick"
+        description: "Verwalte alle Vouches und beglichene Schulden in einer klaren Übersicht."
+
+  - id: "02_settled_space"
+    theme: "theme-2"
+    shape_a: "pill"
+    shape_b: "circle"
+    locales:
+      en-US:
+        title: "Settled Space"
+        description: "Keep a clean, organized history of all your completed transactions."
+      de-DE:
+        title: "Settled Space"
+        description: "Behalte eine saubere, geordnete Übersicht über alle erledigten Zahlungen."
+
+  - id: "03_persons_overview"
+    theme: "theme-3"
+    shape_a: "pill"
+    shape_b: "circle"
+    locales:
+      en-US:
+        title: "Manage People"
+        description: "See exactly who owes you and who you owe at a single glance."
+      de-DE:
+        title: "Personen verwalten"
+        description: "Sieh auf einen Blick, wer dir Geld schuldet und wem du etwas schuldest."
+
+  - id: "04_person_overview"
+    theme: "theme-4"
+    shape_a: "circle"
+    shape_b: "pill"
+    locales:
+      en-US:
+        title: "Detailed Balances"
+        description: "Get a full breakdown of shared expenses for every friend."
+      de-DE:
+        title: "Detaillierte Salden"
+        description: "Detaillierte Aufschlüsselung der gemeinsamen Ausgaben für jede Person."
+
+  - id: "05_add_vouch"
+    theme: "theme-5"
+    shape_a: "pill"
+    shape_b: "circle"
+    locales:
+      en-US:
+        title: "Quickly Add Vouches"
+        description: "Log new expenses in seconds with a fast, intuitive interface."
+      de-DE:
+        title: "Vouches erfassen"
+        description: "Erfasse neue Ausgaben in Sekundenschnelle mit einer intuitiven Eingabe."
+
+  - id: "06_add_group_vouch"
+    theme: "theme-6"
+    shape_a: "circle"
+    shape_b: "pill"
+    locales:
+      en-US:
+        title: "Split With Groups"
+        description: "Divide costs equally among multiple people without doing the math."
+      de-DE:
+        title: "In Gruppen aufteilen"
+        description: "Teile Kosten einfach und gerecht auf mehrere Personen auf."
+
+  - id: "07_settings"
+    theme: "theme-7"
+    shape_a: "pill"
+    shape_b: "circle"
+    locales:
+      en-US:
+        title: "Secure & Customize"
+        description: "Protect your data with biometrics and match your personal style."
+      de-DE:
+        title: "Sicher & Individuell"
+        description: "Schütze deine Daten mit Biometrie und passe das Design nach deinen Wünschen an."

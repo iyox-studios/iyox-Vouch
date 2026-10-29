@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Play Screenshots - Material 3 Expressive</title>
+    <style>
+        /* Using Google's Roboto and Roboto Flex for the authentic M3 look */
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&family=Roboto+Flex:opsz,wght@8..144,700;8..144,800&display=swap');
+
+        body {
+            margin: 0;
+            padding: 40px;
+            background-color: #121212;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: 'Roboto', sans-serif;
+            color: #E6E1E5;
+        }
+
+        .preview-controls {
+            margin-bottom: 30px;
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .preview-controls button {
+            background-color: #4A4458;
+            color: #FFFFFF;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 20px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+
+        .preview-controls button.active {
+            background-color: #D0BCFF;
+            color: #381E72;
+        }
+
+        .gallery-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 60px;
+            justify-content: center;
+            width: 100%;
+        }
+
+        /* 1080x1920 base container */
+        .screenshot-wrapper {
+            position: relative;
+            width: 1080px;
+            height: 1920px;
+            overflow: hidden;
+            border-radius: 48px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            zoom: 0.4;
+            box-shadow: 0px 14px 42px rgba(0, 0, 0, 0.4);
+            flex-shrink: 0;
+        }
+
+        /* Export mode overrides: full-bleed 1080x1920 */
+        body.single-screen {
+            margin: 0;
+            padding: 0;
+            background: transparent;
+            display: block;
+            width: 1080px;
+            height: 1920px;
+            overflow: hidden;
+        }
+
+        body.single-screen .preview-controls {
+            display: none;
+        }
+
+        body.single-screen .screenshot-wrapper {
+            zoom: 1;
+            border-radius: 0;
+            box-shadow: none;
+            margin: 0;
+        }
+
+        /* Material 3 Expressive Geometric Shapes */
+        .m3-shape {
+            position: absolute;
+            z-index: 1;
+        }
+
+        .m3-shape-circle {
+            border-radius: 50%;
+        }
+
+        .m3-shape-pill {
+            border-radius: 999px;
+        }
+
+        /* Typography - M3 Display Styles */
+        .text-container {
+            position: relative;
+            z-index: 2;
+            text-align: left;
+            padding: 160px 100px 100px 100px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            font-family: 'Roboto Flex', sans-serif;
+            font-size: 110px;
+            font-weight: 800;
+            margin: 0 0 40px 0;
+            line-height: 1.05;
+            letter-spacing: -2.5px;
+        }
+
+        p {
+            font-size: 46px;
+            font-weight: 400;
+            margin: 0;
+            line-height: 1.4;
+            letter-spacing: 0px;
+            max-width: 95%;
+        }
+
+        /* App Image Binding - Clean M3 Elevation */
+        .app-image-container {
+            position: relative;
+            z-index: 3;
+            margin-top: auto;
+            margin-bottom: 0;
+            width: 890px;
+            height: 1320px;
+            border-radius: 72px 72px 0 0;
+            overflow: hidden;
+            background: #1C1B1F;
+            box-shadow: 0px -12px 36px rgba(0, 0, 0, 0.15),
+                        0px 0px 4px rgba(0, 0, 0, 0.05);
+            border: 12px solid rgba(255, 255, 255, 0.4);
+            border-bottom: none;
+        }
+
+        .app-image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: top center;
+        }
+
+        /* =========================================
+           M3 TONAL PALETTES & SHAPE ARRANGEMENTS 
+           ========================================= */
+
+        /* Screen 1: Primary Purple/Lilac */
+        .theme-1 { background-color: #FEF7FF; color: #21005D; }
+        .theme-1 .shape-a { width: 1200px; height: 1200px; background: #EADDFF; top: -300px; right: -400px; }
+        .theme-1 .shape-b { width: 600px; height: 1400px; background: #D0BCFF; bottom: -200px; left: -200px; transform: rotate(30deg); }
+        .theme-1 .app-image-container { border-color: #EADDFF; }
+
+        /* Screen 2: Mint/Teal Container */
+        .theme-2 { background-color: #F3FEFF; color: #001F2A; }
+        .theme-2 .shape-a { width: 1400px; height: 900px; background: #BCE9FF; top: 100px; left: -300px; transform: rotate(-15deg); }
+        .theme-2 .shape-b { width: 800px; height: 800px; background: #71F7E6; top: -200px; right: -200px; }
+        .theme-2 .app-image-container { border-color: #BCE9FF; }
+
+        /* Screen 3: Rose/Peach Tones */
+        .theme-3 { background-color: #FFF8F6; color: #3E001D; }
+        .theme-3 .shape-a { width: 900px; height: 1600px; background: #FFD8E4; right: -300px; top: -200px; transform: rotate(-25deg); }
+        .theme-3 .shape-b { width: 700px; height: 700px; background: #FFB3C6; left: -200px; bottom: 200px; }
+        .theme-3 .app-image-container { border-color: #FFD8E4; }
+
+        /* Screen 4: Amber/Yellow Expressive */
+        .theme-4 { background-color: #FFFBFF; color: #2E1500; }
+        .theme-4 .shape-a { width: 1100px; height: 1100px; background: #FFDCBE; top: -400px; left: -200px; }
+        .theme-4 .shape-b { width: 1000px; height: 600px; background: #FFE07D; bottom: 400px; right: -400px; transform: rotate(45deg); }
+        .theme-4 .app-image-container { border-color: #FFDCBE; }
+
+        /* Screen 5: Indigo/Blue */
+        .theme-5 { background-color: #FDFBFF; color: #001849; }
+        .theme-5 .shape-a { width: 800px; height: 1500px; background: #D9E2FF; left: 100px; top: -300px; transform: rotate(60deg); }
+        .theme-5 .shape-b { width: 900px; height: 900px; background: #B0C6FF; right: -300px; bottom: -100px; }
+        .theme-5 .app-image-container { border-color: #D9E2FF; }
+
+        /* Screen 6: Vibrant Green/Olive */
+        .theme-6 { background-color: #FCFDF6; color: #0C2000; }
+        .theme-6 .shape-a { width: 1000px; height: 1000px; background: #B8F397; right: -200px; top: -200px; }
+        .theme-6 .shape-b { width: 600px; height: 1200px; background: #D7E8CD; left: -300px; bottom: 100px; transform: rotate(-40deg); }
+        .theme-6 .app-image-container { border-color: #B8F397; }
+
+        /* Screen 7: Dark M3 Surface (for settings) */
+        .theme-7 { background-color: #1D1B20; color: #EADDFF; }
+        .theme-7 .shape-a { width: 1300px; height: 800px; background: #4A4458; top: 50px; left: -400px; transform: rotate(20deg); }
+        .theme-7 .shape-b { width: 800px; height: 800px; background: #332D41; right: -200px; bottom: 300px; }
+        .theme-7 p { color: #CAC4D0; }
+        .theme-7 .app-image-container { border-color: #4A4458; }
+    </style>
+</head>
+<body>
+    <div class="preview-controls">
+        <button id="btn-en" class="active" onclick="switchLocale('en-US')">English (en-US)</button>
+        <button id="btn-de" onclick="switchLocale('de-DE')">Deutsch (de-DE)</button>
+    </div>
+
+    <div class="gallery-container" id="gallery"></div>
+
+    <script>
+    const DEFAULT_CONFIG = {
+        "en-US": [
+            { id: "01_vouches_overview", theme: "theme-1", shapeA: "circle", shapeB: "pill", title: "Track Your Expenses", desc: "Easily manage all your vouches and settled debts in one clear overview." },
+            { id: "02_settled_space", theme: "theme-2", shapeA: "pill", shapeB: "circle", title: "Settled Space", desc: "Keep a clean, organized history of all your completed transactions." },
+            { id: "03_persons_overview", theme: "theme-3", shapeA: "pill", shapeB: "circle", title: "Manage People", desc: "See exactly who owes you and who you owe at a single glance." },
+            { id: "04_person_overview", theme: "theme-4", shapeA: "circle", shapeB: "pill", title: "Detailed Balances", desc: "Get a full breakdown of shared expenses for every friend." },
+            { id: "05_add_vouch", theme: "theme-5", shapeA: "pill", shapeB: "circle", title: "Quickly Add Vouches", desc: "Log new expenses in seconds with a fast, intuitive interface." },
+            { id: "06_add_group_vouch", theme: "theme-6", shapeA: "circle", shapeB: "pill", title: "Split With Groups", desc: "Divide costs equally among multiple people without doing the math." },
+            { id: "07_settings", theme: "theme-7", shapeA: "pill", shapeB: "circle", title: "Secure & Customize", desc: "Protect your data with biometrics and match your personal style." }
+        ],
+        "de-DE": [
+            { id: "01_vouches_overview", theme: "theme-1", shapeA: "circle", shapeB: "pill", title: "Ausgaben im Blick", desc: "Verwalte alle Vouches und beglichene Schulden in einer klaren Übersicht." },
+            { id: "02_settled_space", theme: "theme-2", shapeA: "pill", shapeB: "circle", title: "Settled Space", desc: "Behalte eine saubere, geordnete Übersicht über alle erledigten Zahlungen." },
+            { id: "03_persons_overview", theme: "theme-3", shapeA: "pill", shapeB: "circle", title: "Personen verwalten", desc: "Sieh auf einen Blick, wer dir Geld schuldet und wem du etwas schuldest." },
+            { id: "04_person_overview", theme: "theme-4", shapeA: "circle", shapeB: "pill", title: "Detaillierte Salden", desc: "Detaillierte Aufschlüsselung der gemeinsamen Ausgaben für jede Person." },
+            { id: "05_add_vouch", theme: "theme-5", shapeA: "pill", shapeB: "circle", title: "Vouches erfassen", desc: "Erfasse neue Ausgaben in Sekundenschnelle mit einer intuitiven Eingabe." },
+            { id: "06_add_group_vouch", theme: "theme-6", shapeA: "circle", shapeB: "pill", title: "In Gruppen aufteilen", desc: "Teile Kosten einfach und gerecht auf mehrere Personen auf." },
+            { id: "07_settings", theme: "theme-7", shapeA: "pill", shapeB: "circle", title: "Sicher & Individuell", desc: "Schütze deine Daten mit Biometrie und passe das Design nach deinen Wünschen an." }
+        ]
+    };
+
+    const params = new URLSearchParams(window.location.search);
+    const isSingleScreen = params.has('title') || params.has('screen');
+    const gallery = document.getElementById('gallery');
+
+    function createCard(item, imgPath) {
+        const wrapper = document.createElement('div');
+        wrapper.className = `screenshot-wrapper ${item.theme}`;
+        wrapper.id = `screen-${item.id}`;
+
+        wrapper.innerHTML = `
+            <div class="m3-shape m3-shape-${item.shapeA} shape-a"></div>
+            <div class="m3-shape m3-shape-${item.shapeB} shape-b"></div>
+            <div class="text-container">
+                <h1>${item.title}</h1>
+                <p>${item.desc}</p>
+            </div>
+            <div class="app-image-container">
+                <img src="${imgPath}" alt="${item.title}">
+            </div>
+        `;
+        return wrapper;
+    }
+
+    if (isSingleScreen) {
+        document.body.classList.add('single-screen');
+        const locale = params.get('locale') || 'en-US';
+        const list = DEFAULT_CONFIG[locale] || DEFAULT_CONFIG['en-US'];
+        const screenId = params.get('screen');
+
+        let defaultItem = list.find(s => s.id === screenId) || list[0];
+        const item = {
+            id: screenId || defaultItem.id,
+            theme: params.get('theme') || defaultItem.theme,
+            shapeA: params.get('shape_a') || defaultItem.shapeA,
+            shapeB: params.get('shape_b') || defaultItem.shapeB,
+            title: params.get('title') || defaultItem.title,
+            desc: params.get('desc') || defaultItem.desc
+        };
+        const imgPath = params.get('image') || `../../screenshots/raw/${locale}/${item.id}.png`;
+        gallery.appendChild(createCard(item, imgPath));
+    } else {
+        function renderGallery(locale) {
+            gallery.innerHTML = '';
+            const list = DEFAULT_CONFIG[locale] || DEFAULT_CONFIG['en-US'];
+            list.forEach(item => {
+                const imgPath = `../../screenshots/raw/${locale}/${item.id}.png`;
+                gallery.appendChild(createCard(item, imgPath));
+            });
+        }
+
+        window.switchLocale = function(locale) {
+            document.getElementById('btn-en').classList.toggle('active', locale === 'en-US');
+            document.getElementById('btn-de').classList.toggle('active', locale === 'de-DE');
+            renderGallery(locale);
+        };
+
+        renderGallery('en-US');
+    }
+    </script>
+</body>
+</html>
