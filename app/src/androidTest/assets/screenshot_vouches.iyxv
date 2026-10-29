@@ -1,0 +1,81 @@
+{
+  "_app_signature": "com.iyox.vouch",
+  "type": "backup",
+  "version": "1.0",
+  "data": [
+    {
+      "vouch": {
+        "id": 4,
+        "amount": 1250,
+        "description": "Food Paradise",
+        "given": false,
+        "timestamp": 1786907831795
+      },
+      "persons": [
+        {
+          "name": "John Doe",
+          "amount": 1250,
+          "settled": false
+        }
+      ]
+    },
+    {
+      "vouch": {
+        "id": 5,
+        "amount": 2500,
+        "description": "Ticket",
+        "given": true,
+        "timestamp": 1786907794559
+      },
+      "persons": [
+        {
+          "name": "Jane Smith",
+          "amount": 2500,
+          "settled": false
+        }
+      ]
+    },
+    {
+      "vouch": {
+        "id": 6,
+        "amount": 7500,
+        "description": "Court booking",
+        "given": true,
+        "timestamp": 1786907906988
+      },
+      "persons": [
+        {
+          "name": "Jane Smith",
+          "amount": 2500,
+          "settled": false
+        },
+        {
+          "name": "John Doe",
+          "amount": 2500,
+          "settled": false
+        },
+        {
+          "name": "Jane Doe",
+          "amount": 2500,
+          "settled": true
+        }
+      ]
+    },
+    {
+      "vouch": {
+        "id": 7,
+        "amount": 2380,
+        "description": "Work Lunch",
+        "given": true,
+        "timestamp": 1787944631795
+      },
+      "persons": [
+        {
+          "name": "Jane Doe",
+          "amount": 2380,
+          "settled": true
+        }
+      ]
+    }
+  ]
+}

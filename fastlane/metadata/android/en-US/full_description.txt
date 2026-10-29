@@ -1,0 +1,3 @@
+iyox Vouch is a clean and simple personal debt and IOU tracking app. It allows you to track borrowed or lent money and split group expenses through a highly organized, uncluttered interface. Keep track of individual balances, manage IOUs, and settle up with a single tap.
+
+Built with a beautiful Material You design, iyox Vouch focuses on keeping your data local and secure. Whether you are splitting a dinner bill, sharing household expenses, or tracking personal loans, it provides a streamlined and reliable way to keep your balances in check. You maintain full control over your private financial records with biometric locks, fully offline functionality, and simple JSON backups.

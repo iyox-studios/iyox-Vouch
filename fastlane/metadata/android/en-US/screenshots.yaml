@@ -1,0 +1,28 @@
+# English screenshot titles and descriptions
+01_vouches_overview:
+  title: "Track Your Expenses"
+  description: "Easily manage all your vouches and settled debts in one clear overview."
+
+02_settled_space:
+  title: "Settled Space"
+  description: "Keep a clean, organized history of all your completed transactions."
+
+03_persons_overview:
+  title: "Manage People"
+  description: "See exactly who owes you and who you owe at a single glance."
+
+04_person_overview:
+  title: "Detailed Balances"
+  description: "Get a full breakdown of shared expenses for every friend."
+
+05_add_vouch:
+  title: "Quickly Add Vouches"
+  description: "Log new expenses in seconds with a fast, intuitive interface."
+
+06_add_group_vouch:
+  title: "Split With Groups"
+  description: "Divide costs equally among multiple people without doing the math."
+
+07_settings:
+  title: "Secure & Customize"
+  description: "Protect your data with biometrics and match your personal style."

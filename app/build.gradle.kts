@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
@@ -7,6 +8,21 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt.android)
+}
+
+val dotEnvFile = rootProject.file(".env")
+val envProperties = Properties().apply {
+    if (dotEnvFile.exists()) {
+        dotEnvFile.reader().use { load(it) }
+    }
+}
+
+fun getSecret(key: String): String? {
+    val fromEnv: String? = System.getenv(key)
+    if (!fromEnv.isNullOrBlank()) return fromEnv
+    val fromDotEnv: String? = envProperties.getProperty(key)
+    if (!fromDotEnv.isNullOrBlank()) return fromDotEnv
+    return project.findProperty(key) as? String
 }
 
 android {
@@ -25,8 +41,33 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        create("release") {
+            val keystorePath = getSecret("KEYSTORE_PATH")
+            val keystorePassword = getSecret("KEYSTORE_PASSWORD")
+            val keyAlias = getSecret("KEY_ALIAS")
+            val keyPassword = getSecret("KEY_PASSWORD")
+
+            if (!keystorePath.isNullOrBlank() && !keystorePassword.isNullOrBlank() &&
+                !keyAlias.isNullOrBlank() && !keyPassword.isNullOrBlank()
+            ) {
+                val resolvedKeystoreFile = rootProject.file(keystorePath).takeIf { it.exists() }
+                    ?: file(keystorePath)
+                storeFile = resolvedKeystoreFile
+                storePassword = keystorePassword
+                this.keyAlias = keyAlias
+                this.keyPassword = keyPassword
+            }
+        }
+    }
+
     buildTypes {
         release {
+            val keystorePath = getSecret("KEYSTORE_PATH")
+            val keystorePassword = getSecret("KEYSTORE_PASSWORD")
+            if (!keystorePath.isNullOrBlank() && !keystorePassword.isNullOrBlank()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
@@ -110,6 +151,7 @@ dependencies {
     androidTestImplementation(libs.androidx.test.rules)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+    androidTestImplementation(libs.fastlane.screengrab)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 }

@@ -110,7 +110,7 @@ fun VouchFilterRow(
             ) {
                 Icon(
                     imageVector = Icons.Outlined.Archive,
-                    contentDescription = null,
+                    contentDescription = stringResource(R.string.screen_settled_space),
                     modifier = Modifier.size(16.dp)
                 )
                 Spacer(Modifier.width(6.dp))

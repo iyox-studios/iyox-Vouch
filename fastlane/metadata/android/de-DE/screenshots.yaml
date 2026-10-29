@@ -1,0 +1,28 @@
+# Deutsche Screenshot-Titel und Beschreibungen
+01_vouches_overview:
+  title: "Ausgaben im Blick"
+  description: "Verwalte alle Vouches und beglichene Schulden in einer klaren Übersicht."
+
+02_settled_space:
+  title: "Settled Space"
+  description: "Behalte eine saubere, geordnete Übersicht über alle erledigten Zahlungen."
+
+03_persons_overview:
+  title: "Personen verwalten"
+  description: "Sieh auf einen Blick, wer dir Geld schuldet und wem du etwas schuldest."
+
+04_person_overview:
+  title: "Detaillierte Salden"
+  description: "Detaillierte Aufschlüsselung der gemeinsamen Ausgaben für jede Person."
+
+05_add_vouch:
+  title: "Vouches erfassen"
+  description: "Erfasse neue Ausgaben in Sekundenschnelle mit einer intuitiven Eingabe."
+
+06_add_group_vouch:
+  title: "In Gruppen aufteilen"
+  description: "Teile Kosten einfach und gerecht auf mehrere Personen auf."
+
+07_settings:
+  title: "Sicher & Individuell"
+  description: "Schütze deine Daten mit Biometrie und passe das Design nach deinen Wünschen an."

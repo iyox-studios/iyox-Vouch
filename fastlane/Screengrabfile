@@ -1,0 +1,21 @@
+# Screengrab configuration for localized screenshots
+app_package_name('com.iyox.vouch')
+
+# Classes to run for screenshots
+use_tests_in_classes(['com.iyox.vouch.screenshots.ScreenshotTest'])
+
+# Supported locales
+locales(['en-US', 'de-DE'])
+
+# Clear previously captured screenshots before running
+clear_previous_screenshots(true)
+
+# Output directory matching fastlane play store metadata structure
+output_directory('fastlane/metadata/android')
+
+app_apk_path('app/build/outputs/apk/debug/app-debug.apk')
+tests_apk_path('app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk')
+
+skip_open_summary(true)
+use_timestamp_suffix(false)
+exit_on_test_failure(false)

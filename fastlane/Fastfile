@@ -1,0 +1,208 @@
+opt_out_usage
+
+# Fastfile for iyox-Vouch
+default_platform(:android)
+
+platform :android do
+  before_all do
+    # Load SOPS encrypted secrets if secrets.yaml is present
+    secrets_path = ["secrets.yaml", "../secrets.yaml"].find { |f| File.exist?(f) }
+    if secrets_path && (ENV["KEYSTORE_PASSWORD"].nil? || ENV["KEYSTORE_PASSWORD"].empty?)
+      require "yaml"
+      begin
+        decrypted_raw = `sops -d #{secrets_path} 2>/dev/null`
+        if $?.success? && !decrypted_raw.empty?
+          decrypted = YAML.safe_load(decrypted_raw)
+          if decrypted.is_a?(Hash)
+            decrypted.each { |k, v| ENV[k.to_s] ||= v.to_s }
+            UI.message("Loaded secrets from #{secrets_path} via SOPS")
+          end
+        end
+      rescue => e
+        UI.important("SOPS decryption skipped: #{e.message}")
+      end
+    end
+  end
+
+  desc "Build the signed Android App Bundle (.aab)"
+  lane :build_release do
+    gradle(
+      task: "bundleRelease",
+      project_dir: "./"
+    )
+  end
+
+  desc "Build and upload release AAB to Google Play Store (default track: internal)"
+  lane :release do |options|
+    track = options[:track] || ENV["PLAY_STORE_TRACK"] || "internal"
+    validate_only = options[:validate_only] || false
+
+    # 1. Build the release bundle
+    build_release
+
+    # 2. Upload to Google Play
+    upload_options = {
+      package_name: "com.iyox.vouch",
+      track: track,
+      validate_only: validate_only,
+      skip_upload_metadata: options[:skip_metadata] || false,
+      skip_upload_images: options[:skip_images] || false,
+      skip_upload_screenshots: options[:skip_screenshots] || false,
+      skip_upload_changelogs: options[:skip_changelogs] || false
+    }
+
+    if ENV["SUPPLY_JSON_KEY_DATA"] && !ENV["SUPPLY_JSON_KEY_DATA"].empty?
+      upload_options[:json_key_data] = ENV["SUPPLY_JSON_KEY_DATA"]
+    elsif ENV["SUPPLY_JSON_KEY"] && !ENV["SUPPLY_JSON_KEY"].empty?
+      upload_options[:json_key] = ENV["SUPPLY_JSON_KEY"]
+    end
+
+    upload_to_play_store(upload_options)
+  end
+
+  desc "Upload all store listing assets (metadata, icon, feature graphic, screenshots) from repo to Google Play without a new release"
+  lane :publish_store_listing do |options|
+    track = options[:track] || ENV["PLAY_STORE_TRACK"] || "internal"
+    validate_only = options[:validate_only] || false
+
+    upload_options = {
+      package_name: "com.iyox.vouch",
+      track: track,
+      skip_upload_apk: true,
+      skip_upload_aab: true,
+      skip_upload_changelogs: true,
+      skip_upload_images: options[:skip_images] || false,
+      skip_upload_screenshots: options[:skip_screenshots] || false,
+      skip_upload_metadata: options[:skip_metadata] || false,
+      validate_only: validate_only
+    }
+
+    if ENV["SUPPLY_JSON_KEY_DATA"] && !ENV["SUPPLY_JSON_KEY_DATA"].empty?
+      upload_options[:json_key_data] = ENV["SUPPLY_JSON_KEY_DATA"]
+    elsif ENV["SUPPLY_JSON_KEY"] && !ENV["SUPPLY_JSON_KEY"].empty?
+      upload_options[:json_key] = ENV["SUPPLY_JSON_KEY"]
+    end
+
+    upload_to_play_store(upload_options)
+  end
+
+  desc "Upload screenshots only to Google Play without a new release"
+  lane :publish_screenshots do |options|
+    publish_store_listing(
+      options.merge(
+        skip_images: options.key?(:skip_images) ? options[:skip_images] : (options[:upload_images] ? false : true),
+        skip_metadata: options.key?(:skip_metadata) ? options[:skip_metadata] : (options[:upload_metadata] ? false : true),
+        skip_screenshots: false
+      )
+    )
+  end
+
+  desc "Pull current store listing metadata and graphics from Google Play Store into repo"
+  lane :pull_metadata do |options|
+    track = options[:track] || ENV["PLAY_STORE_TRACK"] || "internal"
+    metadata_path = options[:metadata_path] || "./fastlane/metadata/android"
+
+    require "fileutils"
+    require "tmpdir"
+
+    Dir.mktmpdir do |tmp_dir|
+      sh("fastlane supply init --package_name com.iyox.vouch --metadata_path #{tmp_dir} --track #{track}")
+      # Sync downloaded metadata into metadata_path, preserving existing files if needed
+      FileUtils.cp_r(File.join(tmp_dir, "."), metadata_path)
+    end
+    UI.success("Successfully synchronized store listing metadata from Google Play into #{metadata_path}")
+  end
+
+  desc "Generate localized screenshots for all configured locales via screengrab"
+  lane :screenshots do
+    gradle(
+      task: "assembleDebug assembleAndroidTest",
+      project_dir: "./"
+    )
+    # Enable dark mode & Developer Settings' System UI Demo Mode on device
+    sh("adb shell cmd uimode night yes")
+    sh('adb shell \'settings put secure theme_customization_overlay_packages "{\"android.theme.customization.system_palette\":\"AAB0D5\",\"android.theme.customization.accent_color\":\"AAB0D5\",\"android.theme.customization.theme_style\":\"TONAL_SPOT\",\"android.theme.customization.color_source\":\"preset\"}"\'')
+    sh("adb shell settings put global sysui_demo_allowed 1")
+    sh("adb shell settings put system time_12_24 24")
+    sh("adb shell settings put system status_bar_show_battery_percent 1")
+    sh("adb shell settings put system font_scale 1.15")
+    sh("adb shell am broadcast -a com.android.systemui.demo -e command enter")
+    sh("adb shell am broadcast -a com.android.systemui.demo -e command clock -e hhmm 1700")
+    sh("adb shell am broadcast -a com.android.systemui.demo -e command battery -e level 100 -e plugged false")
+    sh("adb shell am broadcast -a com.android.systemui.demo -e command network -e wifi show -e level 4 -e fully true")
+    sh("adb shell am broadcast -a com.android.systemui.demo -e command notifications -e visible false")
+    screengrab
+    frame_screenshots
+  end
+
+  desc "Frame raw screenshots with Material 3 Expressive containers and titles for Google Play"
+  lane :frame_screenshots do |options|
+    require "yaml"
+    require "uri"
+    require "fileutils"
+    require "shellwords"
+
+    template_path = File.expand_path("screenshots/frame.html", __dir__)
+    common_config_path = File.expand_path("metadata/android/screenshots.yaml", __dir__)
+    common_config = YAML.load_file(common_config_path)
+
+    locales = options[:locales] || ["en-US", "de-DE"]
+    screens = common_config["screens"] || []
+
+    locales.each do |locale|
+      out_dir = File.expand_path("metadata/android/#{locale}/images/phoneScreenshots", __dir__)
+      FileUtils.mkdir_p(out_dir)
+
+      locale_config_path = File.expand_path("metadata/android/#{locale}/screenshots.yaml", __dir__)
+      locale_captions = File.exist?(locale_config_path) ? YAML.load_file(locale_config_path) : {}
+
+      screens.each do |screen_cfg|
+        id = screen_cfg["id"]
+        theme = screen_cfg["theme"]
+        shape_a = screen_cfg["shape_a"]
+        shape_b = screen_cfg["shape_b"]
+        caption = locale_captions[id] || {}
+        title = caption["title"] || ""
+        desc = caption["description"] || ""
+
+        raw_candidates = [
+          File.expand_path("screenshots/raw/#{locale}/#{id}.png", __dir__),
+          File.expand_path("screenshots/raw/#{locale}/images/phoneScreenshots/#{id}.png", __dir__),
+          File.expand_path("metadata/android/#{locale}/images/phoneScreenshots/#{id}.png", __dir__)
+        ]
+        raw_img = raw_candidates.find { |p| File.exist?(p) }
+
+        unless raw_img
+          UI.important("Raw screenshot not found for #{locale}/#{id}, skipping")
+          next
+        end
+
+        out_path = File.join(out_dir, "#{id}.png")
+
+        query = URI.encode_www_form({
+          locale: locale,
+          screen: id,
+          theme: theme,
+          shape_a: shape_a,
+          shape_b: shape_b,
+          title: title,
+          desc: desc,
+          image: "file://#{raw_img}"
+        })
+
+        url = "file://#{template_path}?#{query}"
+
+        UI.message("🖼️  Framing #{locale}/#{id} -> #{out_path}")
+        sh(
+          "chromium --headless=new --no-sandbox --disable-gpu " \
+          "--window-size=1080,1920 " \
+          "--virtual-time-budget=3000 " \
+          "--screenshot=#{out_path.shellescape} " \
+          "#{url.shellescape}"
+        )
+      end
+    end
+
+    UI.success("✅ Successfully generated all framed screenshots!")
+  end
+end
