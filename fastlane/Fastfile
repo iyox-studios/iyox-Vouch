@@ -132,6 +132,21 @@ platform :android do
     sh("adb shell am broadcast -a com.android.systemui.demo -e command network -e wifi show -e level 4 -e fully true")
     sh("adb shell am broadcast -a com.android.systemui.demo -e command notifications -e visible false")
     screengrab
+
+    # Sync raw screenshots to flat locale directory if screengrab created nested images/phoneScreenshots
+    require "fileutils"
+    ["en-US", "de-DE"].each do |locale|
+      nested_dir = File.expand_path("screenshots/raw/#{locale}/images/phoneScreenshots", __dir__)
+      flat_dir = File.expand_path("screenshots/raw/#{locale}", __dir__)
+      if Dir.exist?(nested_dir)
+        FileUtils.mkdir_p(flat_dir)
+        Dir.glob(File.join(nested_dir, "*.png")).each do |src|
+          FileUtils.cp(src, File.join(flat_dir, File.basename(src)))
+        end
+        FileUtils.rm_rf(File.expand_path("screenshots/raw/#{locale}/images", __dir__))
+      end
+    end
+
     frame_screenshots
   end
 
@@ -167,8 +182,7 @@ platform :android do
 
         raw_candidates = [
           File.expand_path("screenshots/raw/#{locale}/#{id}.png", __dir__),
-          File.expand_path("screenshots/raw/#{locale}/images/phoneScreenshots/#{id}.png", __dir__),
-          File.expand_path("metadata/android/#{locale}/images/phoneScreenshots/#{id}.png", __dir__)
+          File.expand_path("screenshots/raw/#{locale}/images/phoneScreenshots/#{id}.png", __dir__)
         ]
         raw_img = raw_candidates.find { |p| File.exist?(p) }
 

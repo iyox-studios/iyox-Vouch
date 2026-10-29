@@ -10,8 +10,8 @@ locales(['en-US', 'de-DE'])
 # Clear previously captured screenshots before running
 clear_previous_screenshots(true)
 
-# Output directory matching fastlane play store metadata structure
-output_directory('fastlane/metadata/android')
+# Output directory for raw captured screenshots
+output_directory('fastlane/screenshots/raw')
 
 app_apk_path('app/build/outputs/apk/debug/app-debug.apk')
 tests_apk_path('app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk')
