@@ -217,6 +217,16 @@ class GroupVouchViewModel @Inject constructor(
         recomputeDefaultSplitAmounts()
     }
 
+    fun onMemberAmountChange(personName: String, amount: String) {
+        val index = _uiState.value.members.indexOfFirst { it.personName == personName }
+        if (index >= 0) onMemberAmountChange(index, amount)
+    }
+
+    fun removeMember(personName: String) {
+        val index = _uiState.value.members.indexOfFirst { it.personName == personName }
+        if (index >= 0) removeMember(index)
+    }
+
     fun onMemberAmountChange(member: GroupMemberInput, amount: String) {
         _uiState.update { state ->
             val members = state.members.map { current ->

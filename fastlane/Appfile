@@ -1,0 +1,8 @@
+# Configuration for Fastlane Supply / Play Store integration
+package_name("com.iyox.vouch")
+
+if ENV["SUPPLY_JSON_KEY"] && !ENV["SUPPLY_JSON_KEY"].empty?
+  json_key_file(ENV["SUPPLY_JSON_KEY"])
+elsif File.exist?("fastlane/play-store-credentials.json")
+  json_key_file("fastlane/play-store-credentials.json")
+end

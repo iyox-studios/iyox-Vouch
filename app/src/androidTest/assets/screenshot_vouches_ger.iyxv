@@ -1,0 +1,81 @@
+{
+  "_app_signature": "com.iyox.vouch",
+  "type": "backup",
+  "version": "1.0",
+  "data": [
+    {
+      "vouch": {
+        "id": 4,
+        "amount": 1250,
+        "description": "Schlaraffenland",
+        "given": false,
+        "timestamp": 1786907831795
+      },
+      "persons": [
+        {
+          "name": "Max Mustermann",
+          "amount": 1250,
+          "settled": false
+        }
+      ]
+    },
+    {
+      "vouch": {
+        "id": 5,
+        "amount": 2500,
+        "description": "Fahrkarte",
+        "given": true,
+        "timestamp": 1786907794559
+      },
+      "persons": [
+        {
+          "name": "Erika Musterfrau",
+          "amount": 2500,
+          "settled": false
+        }
+      ]
+    },
+    {
+      "vouch": {
+        "id": 6,
+        "amount": 7500,
+        "description": "Platzbuchung",
+        "given": true,
+        "timestamp": 1786907906988
+      },
+      "persons": [
+        {
+          "name": "Erika Musterfrau",
+          "amount": 2500,
+          "settled": false
+        },
+        {
+          "name": "Max Mustermann",
+          "amount": 2500,
+          "settled": false
+        },
+        {
+          "name": "Lieschen Müller",
+          "amount": 2500,
+          "settled": true
+        }
+      ]
+    },
+    {
+      "vouch": {
+        "id": 7,
+        "amount": 2380,
+        "description": "Mittagessen",
+        "given": true,
+        "timestamp": 1787944631795
+      },
+      "persons": [
+        {
+          "name": "Lieschen Müller",
+          "amount": 2380,
+          "settled": true
+        }
+      ]
+    }
+  ]
+}

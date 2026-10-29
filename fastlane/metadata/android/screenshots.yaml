@@ -1,0 +1,36 @@
+# Material 3 Expressive screenshot layout and styling definitions
+screens:
+  - id: "01_vouches_overview"
+    theme: "theme-1"
+    shape_a: "circle"
+    shape_b: "pill"
+
+  - id: "02_settled_space"
+    theme: "theme-2"
+    shape_a: "pill"
+    shape_b: "circle"
+
+  - id: "03_persons_overview"
+    theme: "theme-3"
+    shape_a: "pill"
+    shape_b: "circle"
+
+  - id: "04_person_overview"
+    theme: "theme-4"
+    shape_a: "circle"
+    shape_b: "pill"
+
+  - id: "05_add_vouch"
+    theme: "theme-5"
+    shape_a: "pill"
+    shape_b: "circle"
+
+  - id: "06_add_group_vouch"
+    theme: "theme-6"
+    shape_a: "circle"
+    shape_b: "pill"
+
+  - id: "07_settings"
+    theme: "theme-7"
+    shape_a: "pill"
+    shape_b: "circle"
