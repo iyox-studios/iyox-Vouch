@@ -14,10 +14,9 @@ iyox Vouch is a personal debt and IOU tracking application presented in [Materia
 
 <p align="center">
   <img width="200" alt="Vouches Overview" src="fastlane/metadata/android/en-US/images/phoneScreenshots/01_vouches_overview.png">
-  <img width="200" alt="Settled Space" src="fastlane/metadata/android/en-US/images/phoneScreenshots/02_settled_space.png">
+  <img width="200" alt="Add Vouch" src="fastlane/metadata/android/en-US/images/phoneScreenshots/05_add_vouch.png">
   <img width="200" alt="Persons Overview" src="fastlane/metadata/android/en-US/images/phoneScreenshots/03_persons_overview.png">
   <img width="200" alt="Person Overview" src="fastlane/metadata/android/en-US/images/phoneScreenshots/04_person_overview.png">
-  <img width="200" alt="Add Vouch" src="fastlane/metadata/android/en-US/images/phoneScreenshots/05_add_vouch.png">
   <img width="200" alt="Add Group Vouch" src="fastlane/metadata/android/en-US/images/phoneScreenshots/06_add_group_vouch.png">
   <img width="200" alt="Settings" src="fastlane/metadata/android/en-US/images/phoneScreenshots/07_settings.png">
 </p>
