@@ -35,6 +35,7 @@ import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.SouthWest
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -178,6 +179,13 @@ fun PersonScreen(
                 },
                 navigationIcon = {
                     VouchBackButton(onClick = onNavigateBack)
+                },
+                actions = {
+                    Spacer(
+                        modifier = Modifier
+                            .padding(end = 16.dp)
+                            .width(ButtonDefaults.MinWidth)
+                    )
                 }
             )
         }
