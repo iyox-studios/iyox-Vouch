@@ -16,6 +16,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -30,7 +31,9 @@ fun PageHeader(
             title = {
                 if (title != null)
                     Text(
-                        title, style = MaterialTheme.typography.displayMedium
+                        title,
+                        style = MaterialTheme.typography.displayMedium,
+                        fontWeight = FontWeight.Black
                     )
             },
             actions = {
