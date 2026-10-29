@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -62,6 +63,7 @@ fun SettledSpaceScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
+                windowInsets = WindowInsets(0.dp),
                 title = {
                     Text(
                         text = if (uiState.selectedPersonName != null) {
@@ -98,7 +100,7 @@ fun SettledSpaceScreen(
                 onSearchQueryChange = viewModel::setSearchQuery,
                 modifier = Modifier
                     .padding(horizontal = 16.dp)
-                    .padding(top = 4.dp, bottom = 6.dp)
+                    .padding(top = 16.dp, bottom = 6.dp)
             )
 
             if (uiState.vouches.isEmpty()) {

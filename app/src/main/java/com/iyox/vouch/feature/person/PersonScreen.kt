@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.absoluteOffset
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -146,6 +147,7 @@ fun PersonScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
+                windowInsets = WindowInsets(0.dp),
                 title = {
                     Row(
                         verticalAlignment = Alignment.CenterVertically
@@ -195,6 +197,7 @@ fun PersonScreen(
                     .fillMaxSize()
                     .padding(top = innerPadding.calculateTopPadding())
             ) {
+                Spacer(modifier = Modifier.height(16.dp))
                 PersonInfoCard(
                     personData = state.personData,
                     amountGiven = state.amountGiven,

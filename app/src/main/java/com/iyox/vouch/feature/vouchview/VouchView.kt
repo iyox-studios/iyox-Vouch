@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.absoluteOffset
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -248,9 +249,13 @@ fun VouchViewContent(
 
     Scaffold(
         modifier = modifier, topBar = {
-            CenterAlignedTopAppBar(title = {}, navigationIcon = {
-                VouchBackButton(onClick = safeNavigateBack)
-            })
+            CenterAlignedTopAppBar(
+                windowInsets = WindowInsets(0.dp),
+                title = {},
+                navigationIcon = {
+                    VouchBackButton(onClick = safeNavigateBack)
+                }
+            )
         }) { innerPadding ->
         if (uiState.isLoading) {
             Box(
@@ -270,6 +275,7 @@ fun VouchViewContent(
                         .padding(top = innerPadding.calculateTopPadding())
                 ) {
                     // 1. Non-scrollable Top Vouch Card
+                    Spacer(modifier = Modifier.height(16.dp))
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
