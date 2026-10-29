@@ -270,14 +270,14 @@
             title: params.get('title') || defaultItem.title,
             desc: params.get('desc') || defaultItem.desc
         };
-        const imgPath = params.get('image') || `../../screenshots/raw/${locale}/${item.id}.png`;
+        const imgPath = params.get('image') || `raw/${locale}/${item.id}.png`;
         gallery.appendChild(createCard(item, imgPath));
     } else {
         function renderGallery(locale) {
             gallery.innerHTML = '';
             const list = DEFAULT_CONFIG[locale] || DEFAULT_CONFIG['en-US'];
             list.forEach(item => {
-                const imgPath = `../../screenshots/raw/${locale}/${item.id}.png`;
+                const imgPath = `raw/${locale}/${item.id}.png`;
                 gallery.appendChild(createCard(item, imgPath));
             });
         }

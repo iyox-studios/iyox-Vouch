@@ -142,25 +142,28 @@ platform :android do
     require "fileutils"
     require "shellwords"
 
-    template_path = File.expand_path("templates/screenshots/frame.html", __dir__)
-    config_path = File.expand_path("screenshots/screens.yaml", __dir__)
-    config = YAML.load_file(config_path)
+    template_path = File.expand_path("screenshots/frame.html", __dir__)
+    common_config_path = File.expand_path("metadata/android/screenshots.yaml", __dir__)
+    common_config = YAML.load_file(common_config_path)
 
     locales = options[:locales] || ["en-US", "de-DE"]
-    screens = config["screens"] || []
+    screens = common_config["screens"] || []
 
     locales.each do |locale|
       out_dir = File.expand_path("metadata/android/#{locale}/images/phoneScreenshots", __dir__)
       FileUtils.mkdir_p(out_dir)
+
+      locale_config_path = File.expand_path("metadata/android/#{locale}/screenshots.yaml", __dir__)
+      locale_captions = File.exist?(locale_config_path) ? YAML.load_file(locale_config_path) : {}
 
       screens.each do |screen_cfg|
         id = screen_cfg["id"]
         theme = screen_cfg["theme"]
         shape_a = screen_cfg["shape_a"]
         shape_b = screen_cfg["shape_b"]
-        locale_data = (screen_cfg["locales"] && screen_cfg["locales"][locale]) || {}
-        title = locale_data["title"] || ""
-        desc = locale_data["description"] || ""
+        caption = locale_captions[id] || {}
+        title = caption["title"] || ""
+        desc = caption["description"] || ""
 
         raw_candidates = [
           File.expand_path("screenshots/raw/#{locale}/#{id}.png", __dir__),
