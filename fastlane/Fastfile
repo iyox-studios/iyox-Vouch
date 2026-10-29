@@ -60,8 +60,8 @@ platform :android do
     upload_to_play_store(upload_options)
   end
 
-  desc "Upload screenshots and store listing metadata to Google Play without a new release"
-  lane :publish_screenshots do |options|
+  desc "Upload all store listing assets (metadata, icon, feature graphic, screenshots) from repo to Google Play without a new release"
+  lane :publish_store_listing do |options|
     track = options[:track] || ENV["PLAY_STORE_TRACK"] || "internal"
     validate_only = options[:validate_only] || false
 
@@ -71,9 +71,9 @@ platform :android do
       skip_upload_apk: true,
       skip_upload_aab: true,
       skip_upload_changelogs: true,
-      skip_upload_images: true,
-      skip_upload_screenshots: false,
-      skip_upload_metadata: options[:upload_metadata] ? false : true,
+      skip_upload_images: options[:skip_images] || false,
+      skip_upload_screenshots: options[:skip_screenshots] || false,
+      skip_upload_metadata: options[:skip_metadata] || false,
       validate_only: validate_only
     }
 
@@ -84,6 +84,33 @@ platform :android do
     end
 
     upload_to_play_store(upload_options)
+  end
+
+  desc "Upload screenshots only to Google Play without a new release"
+  lane :publish_screenshots do |options|
+    publish_store_listing(
+      options.merge(
+        skip_images: options.key?(:skip_images) ? options[:skip_images] : (options[:upload_images] ? false : true),
+        skip_metadata: options.key?(:skip_metadata) ? options[:skip_metadata] : (options[:upload_metadata] ? false : true),
+        skip_screenshots: false
+      )
+    )
+  end
+
+  desc "Pull current store listing metadata and graphics from Google Play Store into repo"
+  lane :pull_metadata do |options|
+    track = options[:track] || ENV["PLAY_STORE_TRACK"] || "internal"
+    metadata_path = options[:metadata_path] || "./fastlane/metadata/android"
+
+    require "fileutils"
+    require "tmpdir"
+
+    Dir.mktmpdir do |tmp_dir|
+      sh("fastlane supply init --package_name com.iyox.vouch --metadata_path #{tmp_dir} --track #{track}")
+      # Sync downloaded metadata into metadata_path, preserving existing files if needed
+      FileUtils.cp_r(File.join(tmp_dir, "."), metadata_path)
+    end
+    UI.success("Successfully synchronized store listing metadata from Google Play into #{metadata_path}")
   end
 
   desc "Generate localized screenshots for all configured locales via screengrab"

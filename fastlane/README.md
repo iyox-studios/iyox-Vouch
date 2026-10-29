@@ -31,13 +31,29 @@ Build the signed Android App Bundle (.aab)
 
 Build and upload release AAB to Google Play Store (default track: internal)
 
+### android publish_store_listing
+
+```sh
+[bundle exec] fastlane android publish_store_listing
+```
+
+Upload all store listing assets (metadata, icon, feature graphic, screenshots) from repo to Google Play without a new release
+
 ### android publish_screenshots
 
 ```sh
 [bundle exec] fastlane android publish_screenshots
 ```
 
-Upload screenshots and store listing metadata to Google Play without a new release
+Upload screenshots only to Google Play without a new release
+
+### android pull_metadata
+
+```sh
+[bundle exec] fastlane android pull_metadata
+```
+
+Pull current store listing metadata and graphics from Google Play Store into repo
 
 ### android screenshots
 
