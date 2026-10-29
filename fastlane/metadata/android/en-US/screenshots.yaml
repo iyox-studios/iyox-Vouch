@@ -1,7 +1,7 @@
 # English screenshot titles and descriptions
 01_vouches_overview:
   title: "Track Your Expenses"
-  description: "Easily manage all your vouches and settled debts in one clear overview."
+  description: "Easily manage all your vouches in one clear overview."
 
 02_settled_space:
   title: "Settled Space"
@@ -13,7 +13,7 @@
 
 04_person_overview:
   title: "Detailed Balances"
-  description: "Get a full breakdown of shared expenses for every friend."
+  description: "Get a full breakdown for every friend. Share with one tap."
 
 05_add_vouch:
   title: "Quickly Add Vouches"
@@ -25,4 +25,4 @@
 
 07_settings:
   title: "Secure & Customize"
-  description: "Protect your data with biometrics and match your personal style."
+  description: "Protect your app with biometrics and match your personal style."
