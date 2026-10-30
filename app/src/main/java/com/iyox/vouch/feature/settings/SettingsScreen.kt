@@ -44,7 +44,7 @@ import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.LightMode
 import androidx.compose.material.icons.outlined.Palette
-import androidx.compose.material.icons.outlined.Policy
+import com.iyox.vouch.ui.icons.License
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.material.icons.outlined.Upload
@@ -379,7 +379,7 @@ fun SettingsScreen(
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp))
 
             SettingItem(
-                icon = Icons.Outlined.Policy,
+                icon = Icons.Outlined.License,
                 title = stringResource(R.string.settings_open_source_licenses),
                 subtitle = stringResource(R.string.settings_open_source_licenses_subtitle),
                 onClick = onNavigateToLicenses
