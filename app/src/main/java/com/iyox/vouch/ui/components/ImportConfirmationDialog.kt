@@ -39,6 +39,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -54,6 +56,7 @@ fun ImportConfirmationDialog(
     onDismiss: () -> Unit
 ) {
     var acknowledged by remember { mutableStateOf(false) }
+    val haptic = LocalHapticFeedback.current
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -140,7 +143,13 @@ fun ImportConfirmationDialog(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(MaterialTheme.shapes.large)
-                        .clickable { acknowledged = !acknowledged },
+                        .clickable {
+                            val next = !acknowledged
+                            haptic.performHapticFeedback(
+                                if (next) HapticFeedbackType.ToggleOn else HapticFeedbackType.ToggleOff
+                            )
+                            acknowledged = next
+                        },
                     color = if (acknowledged) {
                         MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.25f)
                     } else {
@@ -161,7 +170,12 @@ fun ImportConfirmationDialog(
                     ) {
                         Checkbox(
                             checked = acknowledged,
-                            onCheckedChange = { acknowledged = it },
+                            onCheckedChange = {
+                                haptic.performHapticFeedback(
+                                    if (it) HapticFeedbackType.ToggleOn else HapticFeedbackType.ToggleOff
+                                )
+                                acknowledged = it
+                            },
                             colors = CheckboxDefaults.colors(
                                 checkedColor = MaterialTheme.colorScheme.error,
                                 checkmarkColor = MaterialTheme.colorScheme.onError
@@ -186,7 +200,10 @@ fun ImportConfirmationDialog(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Button(
-                    onClick = onConfirm,
+                    onClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.Confirm)
+                        onConfirm()
+                    },
                     enabled = acknowledged,
                     modifier = Modifier
                         .fillMaxWidth()

@@ -54,6 +54,8 @@ import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.error
 import androidx.compose.ui.semantics.semantics
@@ -145,6 +147,7 @@ fun VouchDirectionToggle(
     onToggle: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val haptic = LocalHapticFeedback.current
     Row(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -155,7 +158,12 @@ fun VouchDirectionToggle(
             val isSelected = isGiven == type
             ToggleButton(
                 checked = isSelected,
-                onCheckedChange = { onToggle(type) },
+                onCheckedChange = {
+                    if (!isSelected) {
+                        haptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
+                        onToggle(type)
+                    }
+                },
                 modifier = Modifier.weight(1f),
                 colors = ToggleButtonDefaults.toggleButtonColors(),
                 elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp),
@@ -308,6 +316,7 @@ fun VouchDateField(
     onDateSelected: (Long) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val haptic = LocalHapticFeedback.current
     var showDatePicker by remember { mutableStateOf(false) }
     val dateFormat = SimpleDateFormat(stringResource(R.string.format_vouch_date), Locale.getDefault())
     val formattedDate = remember(timestamp) { dateFormat.format(timestamp) }
@@ -358,6 +367,7 @@ fun VouchDateField(
             confirmButton = {
                 TextButton(
                     onClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.Confirm)
                         datePickerState.selectedDateMillis?.let { utcMillis ->
                             val utcCal = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
                                 timeInMillis = utcMillis

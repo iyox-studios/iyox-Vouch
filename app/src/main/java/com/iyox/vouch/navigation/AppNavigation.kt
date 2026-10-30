@@ -150,11 +150,14 @@ fun AppNavigation(
                             label = { Text(stringResource(item.titleRes)) },
                             selected = isSelected,
                             onClick = {
-                                haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
+                                val isChangingPage = pagerState.currentPage != item.targetPage
+                                if (isChangingPage || !isMainDestination) {
+                                    haptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
+                                }
                                 if (!isMainDestination) {
                                     navController.popBackStack<VouchesRoute>(inclusive = false)
                                 }
-                                if (pagerState.currentPage != item.targetPage) {
+                                if (isChangingPage) {
                                     coroutineScope.launch {
                                         pagerState.scrollToPage(item.targetPage)
                                     }

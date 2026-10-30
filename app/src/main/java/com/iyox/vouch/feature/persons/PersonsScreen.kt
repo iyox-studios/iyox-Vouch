@@ -1,6 +1,6 @@
 package com.iyox.vouch.feature.persons
 
-import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -199,7 +199,7 @@ fun PersonCard(
             .aspectRatio(1.05f)
             .clip(MaterialTheme.shapes.largeIncreased)
             .testTag("person_card_$name")
-            .combinedClickable(onClick = onView, onLongClick = { }),
+            .clickable(onClick = onView),
     ) {
         Column(
             modifier = Modifier

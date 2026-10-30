@@ -68,7 +68,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.rememberGraphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -132,6 +134,7 @@ fun VouchViewContent(
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val toastManager = rememberToastManager()
+    val haptic = LocalHapticFeedback.current
 
     val msgVouchSettled = stringResource(R.string.msg_vouch_settled)
     val msgVouchUnsettled = stringResource(R.string.msg_vouch_unsettled)
@@ -170,6 +173,7 @@ fun VouchViewContent(
             confirmButton = {
                 Button(
                     onClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.Confirm)
                         showDeleteConfirmDialog = false
                         safeNavigateBack()
                         toastManager.executeWithUndo(
@@ -215,6 +219,7 @@ fun VouchViewContent(
         }, confirmButton = {
             Button(
                 onClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.Confirm)
                     showSettleConfirmDialog = false
                     val message = if (isSettled) msgVouchUnsettled else msgVouchSettled
                     toastManager.executeWithUndo(
@@ -622,6 +627,7 @@ fun GroupVouchParticipantItem(
     onSettleToggle: () -> Unit,
     onPersonClick: (String) -> Unit
 ) {
+    val haptic = LocalHapticFeedback.current
     val isSettled = personWithAmount.settled
     val isSelf = personWithAmount.isSelf
     val displayName = if (isSelf) {
@@ -686,7 +692,12 @@ fun GroupVouchParticipantItem(
                     Modifier
                         .size(42.dp)
                         .clip(MaterialTheme.shapes.medium)
-                        .clickable(onClick = onSettleToggle)
+                        .clickable {
+                            haptic.performHapticFeedback(
+                                if (isParticipantSettled) HapticFeedbackType.ToggleOff else HapticFeedbackType.ToggleOn
+                            )
+                            onSettleToggle()
+                        }
                 } else {
                     Modifier.size(42.dp)
                 }

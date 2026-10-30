@@ -129,7 +129,6 @@ fun OnboardingScreen(
                         Button(
                             modifier = Modifier.padding(end = 16.dp),
                             onClick = {
-                                haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
                                 coroutineScope.launch {
                                     pagerState.animateScrollToPage(PAGE_COUNT - 1)
                                 }
@@ -145,13 +144,11 @@ fun OnboardingScreen(
             OnboardingBottomNavigation(
                 currentPage = pagerState.currentPage,
                 onBack = {
-                    haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
                     coroutineScope.launch {
                         pagerState.animateScrollToPage(pagerState.currentPage - 1)
                     }
                 },
                 onNext = {
-                    haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
                     if (pagerState.currentPage < PAGE_COUNT - 1) {
                         coroutineScope.launch {
                             pagerState.animateScrollToPage(pagerState.currentPage + 1)

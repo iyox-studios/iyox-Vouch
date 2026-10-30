@@ -17,9 +17,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.appcompat.app.AppCompatActivity
-import com.iyox.vouch.core.utils.LocalVibrationManager
 import com.iyox.vouch.core.utils.PreferenceKeys
-import com.iyox.vouch.core.utils.VibrationManager
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -107,14 +105,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showApp() {
-        val vibrationManager = VibrationManager(this)
         setContent {
-            CompositionLocalProvider(LocalVibrationManager provides vibrationManager) {
-                VouchApp(
-                    pendingImportUri = pendingImportUri.value,
-                    onImportUriConsumed = { consumePendingImport() }
-                )
-            }
+            VouchApp(
+                pendingImportUri = pendingImportUri.value,
+                onImportUriConsumed = { consumePendingImport() }
+            )
         }
     }
 

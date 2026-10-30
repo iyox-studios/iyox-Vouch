@@ -67,7 +67,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.rememberGraphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -118,6 +120,7 @@ fun PersonScreen(
     val currentPersonName = state.personData?.person?.name ?: personName
 
     val context = LocalContext.current
+    val haptic = LocalHapticFeedback.current
     val coroutineScope = rememberCoroutineScope()
     val toastManager = rememberToastManager()
     val msgPersonSettled = stringResource(R.string.msg_person_settled)
@@ -386,10 +389,12 @@ fun PersonScreen(
                     coroutineScope.launch {
                         val result = viewModel.renamePerson(newName)
                         if (result.isSuccess) {
+                            haptic.performHapticFeedback(HapticFeedbackType.Confirm)
                             showRenameDialog = false
                             renameErrorMessage = null
                             toastManager.show(msgPersonRenamed)
                         } else {
+                            haptic.performHapticFeedback(HapticFeedbackType.Reject)
                             val error = result.exceptionOrNull()
                             renameErrorMessage = if (error is IllegalStateException) {
                                 msgPersonAlreadyExists
@@ -410,9 +415,11 @@ fun PersonScreen(
                 onConfirm = { fullySettle ->
                     showSettleDialog = false
                     if (state.vouches.isEmpty()) {
+                        haptic.performHapticFeedback(HapticFeedbackType.Reject)
                         toastManager.show(msgNoActiveVouches)
                         return@SettlePersonDialog
                     }
+                    haptic.performHapticFeedback(HapticFeedbackType.Confirm)
                     if (fullySettle) {
                         toastManager.executeWithUndo(
                             message = msgPersonSettled,
@@ -468,6 +475,7 @@ fun QuickActionsCard(
     modifier: Modifier = Modifier,
     onSettledSpaceClick: () -> Unit = {}
 ) {
+    val haptic = LocalHapticFeedback.current
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -476,7 +484,10 @@ fun QuickActionsCard(
         verticalAlignment = Alignment.CenterVertically
     ) {
         FilledTonalButton(
-            onClick = onSettledSpaceClick,
+            onClick = {
+                haptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
+                onSettledSpaceClick()
+            },
             shape = MaterialTheme.shapes.medium,
             modifier = Modifier
                 .weight(1f)

@@ -35,6 +35,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -60,6 +62,7 @@ fun VouchesScreen(
 ) {
     val handleVouchClick = onVouchClick ?: onNavigateToEditVouch
     val uiState by viewModel.uiState.collectAsState()
+    val haptic = LocalHapticFeedback.current
 
     val fabMenuExpanded = remember { mutableStateOf(false) }
 
@@ -78,7 +81,13 @@ fun VouchesScreen(
                 expanded = fabMenuExpanded.value,
                 button = {
                     FloatingActionButton(
-                        onClick = { fabMenuExpanded.value = !fabMenuExpanded.value }
+                        onClick = {
+                            val willExpand = !fabMenuExpanded.value
+                            haptic.performHapticFeedback(
+                                if (willExpand) HapticFeedbackType.ToggleOn else HapticFeedbackType.ToggleOff
+                            )
+                            fabMenuExpanded.value = willExpand
+                        }
                     ) {
                         Icon(
                             imageVector = Icons.Default.Add,
@@ -89,6 +98,7 @@ fun VouchesScreen(
             ) {
                 FloatingActionButtonMenuItem(
                     onClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.ToggleOff)
                         fabMenuExpanded.value = false
                         onNavigateToAddGroupVouch()
                     },
@@ -97,6 +107,7 @@ fun VouchesScreen(
                 )
                 FloatingActionButtonMenuItem(
                     onClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.ToggleOff)
                         fabMenuExpanded.value = false
                         onNavigateToAddVouch()
                     },

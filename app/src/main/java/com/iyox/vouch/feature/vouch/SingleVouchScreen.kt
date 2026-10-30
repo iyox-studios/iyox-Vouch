@@ -70,6 +70,7 @@ fun SingleVouchScreen(
 
     LaunchedEffect(uiState.saveSuccess) {
         if (uiState.saveSuccess) {
+            haptic.performHapticFeedback(HapticFeedbackType.Confirm)
             viewModel.resetSaveSuccess()
             onNavigateBack()
         }

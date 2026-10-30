@@ -133,6 +133,7 @@ fun GroupVouchScreen(
 
     LaunchedEffect(uiState.saveSuccess) {
         if (uiState.saveSuccess) {
+            haptic.performHapticFeedback(HapticFeedbackType.Confirm)
             viewModel.resetSaveSuccess()
             onNavigateBack()
         }
@@ -140,6 +141,7 @@ fun GroupVouchScreen(
 
     LaunchedEffect(uiState.errorMessageRes) {
         uiState.errorMessageRes?.let { resId ->
+            haptic.performHapticFeedback(HapticFeedbackType.Reject)
             toastManager.showError(resId)
         }
     }
@@ -266,7 +268,10 @@ fun GroupVouchScreen(
                         isGiven = uiState.given,
                         timestamp = uiState.timestamp,
                         members = uiState.members,
-                        onResetAllToEqual = viewModel::resetAllToEqualSplit
+                        onResetAllToEqual = {
+                            haptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
+                            viewModel.resetAllToEqualSplit()
+                        }
                     )
 
                     GroupMemberSelector(
@@ -275,9 +280,18 @@ fun GroupVouchScreen(
                         suggestedPersons = uiState.suggestedPersons,
                         currentMembers = uiState.members,
                         onQueryChange = viewModel::onPersonQueryChange,
-                        onPersonSelected = viewModel::onPersonSelected,
-                        onAddPerson = viewModel::addMemberFromQuery,
-                        onAddSelf = viewModel::addSelfMember,
+                        onPersonSelected = { person ->
+                            haptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
+                            viewModel.onPersonSelected(person)
+                        },
+                        onAddPerson = {
+                            haptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
+                            viewModel.addMemberFromQuery()
+                        },
+                        onAddSelf = { selfName ->
+                            haptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
+                            viewModel.addSelfMember(selfName)
+                        },
                         focusManager = focusManager
                     )
 
@@ -287,8 +301,14 @@ fun GroupVouchScreen(
                         members = uiState.members,
                         totalAmountMinor = totalAmountMinor,
                         onAmountChange = viewModel::onMemberAmountChange,
-                        onResetMember = viewModel::resetMemberToEqualSplit,
-                        onRemove = viewModel::removeMember,
+                        onResetMember = { member ->
+                            haptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
+                            viewModel.resetMemberToEqualSplit(member)
+                        },
+                        onRemove = { member ->
+                            haptic.performHapticFeedback(HapticFeedbackType.ToggleOff)
+                            viewModel.removeMember(member)
+                        },
                         focusManager = focusManager,
                         modifier = Modifier.weight(1f)
                     )

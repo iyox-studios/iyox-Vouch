@@ -7,6 +7,8 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.SnackbarVisuals
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.hapticfeedback.HapticFeedback
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import com.iyox.vouch.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -27,7 +29,8 @@ data class VouchSnackbarVisuals(
 class ToastManager(
     val snackbarHostState: SnackbarHostState,
     private val coroutineScope: CoroutineScope,
-    private val context: Context? = null
+    private val context: Context? = null,
+    private val haptic: HapticFeedback? = null
 ) {
     fun show(
         message: String,
@@ -81,6 +84,7 @@ class ToastManager(
         message: String,
         duration: SnackbarDuration = SnackbarDuration.Short
     ) {
+        haptic?.performHapticFeedback(HapticFeedbackType.Reject)
         coroutineScope.launch {
             snackbarHostState.currentSnackbarData?.dismiss()
             snackbarHostState.showSnackbar(
@@ -123,6 +127,7 @@ class ToastManager(
                 )
                 val snackbarResult = snackbarHostState.showSnackbar(visuals)
                 if (snackbarResult == SnackbarResult.ActionPerformed) {
+                    haptic?.performHapticFeedback(HapticFeedbackType.Confirm)
                     try {
                         undoAction(resultData)
                     } catch (e: Exception) {

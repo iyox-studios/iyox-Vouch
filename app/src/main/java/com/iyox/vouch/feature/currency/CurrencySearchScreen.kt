@@ -235,7 +235,7 @@ fun CurrencySearchScreen(
                                     interactionSource = remember { MutableInteractionSource() },
                                     indication = ripple(bounded = true, radius = 14.dp)
                                 ) {
-                                    haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
+                                    haptic.performHapticFeedback(HapticFeedbackType.ToggleOff)
                                     searchQuery = ""
                                 }
                             ,

@@ -12,6 +12,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.iyox.vouch.core.utils.LocalSnackbarHostState
 import com.iyox.vouch.core.utils.LocalToastManager
@@ -31,8 +32,9 @@ fun VouchApp(
     val appContext = LocalContext.current.applicationContext
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
-    val toastManager = remember(snackbarHostState, coroutineScope, appContext) {
-        ToastManager(snackbarHostState, coroutineScope, appContext)
+    val haptic = LocalHapticFeedback.current
+    val toastManager = remember(snackbarHostState, coroutineScope, appContext, haptic) {
+        ToastManager(snackbarHostState, coroutineScope, appContext, haptic)
     }
     val settingsViewModel: SettingsViewModel = hiltViewModel()
     val uiState by settingsViewModel.uiState.collectAsState()

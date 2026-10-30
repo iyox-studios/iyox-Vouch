@@ -85,6 +85,23 @@ fun VouchSwipeToDismiss(
         }
     }
 
+    val currentOffset = try {
+        dismissState.requireOffset()
+    } catch (_: Exception) {
+        0f
+    }
+    var thresholdCrossed by remember { mutableStateOf(false) }
+
+    LaunchedEffect(currentOffset, isDismissing) {
+        val crossed = abs(currentOffset) >= minDragDistancePx
+        if (crossed && !thresholdCrossed && !isDismissing) {
+            haptics.performHapticFeedback(HapticFeedbackType.GestureThresholdActivate)
+            thresholdCrossed = true
+        } else if (!crossed && thresholdCrossed) {
+            thresholdCrossed = false
+        }
+    }
+
     val handleDismiss: (SwipeToDismissBoxValue) -> Unit = remember {
         { value ->
             if (!isDismissing) {

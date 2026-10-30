@@ -19,6 +19,8 @@ import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -32,6 +34,7 @@ fun EmptySearchContent(
     onClearSearch: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val haptic = LocalHapticFeedback.current
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -69,7 +72,10 @@ fun EmptySearchContent(
                 textAlign = TextAlign.Center
             )
             OutlinedButton(
-                onClick = onClearSearch,
+                onClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.ToggleOff)
+                    onClearSearch()
+                },
                 modifier = Modifier.padding(top = 8.dp)
             ) {
                 Text(stringResource(R.string.action_clear))

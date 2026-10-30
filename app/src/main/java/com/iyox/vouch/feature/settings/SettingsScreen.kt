@@ -142,6 +142,7 @@ fun SettingsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
+    val haptic = LocalHapticFeedback.current
     val biometricTitle = stringResource(R.string.biometric_title)
     val biometricSubtitle = stringResource(R.string.biometric_subtitle)
     val biometricCancel = stringResource(R.string.action_cancel)
@@ -292,6 +293,9 @@ fun SettingsScreen(
                     Switch(
                         checked = uiState.biometricEnabled,
                         onCheckedChange = { enabled ->
+                            haptic.performHapticFeedback(
+                                if (enabled) HapticFeedbackType.ToggleOn else HapticFeedbackType.ToggleOff
+                            )
                             if (enabled) {
                                 authenticateAndEnableBiometric(
                                     context = context,
@@ -307,7 +311,11 @@ fun SettingsScreen(
                     )
                 },
                 onClick = {
-                    if (!uiState.biometricEnabled) {
+                    val targetEnabled = !uiState.biometricEnabled
+                    haptic.performHapticFeedback(
+                        if (targetEnabled) HapticFeedbackType.ToggleOn else HapticFeedbackType.ToggleOff
+                    )
+                    if (targetEnabled) {
                         authenticateAndEnableBiometric(
                             context = context,
                             viewModel = viewModel,
@@ -455,6 +463,7 @@ fun LanguageSelectionDialog(
     onDismiss: () -> Unit,
     onLanguageSelected: (String) -> Unit
 ) {
+    val haptic = LocalHapticFeedback.current
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.title_select_language)) },
@@ -469,7 +478,10 @@ fun LanguageSelectionDialog(
                     val isSelected = matchesLanguageTag(language.tag, currentLanguageTag)
                     SelectionCard(
                         isSelected = isSelected,
-                        onClick = { onLanguageSelected(language.tag) },
+                        onClick = {
+                            haptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
+                            onLanguageSelected(language.tag)
+                        },
                         label = stringResource(language.labelRes)
                     ) {
                         if (language.icon != null) {
@@ -538,7 +550,7 @@ fun CurrencySelectionDialog(
                                     val now = System.currentTimeMillis()
                                     if (now - lastSelectedTimestamp > 400L) {
                                         lastSelectedTimestamp = now
-                                        haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
+                                        haptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
                                         onCurrencySelected(slot.currency)
                                     }
                                 },
@@ -562,7 +574,7 @@ fun CurrencySelectionDialog(
                             SelectionCard(
                                 isSelected = isSelected,
                                 onClick = {
-                                    haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
+                                    haptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
                                     onSearchClick()
                                 },
                                 label = if (isSelected && customSelectedCurrency != null) {
@@ -622,6 +634,7 @@ fun ThemeSelectionDialog(
     onDismiss: () -> Unit,
     onThemeSelected: (Int) -> Unit
 ) {
+    val haptic = LocalHapticFeedback.current
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.title_select_theme)) },
@@ -635,7 +648,10 @@ fun ThemeSelectionDialog(
                 items(supportedThemes) { theme ->
                     SelectionCard(
                         isSelected = theme.mode == currentTheme,
-                        onClick = { onThemeSelected(theme.mode) },
+                        onClick = {
+                            haptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
+                            onThemeSelected(theme.mode)
+                        },
                         label = stringResource(theme.labelRes),
                         icon = theme.icon
                     )
@@ -657,6 +673,7 @@ fun ColorThemeSelectionDialog(
     onDismiss: () -> Unit,
     onColorThemeSelected: (AppColorTheme) -> Unit
 ) {
+    val haptic = LocalHapticFeedback.current
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.title_select_color_theme)) },
@@ -671,7 +688,10 @@ fun ColorThemeSelectionDialog(
                     val isSelected = colorTheme == currentColorTheme
                     SelectionCard(
                         isSelected = isSelected,
-                        onClick = { onColorThemeSelected(colorTheme) },
+                        onClick = {
+                            haptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
+                            onColorThemeSelected(colorTheme)
+                        },
                         label = stringResource(colorTheme.labelRes)
                     ) {
                         if (colorTheme.previewColor == null) {

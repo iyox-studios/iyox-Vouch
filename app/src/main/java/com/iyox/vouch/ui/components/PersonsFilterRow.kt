@@ -36,7 +36,9 @@ fun PersonsFilterRow(
         FilterChip(
             selected = showOnlyNonZero,
             onClick = {
-                haptics.performHapticFeedback(HapticFeedbackType.ToggleOn)
+                haptics.performHapticFeedback(
+                    if (showOnlyNonZero) HapticFeedbackType.ToggleOff else HapticFeedbackType.ToggleOn
+                )
                 onToggleNonZero()
             },
             label = {

@@ -19,6 +19,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
@@ -43,9 +45,16 @@ fun RenamePersonDialog(
         )
     }
     val focusRequester = remember { FocusRequester() }
+    val haptic = LocalHapticFeedback.current
 
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
+    }
+
+    LaunchedEffect(errorMessage) {
+        if (errorMessage != null) {
+            haptic.performHapticFeedback(HapticFeedbackType.Reject)
+        }
     }
 
     val trimmed = textFieldValue.text.trim()
