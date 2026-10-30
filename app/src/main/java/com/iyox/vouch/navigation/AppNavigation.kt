@@ -49,6 +49,7 @@ import com.iyox.vouch.feature.onboarding.OnboardingScreen
 import com.iyox.vouch.feature.person.PersonScreen
 import com.iyox.vouch.feature.persons.PersonsScreen
 import com.iyox.vouch.feature.persons.PersonsViewModel
+import com.iyox.vouch.feature.settings.OpenSourceLicensesScreen
 import com.iyox.vouch.feature.settings.SettingsScreen
 import com.iyox.vouch.feature.settings.SettingsViewModel
 import com.iyox.vouch.feature.settled.SettledSpaceScreen
@@ -108,7 +109,8 @@ fun AppNavigation(
             icon = Icons.Outlined.Settings,
             iconSelected = Icons.Filled.Settings,
             isSelected = { dest, page ->
-                dest?.hasRoute<VouchesRoute>() == true && page == 2
+                (dest?.hasRoute<VouchesRoute>() == true && page == 2) ||
+                    dest?.hasRoute<OpenSourceLicensesRoute>() == true
             }
         )
     )
@@ -254,6 +256,9 @@ fun AppNavigation(
                                     },
                                     onNavigateToCurrencySearch = {
                                         navController.navigate(CurrencySearchRoute)
+                                    },
+                                    onNavigateToLicenses = {
+                                        navController.navigate(OpenSourceLicensesRoute)
                                     }
                                 )
                             }
@@ -388,6 +393,20 @@ fun AppNavigation(
                         },
                         onNavigateToPerson = { personName ->
                             navController.navigate(ViewPersonRoute(personName = personName))
+                        }
+                    )
+                }
+            }
+
+            composable<OpenSourceLicensesRoute> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(bottom = innerPadding.calculateBottomPadding())
+                ) {
+                    OpenSourceLicensesScreen(
+                        onNavigateBack = {
+                            navController.popBackStack()
                         }
                     )
                 }
