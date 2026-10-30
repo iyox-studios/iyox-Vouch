@@ -9,7 +9,7 @@
 
 03_add_group_vouch:
   title: "Split With Groups"
-  description: "Divide costs equally among multiple people without doing the math."
+  description: "Easily divide costs among multiple people."
 
 04_person_overview:
   title: "Detailed Balances"
