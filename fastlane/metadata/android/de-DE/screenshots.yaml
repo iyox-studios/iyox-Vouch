@@ -3,26 +3,18 @@
   title: "Ausgaben im Blick"
   description: "Verwalte alle Vouches in einer klaren Übersicht."
 
-02_settled_space:
-  title: "Settled Space"
-  description: "Behalte eine saubere, geordnete Übersicht über alle erledigten Zahlungen."
-
-03_persons_overview:
+02_persons_overview:
   title: "Personen verwalten"
   description: "Sieh auf einen Blick, wer dir Geld schuldet und wem du etwas schuldest."
+
+03_add_group_vouch:
+  title: "In Gruppen aufteilen"
+  description: "Teile Kosten einfach und gerecht auf mehrere Personen auf."
 
 04_person_overview:
   title: "Detaillierte Salden"
   description: "Sieh dir detaillierte Aufschlüsselung pro Person an. Teile mit einem Klick."
 
-05_add_vouch:
-  title: "Vouches erfassen"
-  description: "Erfasse neue Ausgaben in Sekundenschnelle in einer intuitiven Oberfläche."
-
-06_add_group_vouch:
-  title: "In Gruppen aufteilen"
-  description: "Teile Kosten einfach und gerecht auf mehrere Personen auf."
-
-07_settings:
+05_settings:
   title: "Sicher & Individuell"
-  description: "Schütze App mit Biometrie und passe das Design nach deinen Wünschen an."
+  description: "Schütze deine App mit Biometrie und passe das Design nach deinen Wünschen an."
