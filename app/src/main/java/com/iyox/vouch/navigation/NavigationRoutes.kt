@@ -42,3 +42,6 @@ data class VouchViewRoute(
 
 @Serializable
 data object CurrencySearchRoute
+
+@Serializable
+data object OpenSourceLicensesRoute

@@ -44,6 +44,7 @@ import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.LightMode
 import androidx.compose.material.icons.outlined.Palette
+import com.iyox.vouch.ui.icons.License
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.material.icons.outlined.Upload
@@ -76,6 +77,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -91,6 +93,7 @@ import com.iyox.vouch.core.currency.CurrencyManager
 import com.iyox.vouch.ui.components.PageHeader
 import com.iyox.vouch.ui.theme.AppColorTheme
 import java.util.Locale
+import androidx.compose.ui.platform.LocalLocale
 
 data class SupportedLanguage(
     val tag: String,
@@ -134,7 +137,8 @@ private val supportedThemes = listOf(
 fun SettingsScreen(
     viewModel: SettingsViewModel = viewModel(),
     onNavigateToOnboarding: () -> Unit = {},
-    onNavigateToCurrencySearch: () -> Unit = {}
+    onNavigateToCurrencySearch: () -> Unit = {},
+    onNavigateToLicenses: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
@@ -246,7 +250,7 @@ fun SettingsScreen(
             SettingItem(
                 icon = Icons.Outlined.AttachMoney,
                 title = stringResource(R.string.settings_currency),
-                subtitle = "${currentCurrency.getSymbol(Locale.getDefault())} (${currentCurrency.currencyCode})",
+                subtitle = "${currentCurrency.getSymbol(LocalLocale.current.platformLocale)} (${currentCurrency.currencyCode})",
                 onClick = { showCurrencyDialog = true }
             )
 
@@ -375,6 +379,13 @@ fun SettingsScreen(
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp))
 
             SettingItem(
+                icon = Icons.Outlined.License,
+                title = stringResource(R.string.settings_open_source_licenses),
+                subtitle = stringResource(R.string.settings_open_source_licenses_subtitle),
+                onClick = onNavigateToLicenses
+            )
+
+            SettingItem(
                 icon = Icons.Outlined.Info,
                 title = stringResource(R.string.settings_app_version),
                 subtitle = viewModel.appVersion
@@ -495,7 +506,7 @@ fun CurrencySelectionDialog(
 ) {
     val haptic = LocalHapticFeedback.current
     val configuration = LocalConfiguration.current
-    val locale = configuration.locales[0] ?: Locale.getDefault()
+    val locale = configuration.locales[0] ?: LocalLocale.current.platformLocale
     val localeCurrency = remember { CurrencyManager.resolveDefaultCurrency() }
     val slots = remember(localeCurrency) { CurrencyManager.getQuickCurrencySlots(localeCurrency) }
     val selectedCodeAtOpen = remember { currentCurrency.currencyCode }

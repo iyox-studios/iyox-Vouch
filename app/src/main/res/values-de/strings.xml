@@ -260,4 +260,8 @@
     <string name="error_name_empty">Name darf nicht leer sein</string>
     <string name="msg_share_failed">Teilen fehlgeschlagen</string>
     <string name="msg_no_active_vouches_to_settle">Keine offenen Vouches zum Begleichen</string>
+    <string name="settings_open_source_licenses">Open-Source-Lizenzen</string>
+    <string name="settings_open_source_licenses_subtitle">Lizenzen und Hinweise zu Drittanbieter-Bibliotheken</string>
+    <string name="settings_licenses_website">Website</string>
+    <string name="settings_licenses_search_placeholder">Bibliotheken oder Lizenzen suchen…</string>
 </resources>

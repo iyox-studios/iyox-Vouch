@@ -14,6 +14,7 @@ class NavigationRoutesTest {
         assertNotNull(PersonsRoute)
         assertNotNull(SettingsRoute)
         assertNotNull(CurrencySearchRoute)
+        assertNotNull(OpenSourceLicensesRoute)
 
         val settled = SettledSpaceRoute(personName = "Alice")
         assertEquals("Alice", settled.personName)
