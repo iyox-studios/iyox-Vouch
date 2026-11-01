@@ -7,4 +7,14 @@ plugins {
     alias(libs.plugins.ksp) apply false
     alias(libs.plugins.hilt.android) apply false
     alias(libs.plugins.aboutlibraries) apply false
+    alias(libs.plugins.qodana)
+}
+
+qodana {
+}
+
+tasks.named<org.jetbrains.qodana.tasks.QodanaScanTask>("qodanaScan") {
+    arguments.set(listOf(
+        "--volume=${gradle.gradleUserHomeDir}/wrapper:/root/.gradle/wrapper:ro"
+    ))
 }

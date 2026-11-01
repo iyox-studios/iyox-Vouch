@@ -33,6 +33,16 @@ This project contains both local JVM tests and on-device instrumented tests:
 
 Make sure your changes don't break existing tests before submitting a pull request.
 
+## Static Analysis (Qodana)
+
+We use JetBrains Qodana to maintain code quality. Before submitting a pull request, run:
+
+```bash
+./gradlew qodanaScan
+```
+
+The scan should pass and produce 0 new findings.
+
 ## Commit Messages
 
 It's good practice to follow the [Conventional Commits](https://www.conventionalcommits.org/) guidelines to keep the git history clean. If you do, please use the imperative mood (e.g. "add", not "added" or "adds").
@@ -71,7 +81,7 @@ Adding or updating translations requires no coding, just some git knowledge:
 ## Pull Request Process
 
 1. Create a branch from `main` (e.g. `feature/my-feature` or `fix/issue-description`).
-2. Make your changes and verify that both builds and relevant tests pass.
+2. Make your changes and verify that builds, relevant tests, and `./gradlew qodanaScan` pass without new findings.
 3. Open a pull request against `main` with a short summary of what you changed and why.
 
 ## AI-Assisted Contributions
