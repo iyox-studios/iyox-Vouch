@@ -379,15 +379,13 @@ fun AppNavigation(
                 }
             }
 
-            composable<VouchViewRoute> { backStackEntry ->
-                val route = backStackEntry.toRoute<VouchViewRoute>()
+            composable<VouchViewRoute> {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(bottom = innerPadding.calculateBottomPadding())
                 ) {
                     VouchView(
-                        vouchId = route.vouchId,
                         onNavigateBack = {
                             navController.popBackStack()
                         },
