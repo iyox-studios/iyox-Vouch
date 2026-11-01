@@ -75,7 +75,6 @@ class SettledSpaceViewModelTest {
         )
 
         val viewModel = createViewModel(null)
-        viewModel.loadVouches()
 
         val state = viewModel.uiState.first { it.vouches.size == 2 && it.settledCount == 2 }
         assertEquals(2, state.settledCount)
@@ -99,7 +98,6 @@ class SettledSpaceViewModelTest {
         )
 
         val viewModel = createViewModel("Alice")
-        viewModel.loadVouches()
 
         val state = viewModel.uiState.first { it.vouches.size == 1 && it.settledCount == 1 }
         assertEquals(1, state.settledCount)
@@ -176,7 +174,6 @@ class SettledSpaceViewModelTest {
         )
 
         val viewModel = createViewModel(null)
-        viewModel.loadVouches()
         viewModel.uiState.first { it.vouches.size == 2 }
 
         // Search description

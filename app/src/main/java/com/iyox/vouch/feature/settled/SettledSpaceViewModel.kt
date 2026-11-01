@@ -41,10 +41,6 @@ class SettledSpaceViewModel @Inject constructor(
 
     val sharedActions = SharedVouchActions(repository)
 
-    fun loadVouches() {
-        // No-op: ViewModel reactively observes repository.vouchesFlow
-    }
-
     private val _selectedPersonName = MutableStateFlow(initialPersonName)
     private val _showOnlyGiven = MutableStateFlow(VouchTypeFilter.ALL)
     private val _sortedBy = MutableStateFlow(VouchSortOrder.DATE)
