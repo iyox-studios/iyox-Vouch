@@ -15,12 +15,15 @@ qodana {
 
 tasks.named<org.jetbrains.qodana.tasks.QodanaScanTask>("qodanaScan") {
     val qodanaLocalProperties = layout.projectDirectory.file(".qodana/local.properties").asFile
+    val qodanaInnerGradle = layout.buildDirectory.dir("qodana/inner-gradle").get().asFile
     doFirst {
         qodanaLocalProperties.parentFile.mkdirs()
         qodanaLocalProperties.writeText("sdk.dir=/opt/android-sdk\n")
+        qodanaInnerGradle.mkdirs()
     }
     arguments.set(listOf(
         "--volume=${gradle.gradleUserHomeDir}/wrapper:/root/.gradle/wrapper:ro",
-        "--volume=${layout.projectDirectory.file(".qodana/local.properties").asFile.absolutePath}:/data/project/local.properties"
+        "--volume=${qodanaLocalProperties.absolutePath}:/data/project/local.properties",
+        "--volume=${qodanaInnerGradle.absolutePath}:/data/project/.gradle"
     ))
 }

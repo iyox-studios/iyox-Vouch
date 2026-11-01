@@ -25,6 +25,3 @@ dependencyResolutionManagement {
 rootProject.name = "iyox Vouch"
 include(":app")
 
-if (gradle.startParameter.taskNames.any { it.contains("qodana", ignoreCase = true) }) {
-    gradle.startParameter.projectCacheDir = file(".gradle/host-cache")
-}

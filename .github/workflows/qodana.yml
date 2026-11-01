@@ -31,7 +31,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Run Qodana Scan
-        run: ./gradlew qodanaScan
+        run: ./gradlew qodanaScan --no-daemon
 
       - name: Upload SARIF to GitHub Code Scanning
         if: always()
