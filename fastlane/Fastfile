@@ -45,6 +45,7 @@ platform :android do
       package_name: "com.iyox.vouch",
       track: track,
       validate_only: validate_only,
+      skip_upload_apk: true,
       skip_upload_metadata: options[:skip_metadata] || false,
       skip_upload_images: options[:skip_images] || false,
       skip_upload_screenshots: options[:skip_screenshots] || false,
