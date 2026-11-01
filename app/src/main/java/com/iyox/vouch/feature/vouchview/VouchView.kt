@@ -79,6 +79,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalLocale
 import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.iyox.vouch.R
@@ -448,7 +449,7 @@ fun GroupVouchDetailHero(
 ) {
     var showParticipantsDialog by remember { mutableStateOf(false) }
     val dateFormat =
-        SimpleDateFormat(stringResource(R.string.format_vouch_date), Locale.getDefault())
+        SimpleDateFormat(stringResource(R.string.format_vouch_date), LocalLocale.current.platformLocale)
     val formattedDate = dateFormat.format(vouch.vouch.timestamp)
 
     Card(
@@ -888,7 +889,7 @@ fun SingleVouchExportTemplate(
     vouch: VouchWithPerson, modifier: Modifier = Modifier
 ) {
     val dateFormat =
-        SimpleDateFormat(stringResource(R.string.format_vouch_date), Locale.getDefault())
+        SimpleDateFormat(stringResource(R.string.format_vouch_date), LocalLocale.current.platformLocale)
     val formattedDate = dateFormat.format(vouch.vouch.timestamp)
     val hasDescription = vouch.vouch.description.isNotBlank()
     val isGroup = vouch.persons.size > 1

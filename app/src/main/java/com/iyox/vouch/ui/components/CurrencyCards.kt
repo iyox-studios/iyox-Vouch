@@ -23,13 +23,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.iyox.vouch.R
-import java.util.Locale
 
 @Composable
 fun CurrencyCard(
@@ -40,7 +40,7 @@ fun CurrencyCard(
     aspectRatio: Float = 1.35f
 ) {
     val configuration = LocalConfiguration.current
-    val locale = configuration.locales[0] ?: Locale.getDefault()
+    val locale = configuration.locales[0] ?: LocalLocale.current.platformLocale
 
     val containerColor = if (isSelected) {
         MaterialTheme.colorScheme.primaryContainer
@@ -100,7 +100,7 @@ fun CurrencySearchCard(
     aspectRatio: Float = 1.35f
 ) {
     val configuration = LocalConfiguration.current
-    val locale = configuration.locales[0] ?: Locale.getDefault()
+    val locale = configuration.locales[0] ?: LocalLocale.current.platformLocale
 
     val containerColor = if (isCustomSelected) {
         MaterialTheme.colorScheme.primaryContainer

@@ -33,6 +33,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -58,7 +59,7 @@ fun GroupVouchFullItem(
 ) {
     var showParticipantsDialog by remember { mutableStateOf(false) }
     val dateFormat =
-        SimpleDateFormat(stringResource(R.string.format_vouch_date), Locale.getDefault())
+        SimpleDateFormat(stringResource(R.string.format_vouch_date), LocalLocale.current.platformLocale)
     val settleLabel = if (canSettle) {
         stringResource(R.string.action_settle)
     } else {

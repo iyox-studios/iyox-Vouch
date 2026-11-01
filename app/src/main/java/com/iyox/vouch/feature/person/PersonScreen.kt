@@ -70,6 +70,7 @@ import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -628,7 +629,7 @@ fun VouchExportTemplate(
     vouches: List<VouchWithPerson>,
     modifier: Modifier = Modifier
 ) {
-    val dateFormat = SimpleDateFormat(stringResource(R.string.format_vouch_date), Locale.getDefault())
+    val dateFormat = SimpleDateFormat(stringResource(R.string.format_vouch_date), LocalLocale.current.platformLocale)
     val totalAmount = personData?.amount ?: (amountGiven - amountOwed)
     val activeVouches = vouches.filter { !it.isSettledForPerson(personName) }
 

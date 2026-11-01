@@ -73,6 +73,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -334,7 +335,7 @@ fun GroupVouchSummaryCard(
     val hasCustomSplit = members.any { it.isCustom }
     val isBalanced = remainingMinor == 0L && members.isNotEmpty()
     val dateFormat =
-        SimpleDateFormat(stringResource(R.string.format_vouch_date), Locale.getDefault())
+        SimpleDateFormat(stringResource(R.string.format_vouch_date), LocalLocale.current.platformLocale)
     val formattedDate = dateFormat.format(timestamp)
 
     Card(

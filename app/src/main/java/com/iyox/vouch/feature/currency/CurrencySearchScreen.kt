@@ -54,6 +54,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -108,8 +109,9 @@ fun CurrencySearchScreen(
     }
 
     val configuration = LocalConfiguration.current
-    val currentLocale = remember(configuration) {
-        configuration.locales[0] ?: Locale.getDefault()
+    val platformLocale = LocalLocale.current.platformLocale
+    val currentLocale = remember(configuration, platformLocale) {
+        configuration.locales[0] ?: platformLocale
     }
     val currencyItems = remember(currentLocale) {
         CurrencyManager.allCurrencies.map { currency ->

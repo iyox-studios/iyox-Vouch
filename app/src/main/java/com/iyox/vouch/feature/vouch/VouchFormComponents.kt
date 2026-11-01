@@ -34,6 +34,7 @@ import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalLocale
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -315,7 +316,7 @@ fun VouchDateField(
 ) {
     val haptic = LocalHapticFeedback.current
     var showDatePicker by remember { mutableStateOf(false) }
-    val dateFormat = SimpleDateFormat(stringResource(R.string.format_vouch_date), Locale.getDefault())
+    val dateFormat = SimpleDateFormat(stringResource(R.string.format_vouch_date), LocalLocale.current.platformLocale)
     val formattedDate = remember(timestamp) { dateFormat.format(timestamp) }
 
     Box(modifier = modifier.fillMaxWidth()) {
