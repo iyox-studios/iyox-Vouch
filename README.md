@@ -28,17 +28,23 @@ iyox Vouch is a personal debt and IOU tracking application presented in [Materia
 - **Material You Expressive**: Clean, modern interface with dynamic colors and dark theme support.
 - **Multi-Currency & Multilingual**: Customizable currency selection and multilingual support (English, German).
 - **Data Backup & Restore**: Export and import your data in a JSON format for safe keeping and easy migration.
+- **Biometric Security**: Protect your data with biometric (fingerprint / face) authentication.
 
 ## Libraries Used
 
 - [Jetpack Compose](https://developer.android.com/jetpack/compose) (Apache-2.0) - Modern toolkit for building native Android UI
 - [Material 3](https://developer.android.com/jetpack/androidx/releases/compose-material3) (Apache-2.0) - Material You UI components for Compose
+- [Hilt](https://dagger.dev/hilt/) (Apache-2.0) - Dependency injection framework
 - [Room](https://developer.android.com/jetpack/androidx/releases/room) (Apache-2.0) - SQLite object mapping and persistence library
-- [Navigation Compose](https://developer.android.com/jetpack/androidx/releases/navigation) (Apache-2.0) - Navigation component for Jetpack Compose
+- [Navigation Compose](https://developer.android.com/jetpack/androidx/releases/navigation) (Apache-2.0) - Type-safe navigation component for Jetpack Compose
 - [Lifecycle & ViewModel](https://developer.android.com/jetpack/androidx/releases/lifecycle) (Apache-2.0) - Lifecycle management and state handling
+- [Kotlinx Serialization](https://github.com/Kotlin/kotlinx.serialization) (Apache-2.0) - Kotlin serialization for type-safe navigation routes and data backups
 - [Biometric](https://developer.android.com/jetpack/androidx/releases/biometric) (Apache-2.0) - Biometric authentication prompt
-- [Gson](https://github.com/google/gson) (Apache-2.0) - JSON serialization and deserialization library
+- [AboutLibraries](https://github.com/mikepenz/AboutLibraries) (Apache-2.0) - Automated third-party library and license collection
 - [Core SplashScreen](https://developer.android.com/jetpack/androidx/releases/core) (Apache-2.0) - Splash screen compatibility library
+
+> [!NOTE]
+> A complete list of all third-party libraries, transitive dependencies, and their full license texts is viewable directly in the app under **Settings → Open Source Licenses**.
 
 ## Contributing
 
@@ -47,6 +53,10 @@ Contributions are always welcome.
 - **Reporting Issues**: If you find a bug or have an idea, please open an issue on GitHub.
 - **Contributing Code**: Please see the [Contributing Guidelines](CONTRIBUTING.md) for details on project setup, running tests (local and instrumented), code style, and submitting pull requests.
 - **Translating**: I'm really grateful for each new language added. See the [Translating section](CONTRIBUTING.md#translating) in CONTRIBUTING.md.
+
+## AI Notice
+
+AI tools are partially used to assist development, but all code and the application itself are human-reviewed and thoroughly tested.
 
 ## License
 

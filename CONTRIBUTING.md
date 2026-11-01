@@ -7,7 +7,7 @@ Thanks for taking the time to contribute to iyox Vouch. Here are a few guideline
 Requirements:
 - Android Studio
 - JDK 17 or 21
-- Android SDK 35
+- Android SDK 36
 
 To build the project locally:
 ```bash
@@ -65,13 +65,18 @@ Adding or updating translations requires no coding, just some git knowledge:
    - To update an existing translation (e.g. German), edit `app/src/main/res/values-de/strings.xml`.
    - To add a new language, create a new folder `app/src/main/res/values-<language_code>/` (for example, `values-es` for Spanish or `values-fr` for French) and copy `strings.xml` into it.
 3. **Translate the strings**: Translate the text content inside `<string name="...">...</string>` tags while keeping placeholders (like `%s`, `%d`) intact.
-4. **Submit a PR**: Open a Pull Request on GitHub with your new or updated `strings.xml` file.
+4. **Register the locale**: When adding a new language, add your locale code (e.g. `"es-rES"`) to `localeFilters` in `app/build.gradle.kts` so the translation is packaged into the build.
+5. **Submit a PR**: Open a Pull Request on GitHub with your changes.
 
 ## Pull Request Process
 
 1. Create a branch from `main` (e.g. `feature/my-feature` or `fix/issue-description`).
 2. Make your changes and verify that both builds and relevant tests pass.
 3. Open a pull request against `main` with a short summary of what you changed and why.
+
+## AI-Assisted Contributions
+
+AI tools are welcome to assist development, but you are fully responsible for your submitted changes. Please ensure all code is reviewed, understood, and thoroughly tested before opening a pull request.
 
 ## License
 
