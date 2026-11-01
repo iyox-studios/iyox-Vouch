@@ -45,7 +45,7 @@ class SingleVouchValidationTest {
             .build()
         repositoryScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
         repository = VouchRepository(database, database.vouchDao(), database.personDao(), repositoryScope)
-        personRepository = PersonRepository(database.personDao())
+        personRepository = PersonRepository(database.personDao(), repositoryScope)
         currencyManager = CurrencyManager(application)
     }
 
