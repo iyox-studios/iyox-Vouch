@@ -65,7 +65,10 @@ class BackupRepository @Inject constructor(
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to open input stream for URI: $uri", e)
                 return@withContext Result.failure(e)
-            } ?: return@withContext Result.failure(IllegalStateException("Failed to open input stream"))
+            }
+            if (inputStream == null) {
+                return@withContext Result.failure(IllegalStateException("Failed to open input stream"))
+            }
 
             val rawText = inputStream.use { stream ->
                 stream.bufferedReader(Charsets.UTF_8).use { it.readText() }
@@ -123,7 +126,10 @@ class BackupRepository @Inject constructor(
             } catch (_: Exception) {
                 null
             } ?: context.contentResolver.openOutputStream(uri)
-              ?: return@withContext Result.failure(IllegalStateException("Could not open output stream"))
+
+            if (outputStream == null) {
+                return@withContext Result.failure(IllegalStateException("Could not open output stream"))
+            }
 
             outputStream.use { stream ->
                 OutputStreamWriter(stream, Charsets.UTF_8).use { writer ->
@@ -158,7 +164,10 @@ class BackupRepository @Inject constructor(
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to open input stream for URI: $uri", e)
                 return@withContext Result.failure(e)
-            } ?: return@withContext Result.failure(IllegalStateException("Failed to open input stream"))
+            }
+            if (inputStream == null) {
+                return@withContext Result.failure(IllegalStateException("Failed to open input stream"))
+            }
 
             val rawText = inputStream.use { stream ->
                 stream.bufferedReader(Charsets.UTF_8).use { it.readText() }
@@ -273,9 +282,9 @@ class BackupRepository @Inject constructor(
                 )
             }
             IyoxEnvelope.TYPE_SINGLE -> {
-                val singleVouch = when {
-                    dataElement is JsonObject -> parseExportVouch(dataElement)
-                    dataElement is JsonArray && dataElement.isNotEmpty() -> parseExportVouch(dataElement[0])
+                val singleVouch = when (dataElement) {
+                    is JsonObject -> parseExportVouch(dataElement)
+                    is JsonArray -> if (dataElement.isNotEmpty()) parseExportVouch(dataElement[0]) else null
                     else -> null
                 }
 

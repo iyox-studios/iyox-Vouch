@@ -14,7 +14,6 @@ import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.GroupAdd
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.outlined.Archive
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonMenu
@@ -49,7 +48,7 @@ import com.iyox.vouch.ui.components.VouchBalanceHeroCard
 import com.iyox.vouch.ui.components.VouchFilterRow
 import com.iyox.vouch.ui.components.vouches.VouchList
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun VouchesScreen(
     viewModel: VouchesViewModel = viewModel(),

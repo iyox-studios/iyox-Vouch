@@ -112,9 +112,16 @@ class ToastManager(
         performAction: suspend () -> T,
         undoAction: suspend (T) -> Unit
     ) {
-        val resolvedActionLabel = actionLabel ?: context?.getString(R.string.action_undo) ?: "Undo"
-        val defaultError =
-            errorMessage ?: context?.getString(R.string.msg_operation_failed) ?: "Operation failed"
+        val resolvedActionLabel = when {
+            actionLabel != null -> actionLabel
+            context != null -> context.getString(R.string.action_undo)
+            else -> "Undo"
+        }
+        val defaultError = when {
+            errorMessage != null -> errorMessage
+            context != null -> context.getString(R.string.msg_operation_failed)
+            else -> "Operation failed"
+        }
         coroutineScope.launch {
             try {
                 val resultData = performAction() ?: return@launch

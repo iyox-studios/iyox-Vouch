@@ -237,7 +237,7 @@ class VouchRepository @Inject constructor(
                 vouchId = vouchId,
                 personId = personWithAmount.person.id,
                 amount = personWithAmount.amount,
-                settled = if (personWithAmount.isSelf) true else (preservedSettlement ?: personWithAmount.settled),
+                settled = personWithAmount.isSelf || (preservedSettlement ?: personWithAmount.settled),
                 isCustom = personWithAmount.isCustom,
                 isSelf = personWithAmount.isSelf
             )

@@ -93,10 +93,9 @@ import com.iyox.vouch.ui.components.VouchBackButton
 import com.iyox.vouch.ui.components.vouches.GroupSplitSection
 import com.iyox.vouch.ui.components.vouches.GroupVouchSplitSlider
 import java.text.SimpleDateFormat
-import java.util.Locale
 import kotlin.math.abs
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GroupVouchScreen(
     vouchId: Long? = null,

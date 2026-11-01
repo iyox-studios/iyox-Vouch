@@ -70,18 +70,18 @@ class SettledSpaceViewModel @Inject constructor(
         var totalGiven = 0L
         var totalReceived = 0L
 
-        for (vouch in settledVouches) {
+        for ((vouch, persons) in settledVouches) {
             val relevantPersons = if (selectedPerson != null) {
-                vouch.persons.filter { it.person.name == selectedPerson && it.settled && !it.isSelf }
+                persons.filter { it.person.name == selectedPerson && it.settled && !it.isSelf }
             } else {
-                vouch.persons.filter { it.settled && !it.isSelf }
+                persons.filter { it.settled && !it.isSelf }
             }
 
-            for (person in relevantPersons) {
-                if (vouch.vouch.given) {
-                    totalGiven += person.amount
+            for ((_, amount) in relevantPersons) {
+                if (vouch.given) {
+                    totalGiven += amount
                 } else {
-                    totalReceived += person.amount
+                    totalReceived += amount
                 }
             }
         }

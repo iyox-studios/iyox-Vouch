@@ -6,7 +6,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.InputChip
@@ -22,7 +21,6 @@ import com.iyox.vouch.R
 import com.iyox.vouch.core.model.VouchSortOrder
 import com.iyox.vouch.core.model.VouchTypeFilter
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun SettledFilterRow(
     sortedBy: VouchSortOrder,

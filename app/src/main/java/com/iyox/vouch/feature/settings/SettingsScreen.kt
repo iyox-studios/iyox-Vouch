@@ -505,6 +505,7 @@ fun LanguageSelectionDialog(
     )
 }
 
+@Suppress("KotlinConstantConditions")
 @Composable
 fun CurrencySelectionDialog(
     currentCurrency: Currency,

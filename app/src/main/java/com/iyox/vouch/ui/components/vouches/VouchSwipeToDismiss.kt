@@ -12,7 +12,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Done
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SwipeToDismissBox
@@ -41,7 +40,6 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VouchSwipeToDismiss(
     onStartToEnd: () -> Unit = {},
@@ -61,21 +59,18 @@ fun VouchSwipeToDismiss(
     var isDismissing by remember { mutableStateOf(false) }
 
     lateinit var dismissState: SwipeToDismissBoxState
+    @Suppress("DEPRECATION")
     dismissState = rememberSwipeToDismissBoxState(
         positionalThreshold = { totalDistance -> totalDistance * 0.4f },
         confirmValueChange = { targetValue ->
-            if (targetValue == SwipeToDismissBoxValue.Settled) {
-                true
-            } else if (isDismissing) {
-                false
-            } else {
+            targetValue == SwipeToDismissBoxValue.Settled || (!isDismissing && run {
                 val offset = try {
                     dismissState.requireOffset()
                 } catch (_: Exception) {
                     0f
                 }
                 abs(offset) >= minDragDistancePx
-            }
+            })
         }
     )
 

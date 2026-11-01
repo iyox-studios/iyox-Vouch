@@ -72,7 +72,6 @@ import com.iyox.vouch.core.currency.CurrencyManager
 import com.iyox.vouch.ui.components.EmptySearchContent
 import com.iyox.vouch.ui.components.VouchBackButton
 import kotlinx.coroutines.delay
-import java.util.Locale
 
 @Immutable
 data class CurrencyItemData(
@@ -84,6 +83,7 @@ data class CurrencyItemData(
     val searchKeywords: String
 )
 
+@Suppress("KotlinConstantConditions")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CurrencySearchScreen(

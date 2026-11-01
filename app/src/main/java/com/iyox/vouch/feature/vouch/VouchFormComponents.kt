@@ -37,7 +37,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalLocale
 import java.text.SimpleDateFormat
 import java.util.Calendar
-import java.util.Locale
 import java.util.TimeZone
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -307,7 +306,6 @@ fun PersonAutocompleteField(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VouchDateField(
     timestamp: Long,
@@ -350,9 +348,9 @@ fun VouchDateField(
             Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
                 clear()
                 set(
-                    calendar.get(Calendar.YEAR),
-                    calendar.get(Calendar.MONTH),
-                    calendar.get(Calendar.DAY_OF_MONTH)
+                    calendar[Calendar.YEAR],
+                    calendar[Calendar.MONTH],
+                    calendar[Calendar.DAY_OF_MONTH]
                 )
             }.timeInMillis
         }
@@ -372,9 +370,9 @@ fun VouchDateField(
                             }
                             val localCal = Calendar.getInstance().apply {
                                 timeInMillis = timestamp
-                                set(Calendar.YEAR, utcCal.get(Calendar.YEAR))
-                                set(Calendar.MONTH, utcCal.get(Calendar.MONTH))
-                                set(Calendar.DAY_OF_MONTH, utcCal.get(Calendar.DAY_OF_MONTH))
+                                set(Calendar.YEAR, utcCal[Calendar.YEAR])
+                                set(Calendar.MONTH, utcCal[Calendar.MONTH])
+                                set(Calendar.DAY_OF_MONTH, utcCal[Calendar.DAY_OF_MONTH])
                             }
                             onDateSelected(localCal.timeInMillis)
                         }

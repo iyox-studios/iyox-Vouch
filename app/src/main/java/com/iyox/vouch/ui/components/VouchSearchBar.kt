@@ -28,7 +28,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
@@ -66,7 +65,6 @@ import kotlinx.coroutines.delay
  * Reusable Material 3 Expressive Search Bar.
  * Visual height matches [FilterChipDefaults.Height] (32.dp), centered in a 48.dp interactive slot.
  */
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun VouchSearchBar(
     query: String,
@@ -185,7 +183,6 @@ fun VouchSearchBar(
  * Reusable animated row container that displays filter chips/buttons in the default state,
  * and overlays the [VouchSearchBar] and close X button across the row when search is activated.
  */
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ExpandableFilterSearchRow(
     searchQuery: String,

@@ -123,7 +123,7 @@ fun VouchList(
                                     performAction = {
                                         sharedVouchActions.deletePersonFromVouch(
                                             vouchId = vouch.vouch.id,
-                                            personId = groupSingleContextPersonId!!
+                                            personId = groupSingleContextPersonId
                                         )
                                     },
                                     undoAction = { _: Unit -> sharedVouchActions.restoreVouch(vouch) }

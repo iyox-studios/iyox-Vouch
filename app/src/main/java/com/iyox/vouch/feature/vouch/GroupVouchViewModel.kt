@@ -384,7 +384,7 @@ class GroupVouchViewModel @Inject constructor(
                     PersonWithAmount(
                         person = Person(name = member.personName),
                         amount = amount,
-                        settled = if (member.isSelf) true else existingSettled,
+                        settled = member.isSelf || existingSettled,
                         isCustom = member.isCustom,
                         isSelf = member.isSelf
                     )
@@ -507,13 +507,13 @@ fun VouchWithPerson.toGroupMemberInputs(currencyManager: CurrencyManager): List<
     val result = mutableListOf<GroupMemberInput>()
     val selfEntries = this.persons.filter { it.isSelf }
     val nonSelfEntries = this.persons.filterNot { it.isSelf }
-    for (personEntry in (selfEntries + nonSelfEntries)) {
+    for ((person, amount, _, isCustom, isSelf) in (selfEntries + nonSelfEntries)) {
         result.add(
             GroupMemberInput(
-                personName = personEntry.person.name,
-                amount = currencyManager.formatAmount(personEntry.amount),
-                isCustom = personEntry.isCustom,
-                isSelf = personEntry.isSelf
+                personName = person.name,
+                amount = currencyManager.formatAmount(amount),
+                isCustom = isCustom,
+                isSelf = isSelf
             )
         )
     }

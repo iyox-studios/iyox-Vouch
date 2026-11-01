@@ -42,7 +42,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
@@ -94,7 +93,6 @@ import kotlinx.coroutines.launch
 
 private const val PAGE_COUNT = 5
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun OnboardingScreen(
     onFinish: () -> Unit,
@@ -281,7 +279,6 @@ private fun OnboardingBottomNavigation(
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun WelcomeSlide() {
     Column(
@@ -380,7 +377,6 @@ private fun WelcomeFeatureRow(
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun VouchesSlide() {
     val sampleName = stringResource(R.string.onboarding_slide1_sample_name)
@@ -445,7 +441,6 @@ private fun VouchesSlide() {
 
 private const val ONBOARDING_GROUP_VOUCH_TOTAL_MINOR = 21000L
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun GroupVouchesSlide() {
     val selfLabel = stringResource(R.string.group_vouch_self_member)
@@ -730,7 +725,6 @@ private fun PeopleSlide() {
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun CurrencySlide(
     currentCurrencyCode: String,

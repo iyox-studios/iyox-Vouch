@@ -3,7 +3,6 @@ package com.iyox.vouch.ui.components
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -15,7 +14,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.iyox.vouch.R
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun PersonsFilterRow(
     showOnlyNonZero: Boolean,

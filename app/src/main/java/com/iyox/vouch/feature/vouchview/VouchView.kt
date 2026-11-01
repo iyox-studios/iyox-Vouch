@@ -100,9 +100,7 @@ import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
-import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun VouchView(
     onNavigateBack: () -> Unit,
@@ -121,7 +119,7 @@ fun VouchView(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VouchViewContent(
     uiState: VouchViewUiState,
@@ -585,17 +583,17 @@ fun GroupVouchDetailHero(
                 activePersons.sortedWith(compareByDescending<PersonWithAmount> { it.settled || it.isSelf }.thenByDescending { it.amount })
 
             val sections = mutableListOf<GroupSplitSection>()
-            for (p in sortedPersons) {
-                val isSettled = p.settled || p.isSelf
+            for ((person, amount, settled, _, isSelf) in sortedPersons) {
+                val isSettled = settled || isSelf
                 val color = if (isSettled) settledColor else trackColor
-                val personName = if (p.isSelf) {
+                val personName = if (isSelf) {
                     stringResource(R.string.group_vouch_self_member)
                 } else {
-                    p.person.name
+                    person.name
                 }
                 sections.add(
                     GroupSplitSection(
-                        amount = p.amount, color = color, label = personName
+                        amount = amount, color = color, label = personName
                     )
                 )
             }

@@ -132,7 +132,7 @@ class CurrencyManager @Inject constructor(
             return try {
                 val systemLocale = try {
                     val locales = Resources.getSystem().configuration.locales
-                    if (!locales.isEmpty) locales.get(0) else Locale.getDefault()
+                    if (!locales.isEmpty) locales[0] else Locale.getDefault()
                 } catch (_: Exception) {
                     Locale.getDefault()
                 }
