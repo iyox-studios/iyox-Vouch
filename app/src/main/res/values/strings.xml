@@ -28,7 +28,6 @@
     <string name="settings_section_security">Security</string>
     <string name="settings_language">Language</string>
     <string name="settings_language_system">System</string>
-    <string name="settings_language_android_13_only">Available on Android 13+</string>
     <string name="settings_theme">Theme</string>
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
@@ -136,8 +135,6 @@
     <string name="msg_delete_failed">Failed to delete &vouch;</string>
     <string name="msg_settle_failed">Failed to update &vouch;</string>
     <string name="error_person_already_exists">A person with this name already exists</string>
-    <string name="msg_all_data_deleted">All data deleted</string>
-    <string name="msg_delete_data_failed">Failed to delete data</string>
     <string name="msg_operation_failed">Operation failed</string>
     <string name="error_group_min_members">Group must have at least 2 members</string>
     <string name="error_invalid_total_amount">Invalid total amount</string>
@@ -178,12 +175,9 @@
     <string name="cd_selected">Selected</string>
     <string name="cd_rename_person">Rename Person</string>
     <string name="cd_export_vouch_list">Export &vouch;-List</string>
-    <string name="title_vouch_details">&vouch; Details</string>
-    <string name="title_group_vouch_details">&group_vouch;</string>
     <string name="cd_export_vouch_image">Export &vouch; image</string>
     <string name="cd_edit_vouch">Edit &vouch;</string>
     <string name="cd_delete_vouch">Delete &vouch;</string>
-    <string name="attached_vouches_title">Participants (%1$d)</string>
     <string name="share_vouch_image_title">Share &vouch;</string>
 
     <string name="share_vouch_summary_title">Share &vouch; Summary</string>
@@ -228,7 +222,6 @@
 
     <string name="onboarding_slide2_title">This is a &group_vouch;</string>
     <string name="onboarding_slide2_subtitle">A &group_vouch; splits a shared expense across multiple people, equally or with custom amounts.</string>
-    <string name="onboarding_slide2_sample_desc">Weekend road trip</string>
     <string name="onboarding_slide2_hint">An individual entry is automatically created for each person, making it easy to track and settle.</string>
 
     <string name="onboarding_slide3_title">Person Detail &amp; Quick Actions</string>

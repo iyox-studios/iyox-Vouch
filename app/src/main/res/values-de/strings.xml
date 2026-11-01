@@ -26,7 +26,6 @@
     <string name="settings_section_security">Sicherheit</string>
     <string name="settings_language">Sprache</string>
     <string name="settings_language_system">System</string>
-    <string name="settings_language_android_13_only">Verfügbar unter Android 13+</string>
     <string name="settings_theme">Design</string>
     <string name="theme_light">Hell</string>
     <string name="theme_dark">Dunkel</string>
@@ -134,8 +133,6 @@
     <string name="msg_delete_failed">&vouch; konnte nicht gelöscht werden</string>
     <string name="msg_settle_failed">&vouch; konnte nicht aktualisiert werden</string>
     <string name="error_person_already_exists">Eine Person mit diesem Namen existiert bereits</string>
-    <string name="msg_all_data_deleted">Alle Daten gelöscht</string>
-    <string name="msg_delete_data_failed">Daten konnten nicht gelöscht werden</string>
     <string name="msg_operation_failed">Vorgang fehlgeschlagen</string>
     <string name="error_group_min_members">Gruppe muss mindestens 2 Mitglieder haben</string>
     <string name="error_invalid_total_amount">Ungültiger Gesamtbetrag</string>
@@ -176,12 +173,9 @@
     <string name="cd_selected">Ausgewählt</string>
     <string name="cd_rename_person">Person umbenennen</string>
     <string name="cd_export_vouch_list">&vouch;-Übersicht exportieren</string>
-    <string name="title_vouch_details">&vouch;-Details</string>
-    <string name="title_group_vouch_details">&group_vouch;</string>
     <string name="cd_export_vouch_image">&vouch;-Bild exportieren</string>
     <string name="cd_edit_vouch">&vouch; bearbeiten</string>
     <string name="cd_delete_vouch">&vouch; löschen</string>
-    <string name="attached_vouches_title">Beteiligte (%1$d)</string>
     <string name="share_vouch_image_title">&vouch; teilen</string>
 
     <string name="share_vouch_summary_title">&vouch;-Übersicht teilen</string>
@@ -226,7 +220,6 @@
 
     <string name="onboarding_slide2_title">Das ist ein &group_vouch;</string>
     <string name="onboarding_slide2_subtitle">Ein &group_vouch; teilt eine Gesamtausgabe auf mehrere Personen auf, wahlweise gleichmäßig oder mit individuellen Beträgen.</string>
-    <string name="onboarding_slide2_sample_desc">Wochenendausflug</string>
     <string name="onboarding_slide2_hint">Für jede Person wird automatisch ein eigener Eintrag erstellt, damit du jeden Anteil einzeln im Blick behältst.</string>
 
     <string name="onboarding_slide3_title">Personen-Detail &amp; Aktionen</string>
