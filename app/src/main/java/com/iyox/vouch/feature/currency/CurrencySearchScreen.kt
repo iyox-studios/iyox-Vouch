@@ -1,6 +1,7 @@
 package com.iyox.vouch.feature.currency
 
 import android.icu.util.Currency
+import kotlin.time.Duration.Companion.milliseconds
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -102,7 +103,7 @@ fun CurrencySearchScreen(
     }
 
     LaunchedEffect(Unit) {
-        delay(150)
+        delay(150.milliseconds)
         focusRequester.requestFocus()
     }
 

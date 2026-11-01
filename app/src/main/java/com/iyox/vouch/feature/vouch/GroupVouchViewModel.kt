@@ -370,13 +370,11 @@ class GroupVouchViewModel @Inject constructor(
             return null
         }
 
-        val vouchTotalAmount = totalAmount
-
         val savedVouch: VouchWithPerson?
         if (editingVouchId != null && originalVouch != null) {
             val updatedVouch = originalVouch!!.copy(
                 vouch = originalVouch!!.vouch.copy(
-                    amount = vouchTotalAmount,
+                    amount = totalAmount,
                     description = currentState.description.trim(),
                     given = currentState.given,
                     timestamp = currentState.timestamp
@@ -398,7 +396,7 @@ class GroupVouchViewModel @Inject constructor(
             val vouch = VouchWithPerson(
                 vouch = Vouch(
                     id = 0,
-                    amount = vouchTotalAmount,
+                    amount = totalAmount,
                     description = currentState.description.trim(),
                     given = currentState.given,
                     timestamp = currentState.timestamp

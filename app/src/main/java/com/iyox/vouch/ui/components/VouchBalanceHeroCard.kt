@@ -61,9 +61,7 @@ fun VouchBalanceHeroCard(
 ) {
     val cardShape = MaterialTheme.shapes.largeIncreased
 
-    val rotation = if (shapeRotation != null) {
-        shapeRotation
-    } else if (enableRotation) {
+    val rotation = shapeRotation ?: if (enableRotation) {
         val infiniteTransition = rememberInfiniteTransition(label = "heroShapeRotation")
         val animatedAngle by infiniteTransition.animateFloat(
             initialValue = 0f,

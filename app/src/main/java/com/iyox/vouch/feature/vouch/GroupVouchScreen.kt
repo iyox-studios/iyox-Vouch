@@ -171,7 +171,7 @@ fun GroupVouchScreen(
                     } else {
                         val totalAmountMinor = CurrencyManager.parseToMinorUnits(uiState.amount) ?: 0L
                         val sumAssignedMinor = uiState.members.sumOf { CurrencyManager.parseToMinorUnits(it.amount) ?: 0L }
-                        val isOverallocated = totalAmountMinor > 0L && sumAssignedMinor > totalAmountMinor
+                        val isOverallocated = totalAmountMinor in 1L..<sumAssignedMinor
                         val hasInvalidMemberAmount = uiState.members.any { CurrencyManager.parseToMinorUnits(it.amount) == null }
                         val canSave = uiState.members.count { !it.isSelf } >= 2 && !isOverallocated && !hasInvalidMemberAmount && totalAmountMinor > 0L
 

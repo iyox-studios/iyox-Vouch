@@ -38,8 +38,7 @@ class PersonsViewModel @Inject constructor(
         personsList: List<PersonTotal>,
         showOnlyNonZero: Boolean,
         searchQuery: String,
-        currencyCode: String = "",
-        isLoading: Boolean = false
+        currencyCode: String = ""
     ): PersonsUiState {
         val totalPersonsCount = personsList.size
         val activePersonsCount = personsList.count { it.vouchCount > 0 }
@@ -55,7 +54,7 @@ class PersonsViewModel @Inject constructor(
             activePersonsCount = activePersonsCount,
             showOnlyNonZero = showOnlyNonZero,
             searchQuery = searchQuery,
-            isLoading = isLoading,
+            isLoading = false,
             currencyCode = currencyCode
         )
     }
@@ -72,13 +71,13 @@ class PersonsViewModel @Inject constructor(
                 currencyCode = currency.currencyCode
             )
         } else {
-            computeState(personsList, showOnlyNonZero, searchQuery, currencyCode = currency.currencyCode, isLoading = false)
+            computeState(personsList, showOnlyNonZero, searchQuery, currencyCode = currency.currencyCode)
         }
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.Eagerly,
         initialValue = repository.personsTotalFlow.value?.let {
-            computeState(it, _showOnlyNonZero.value, _searchQuery.value, currencyCode = currencyFlow.value.currencyCode, isLoading = false)
+            computeState(it, _showOnlyNonZero.value, _searchQuery.value, currencyCode = currencyFlow.value.currencyCode)
         } ?: PersonsUiState(
             persons = emptyList(),
             showOnlyNonZero = _showOnlyNonZero.value,

@@ -24,7 +24,7 @@ data class VouchViewUiState(
 
 @HiltViewModel
 class VouchViewViewModel @Inject constructor(
-    private val vouchRepository: VouchRepository,
+    vouchRepository: VouchRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val route: VouchViewRoute? = runCatching { savedStateHandle.toRoute<VouchViewRoute>() }.getOrNull()

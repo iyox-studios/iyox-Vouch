@@ -32,7 +32,7 @@ val Icons.Outlined.License: ImageVector
                 strokeLineCap = StrokeCap.Butt,
                 strokeLineJoin = StrokeJoin.Bevel,
                 strokeLineMiter = 1f,
-                pathFillType = PathFillType.Companion.NonZero,
+                pathFillType = PathFillType.NonZero,
             ) {
                 moveTo(9.88f, 12.13f)
                 quadTo(9f, 11.25f, 9f, 10f)
@@ -85,4 +85,5 @@ val Icons.Outlined.License: ImageVector
         return _license!!
     }
 
+@Suppress("ObjectPropertyName")
 private var _license: ImageVector? = null

@@ -6,7 +6,6 @@ import android.os.Build
 import android.os.LocaleList
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.edit
-import com.iyox.vouch.core.currency.CurrencyManager
 import com.iyox.vouch.core.data.PersonRepository
 import com.iyox.vouch.core.utils.PreferenceKeys
 import dagger.hilt.android.HiltAndroidApp
@@ -15,7 +14,6 @@ import javax.inject.Inject
 @HiltAndroidApp
 class VouchApplication : Application() {
 
-    @Inject lateinit var currencyManager: CurrencyManager
     @Inject
     lateinit var personRepository: PersonRepository
 

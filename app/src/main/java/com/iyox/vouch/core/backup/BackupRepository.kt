@@ -3,6 +3,7 @@ package com.iyox.vouch.core.backup
 import android.content.Context
 import android.net.Uri
 import android.util.Log
+import androidx.core.net.toUri
 import androidx.room.withTransaction
 import com.iyox.vouch.core.data.AppDatabase
 import com.iyox.vouch.core.data.VouchRepository
@@ -12,7 +13,6 @@ import com.iyox.vouch.core.model.VouchPersonCrossRef
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
@@ -147,7 +147,7 @@ class BackupRepository @Inject constructor(
             }
             applyParsedBackup(parsedResult.getOrThrow())
         } else {
-            importData(Uri.parse(preview.uri))
+            importData(preview.uri.toUri())
         }
     }
 
@@ -191,56 +191,58 @@ class BackupRepository @Inject constructor(
         val version: String
         val dataElement: JsonElement
 
-        if (rootElement is JsonObject) {
-            val rootObj = rootElement
-
-            val signature = when {
-                rootObj.containsKey("_app_signature") -> rootObj["_app_signature"]?.asStringOrNull()
-                rootObj.containsKey("app_signature") -> rootObj["app_signature"]?.asStringOrNull()
-                rootObj.containsKey("signature") -> rootObj["signature"]?.asStringOrNull()
-                else -> null
-            }
-
-            if (signature != null && signature != IyoxEnvelope.APP_SIGNATURE) {
-                return Result.failure(InvalidSignatureException("Invalid app signature: $signature"))
-            }
-
-            type = when {
-                rootObj.containsKey("type") -> rootObj["type"]?.asStringOrNull() ?: IyoxEnvelope.TYPE_BACKUP
-                else -> IyoxEnvelope.TYPE_BACKUP
-            }
-
-            if (type != IyoxEnvelope.TYPE_BACKUP && type != IyoxEnvelope.TYPE_SINGLE) {
-                return Result.failure(UnsupportedBackupTypeException(type))
-            }
-
-            version = when {
-                rootObj.containsKey("version") -> rootObj["version"]?.asStringOrNull() ?: IyoxEnvelope.VERSION_1_0
-                else -> IyoxEnvelope.VERSION_1_0
-            }
-
-            dataElement = when {
-                rootObj.containsKey("data") -> {
-                    val d = rootObj["data"]
-                    if (d != null && d is JsonPrimitive && d !is JsonNull) {
-                        try {
-                            json.parseToJsonElement(d.content)
-                        } catch (_: Exception) {
-                            d
-                        }
-                    } else {
-                        d ?: rootObj
-                    }
+        when (rootElement) {
+            is JsonObject -> {
+                val signature = when {
+                    rootElement.containsKey("_app_signature") -> rootElement["_app_signature"]?.asStringOrNull()
+                    rootElement.containsKey("app_signature") -> rootElement["app_signature"]?.asStringOrNull()
+                    rootElement.containsKey("signature") -> rootElement["signature"]?.asStringOrNull()
+                    else -> null
                 }
-                rootObj.containsKey("vouches") -> rootObj["vouches"] ?: rootObj
-                else -> rootObj
+
+                if (signature != null && signature != IyoxEnvelope.APP_SIGNATURE) {
+                    return Result.failure(InvalidSignatureException("Invalid app signature: $signature"))
+                }
+
+                type = when {
+                    rootElement.containsKey("type") -> rootElement["type"]?.asStringOrNull() ?: IyoxEnvelope.TYPE_BACKUP
+                    else -> IyoxEnvelope.TYPE_BACKUP
+                }
+
+                if (type != IyoxEnvelope.TYPE_BACKUP && type != IyoxEnvelope.TYPE_SINGLE) {
+                    return Result.failure(UnsupportedBackupTypeException(type))
+                }
+
+                version = when {
+                    rootElement.containsKey("version") -> rootElement["version"]?.asStringOrNull() ?: IyoxEnvelope.VERSION_1_0
+                    else -> IyoxEnvelope.VERSION_1_0
+                }
+
+                dataElement = when {
+                    rootElement.containsKey("data") -> {
+                        val d = rootElement["data"]
+                        if (d != null && d is JsonPrimitive && d !is JsonNull) {
+                            try {
+                                json.parseToJsonElement(d.content)
+                            } catch (_: Exception) {
+                                d
+                            }
+                        } else {
+                            d ?: rootElement
+                        }
+                    }
+                    rootElement.containsKey("vouches") -> rootElement["vouches"] ?: rootElement
+                    else -> rootElement
+                }
             }
-        } else if (rootElement is JsonArray) {
-            type = IyoxEnvelope.TYPE_BACKUP
-            version = IyoxEnvelope.VERSION_1_0
-            dataElement = rootElement
-        } else {
-            return Result.failure(IllegalArgumentException("Invalid JSON format: expected object or array"))
+            is JsonArray -> {
+                type = IyoxEnvelope.TYPE_BACKUP
+                version = IyoxEnvelope.VERSION_1_0
+                dataElement = rootElement
+            }
+            else -> {
+                return Result.failure(IllegalArgumentException("Invalid JSON format: expected object or array"))
+            }
         }
 
         return when (type) {
@@ -254,7 +256,7 @@ class BackupRepository @Inject constructor(
                     parseExportVouch(dataElement)?.let { vouches.add(it) }
                 }
 
-                val uniquePersons = vouches.flatMap { it.persons.orEmpty() }
+                val uniquePersons = vouches.flatMap { it.persons }
                     .mapNotNull { it.name.trim().takeIf { n -> n.isNotEmpty() } }
                     .distinct()
                     .size
@@ -271,17 +273,17 @@ class BackupRepository @Inject constructor(
                 )
             }
             IyoxEnvelope.TYPE_SINGLE -> {
-                val singleVouch = if (dataElement is JsonObject) {
-                    parseExportVouch(dataElement)
-                } else if (dataElement is JsonArray && dataElement.isNotEmpty()) {
-                    parseExportVouch(dataElement[0])
-                } else null
+                val singleVouch = when {
+                    dataElement is JsonObject -> parseExportVouch(dataElement)
+                    dataElement is JsonArray && dataElement.isNotEmpty() -> parseExportVouch(dataElement[0])
+                    else -> null
+                }
 
                 if (singleVouch == null) {
                     return Result.failure(IllegalArgumentException("Invalid or empty single vouch payload"))
                 }
 
-                val uniquePersons = singleVouch.persons.orEmpty()
+                val uniquePersons = singleVouch.persons
                     .mapNotNull { it.name.trim().takeIf { n -> n.isNotEmpty() } }
                     .distinct()
                     .size
@@ -303,12 +305,11 @@ class BackupRepository @Inject constructor(
 
     private fun parseExportVouch(element: JsonElement): ExportVouch? {
         if (element !is JsonObject) return null
-        val obj = element
 
-        val vouchObj = if (obj["vouch"] is JsonObject) {
-            obj["vouch"] as JsonObject
+        val vouchObj = if (element["vouch"] is JsonObject) {
+            element["vouch"] as JsonObject
         } else {
-            obj
+            element
         }
 
         val amount = parseAmount(vouchObj["amount"]) ?: 0L
@@ -326,7 +327,7 @@ class BackupRepository @Inject constructor(
         )
 
         val personsElement = when {
-            obj.containsKey("persons") -> obj["persons"]
+            element.containsKey("persons") -> element["persons"]
             vouchObj.containsKey("persons") -> vouchObj["persons"]
             else -> null
         }
@@ -335,22 +336,21 @@ class BackupRepository @Inject constructor(
         if (personsElement is JsonArray) {
             for (pElem in personsElement) {
                 if (pElem is JsonObject) {
-                    val pObj = pElem
                     val name = when {
-                        pObj.containsKey("name") -> pObj["name"]?.asStringOrNull()
-                        pObj.containsKey("personName") -> pObj["personName"]?.asStringOrNull()
-                        pObj.containsKey("person_name") -> pObj["person_name"]?.asStringOrNull()
-                        pObj["person"] is JsonObject -> {
-                            (pObj["person"] as JsonObject)["name"]?.asStringOrNull()
+                        pElem.containsKey("name") -> pElem["name"]?.asStringOrNull()
+                        pElem.containsKey("personName") -> pElem["personName"]?.asStringOrNull()
+                        pElem.containsKey("person_name") -> pElem["person_name"]?.asStringOrNull()
+                        pElem["person"] is JsonObject -> {
+                            (pElem["person"] as JsonObject)["name"]?.asStringOrNull()
                         }
                         else -> null
                     }?.trim().orEmpty()
 
                     if (name.isNotEmpty()) {
-                        val pAmount = parseAmount(pObj["amount"]) ?: amount
-                        val settled = parseBoolean(pObj["settled"], default = false)
-                        val isCustom = parseBoolean(pObj["isCustom"], default = false)
-                        val isSelf = parseBoolean(pObj["isSelf"], default = false)
+                        val pAmount = parseAmount(pElem["amount"]) ?: amount
+                        val settled = parseBoolean(pElem["settled"], default = false)
+                        val isCustom = parseBoolean(pElem["isCustom"], default = false)
+                        val isSelf = parseBoolean(pElem["isSelf"], default = false)
                         persons.add(ExportPersonAmount(name = name, amount = pAmount, settled = settled, isCustom = isCustom, isSelf = isSelf))
                     }
                 } else if (pElem is JsonPrimitive && pElem !is JsonNull) {
@@ -453,7 +453,7 @@ class BackupRepository @Inject constructor(
                         database.vouchDao().deleteAll()
                         database.personDao().deleteAll()
 
-                        val allNames = vouches.flatMap { it.persons.orEmpty() }
+                        val allNames = vouches.flatMap { it.persons }
                             .mapNotNull { it.name.trim().takeIf { n -> n.isNotEmpty() } }
                             .distinct()
 
@@ -471,7 +471,7 @@ class BackupRepository @Inject constructor(
                                 .insert(export.vouch.copy(id = 0L))
 
                             val seenPersonIds = mutableSetOf<Long>()
-                            val crossRefs = export.persons.orEmpty().mapNotNull { personAmount ->
+                            val crossRefs = export.persons.mapNotNull { personAmount ->
                                 val normalizedName = personAmount.name.trim()
                                 val storedPerson = personMap[normalizedName] ?: return@mapNotNull null
                                 if (!seenPersonIds.add(storedPerson.id)) return@mapNotNull null
@@ -499,7 +499,7 @@ class BackupRepository @Inject constructor(
                         ?: return Result.failure(IllegalArgumentException("Invalid or empty single vouch payload"))
 
                     database.withTransaction {
-                        val allNames = singleVouch.persons.orEmpty()
+                        val allNames = singleVouch.persons
                             .mapNotNull { it.name.trim().takeIf { n -> n.isNotEmpty() } }
                             .distinct()
 
@@ -515,7 +515,7 @@ class BackupRepository @Inject constructor(
                             .insert(singleVouch.vouch.copy(id = 0L))
 
                         val seenPersonIds = mutableSetOf<Long>()
-                        val crossRefs = singleVouch.persons.orEmpty().mapNotNull { personAmount ->
+                        val crossRefs = singleVouch.persons.mapNotNull { personAmount ->
                             val normalizedName = personAmount.name.trim()
                             val storedPerson = personMap[normalizedName] ?: return@mapNotNull null
                             if (!seenPersonIds.add(storedPerson.id)) return@mapNotNull null

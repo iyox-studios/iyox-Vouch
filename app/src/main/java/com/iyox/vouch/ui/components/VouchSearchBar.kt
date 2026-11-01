@@ -1,5 +1,7 @@
 package com.iyox.vouch.ui.components
 
+import kotlin.time.Duration.Companion.milliseconds
+
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -78,7 +80,7 @@ fun VouchSearchBar(
     val haptics = LocalHapticFeedback.current
 
     LaunchedEffect(Unit) {
-        delay(220)
+        delay(220.milliseconds)
         focusRequester.requestFocus()
     }
 
