@@ -1,20 +1,26 @@
 package com.iyox.vouch.core.backup
 
-import com.google.gson.JsonElement
-import com.google.gson.annotations.SerializedName
 import com.iyox.vouch.core.model.Vouch
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNames
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+@OptIn(ExperimentalSerializationApi::class)
+@Serializable
 data class IyoxEnvelope(
-    @SerializedName(value = "_app_signature", alternate = ["app_signature", "signature"])
+    @SerialName("_app_signature")
+    @JsonNames("app_signature", "signature")
     val appSignature: String = APP_SIGNATURE,
-    @SerializedName("type")
+    @SerialName("type")
     val type: String = TYPE_BACKUP,
-    @SerializedName("version")
+    @SerialName("version")
     val version: String = VERSION_1_0,
-    @SerializedName("data")
+    @SerialName("data")
     val data: JsonElement
 ) {
     companion object {
@@ -33,23 +39,27 @@ data class IyoxEnvelope(
     }
 }
 
+@OptIn(ExperimentalSerializationApi::class)
+@Serializable
 data class ExportPersonAmount(
-    @SerializedName(value = "name", alternate = ["personName", "person_name"])
+    @SerialName("name")
+    @JsonNames("personName", "person_name")
     val name: String,
-    @SerializedName("amount")
+    @SerialName("amount")
     val amount: Long,
-    @SerializedName("settled")
+    @SerialName("settled")
     val settled: Boolean = false,
-    @SerializedName("isCustom")
+    @SerialName("isCustom")
     val isCustom: Boolean = false,
-    @SerializedName("isSelf")
+    @SerialName("isSelf")
     val isSelf: Boolean = false
 )
 
+@Serializable
 data class ExportVouch(
-    @SerializedName("vouch")
+    @SerialName("vouch")
     val vouch: Vouch,
-    @SerializedName("persons")
+    @SerialName("persons")
     val persons: List<ExportPersonAmount> = emptyList()
 )
 

@@ -4,11 +4,6 @@ import android.content.Context
 import android.net.Uri
 import android.util.Log
 import androidx.room.withTransaction
-import com.google.gson.Gson
-import com.google.gson.GsonBuilder
-import com.google.gson.JsonElement
-import com.google.gson.JsonParser
-import com.google.gson.stream.JsonReader
 import com.iyox.vouch.core.data.AppDatabase
 import com.iyox.vouch.core.data.VouchRepository
 import com.iyox.vouch.core.model.Person
@@ -17,8 +12,15 @@ import com.iyox.vouch.core.model.VouchPersonCrossRef
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.encodeToJsonElement
 import java.io.OutputStreamWriter
-import java.io.StringReader
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.TimeZone
@@ -49,9 +51,12 @@ class BackupRepository @Inject constructor(
     private val vouchRepository: VouchRepository
 ) {
 
-    private val gson: Gson = GsonBuilder()
-        .setPrettyPrinting()
-        .create()
+    private val json: Json = Json {
+        prettyPrint = true
+        isLenient = true
+        ignoreUnknownKeys = true
+        encodeDefaults = true
+    }
 
     suspend fun readPreview(uri: Uri): Result<BackupPreview> = withContext(Dispatchers.IO) {
         try {
@@ -106,12 +111,12 @@ class BackupRepository @Inject constructor(
                 )
             }
 
-            val dataElement = gson.toJsonTree(exportVouches)
+            val dataElement = json.encodeToJsonElement(exportVouches)
             val envelope = IyoxEnvelope(
                 type = IyoxEnvelope.TYPE_BACKUP,
                 data = dataElement
             )
-            val json = gson.toJson(envelope)
+            val jsonText = json.encodeToString(envelope)
 
             val outputStream = try {
                 context.contentResolver.openOutputStream(uri, "wt")
@@ -122,7 +127,7 @@ class BackupRepository @Inject constructor(
 
             outputStream.use { stream ->
                 OutputStreamWriter(stream, Charsets.UTF_8).use { writer ->
-                    writer.write(json)
+                    writer.write(jsonText)
                     writer.flush()
                 }
             }
@@ -177,8 +182,7 @@ class BackupRepository @Inject constructor(
         }
 
         val rootElement: JsonElement = try {
-            val reader = JsonReader(StringReader(cleanJson)).apply { isLenient = true }
-            JsonParser.parseReader(reader)
+            json.parseToJsonElement(cleanJson)
         } catch (e: Exception) {
             return Result.failure(IllegalArgumentException("Invalid JSON format", e))
         }
@@ -187,13 +191,13 @@ class BackupRepository @Inject constructor(
         val version: String
         val dataElement: JsonElement
 
-        if (rootElement.isJsonObject) {
-            val rootObj = rootElement.asJsonObject
+        if (rootElement is JsonObject) {
+            val rootObj = rootElement
 
             val signature = when {
-                rootObj.has("_app_signature") -> rootObj.get("_app_signature").asStringOrNull()
-                rootObj.has("app_signature") -> rootObj.get("app_signature").asStringOrNull()
-                rootObj.has("signature") -> rootObj.get("signature").asStringOrNull()
+                rootObj.containsKey("_app_signature") -> rootObj["_app_signature"]?.asStringOrNull()
+                rootObj.containsKey("app_signature") -> rootObj["app_signature"]?.asStringOrNull()
+                rootObj.containsKey("signature") -> rootObj["signature"]?.asStringOrNull()
                 else -> null
             }
 
@@ -202,7 +206,7 @@ class BackupRepository @Inject constructor(
             }
 
             type = when {
-                rootObj.has("type") -> rootObj.get("type").asStringOrNull() ?: IyoxEnvelope.TYPE_BACKUP
+                rootObj.containsKey("type") -> rootObj["type"]?.asStringOrNull() ?: IyoxEnvelope.TYPE_BACKUP
                 else -> IyoxEnvelope.TYPE_BACKUP
             }
 
@@ -211,17 +215,16 @@ class BackupRepository @Inject constructor(
             }
 
             version = when {
-                rootObj.has("version") -> rootObj.get("version").asStringOrNull() ?: IyoxEnvelope.VERSION_1_0
+                rootObj.containsKey("version") -> rootObj["version"]?.asStringOrNull() ?: IyoxEnvelope.VERSION_1_0
                 else -> IyoxEnvelope.VERSION_1_0
             }
 
             dataElement = when {
-                rootObj.has("data") -> {
-                    val d = rootObj.get("data")
-                    if (d != null && d.isJsonPrimitive && d.asJsonPrimitive.isString) {
+                rootObj.containsKey("data") -> {
+                    val d = rootObj["data"]
+                    if (d != null && d is JsonPrimitive && d !is JsonNull) {
                         try {
-                            val reader = JsonReader(StringReader(d.asString)).apply { isLenient = true }
-                            JsonParser.parseReader(reader)
+                            json.parseToJsonElement(d.content)
                         } catch (_: Exception) {
                             d
                         }
@@ -229,10 +232,10 @@ class BackupRepository @Inject constructor(
                         d ?: rootObj
                     }
                 }
-                rootObj.has("vouches") -> rootObj.get("vouches")
+                rootObj.containsKey("vouches") -> rootObj["vouches"] ?: rootObj
                 else -> rootObj
             }
-        } else if (rootElement.isJsonArray) {
+        } else if (rootElement is JsonArray) {
             type = IyoxEnvelope.TYPE_BACKUP
             version = IyoxEnvelope.VERSION_1_0
             dataElement = rootElement
@@ -243,11 +246,11 @@ class BackupRepository @Inject constructor(
         return when (type) {
             IyoxEnvelope.TYPE_BACKUP -> {
                 val vouches = mutableListOf<ExportVouch>()
-                if (dataElement.isJsonArray) {
-                    for (elem in dataElement.asJsonArray) {
+                if (dataElement is JsonArray) {
+                    for (elem in dataElement) {
                         parseExportVouch(elem)?.let { vouches.add(it) }
                     }
-                } else if (dataElement.isJsonObject) {
+                } else if (dataElement is JsonObject) {
                     parseExportVouch(dataElement)?.let { vouches.add(it) }
                 }
 
@@ -268,10 +271,10 @@ class BackupRepository @Inject constructor(
                 )
             }
             IyoxEnvelope.TYPE_SINGLE -> {
-                val singleVouch = if (dataElement.isJsonObject) {
+                val singleVouch = if (dataElement is JsonObject) {
                     parseExportVouch(dataElement)
-                } else if (dataElement.isJsonArray && dataElement.asJsonArray.size() > 0) {
-                    parseExportVouch(dataElement.asJsonArray[0])
+                } else if (dataElement is JsonArray && dataElement.isNotEmpty()) {
+                    parseExportVouch(dataElement[0])
                 } else null
 
                 if (singleVouch == null) {
@@ -299,20 +302,20 @@ class BackupRepository @Inject constructor(
     }
 
     private fun parseExportVouch(element: JsonElement): ExportVouch? {
-        if (!element.isJsonObject) return null
-        val obj = element.asJsonObject
+        if (element !is JsonObject) return null
+        val obj = element
 
-        val vouchObj = if (obj.has("vouch") && obj.get("vouch").isJsonObject) {
-            obj.getAsJsonObject("vouch")
+        val vouchObj = if (obj["vouch"] is JsonObject) {
+            obj["vouch"] as JsonObject
         } else {
             obj
         }
 
-        val amount = parseAmount(vouchObj.get("amount")) ?: 0L
-        val description = vouchObj.get("description")?.asStringOrNull() ?: ""
-        val given = parseBoolean(vouchObj.get("given"), default = true)
-        val timestamp = parseTimestamp(vouchObj.get("timestamp"))
-        val id = vouchObj.get("id")?.asLongOrNull() ?: 0L
+        val amount = parseAmount(vouchObj["amount"]) ?: 0L
+        val description = vouchObj["description"]?.asStringOrNull() ?: ""
+        val given = parseBoolean(vouchObj["given"], default = true)
+        val timestamp = parseTimestamp(vouchObj["timestamp"])
+        val id = vouchObj["id"]?.asLongOrNull() ?: 0L
 
         val vouch = Vouch(
             id = id,
@@ -323,35 +326,35 @@ class BackupRepository @Inject constructor(
         )
 
         val personsElement = when {
-            obj.has("persons") -> obj.get("persons")
-            vouchObj.has("persons") -> vouchObj.get("persons")
+            obj.containsKey("persons") -> obj["persons"]
+            vouchObj.containsKey("persons") -> vouchObj["persons"]
             else -> null
         }
 
         val persons = mutableListOf<ExportPersonAmount>()
-        if (personsElement != null && personsElement.isJsonArray) {
-            for (pElem in personsElement.asJsonArray) {
-                if (pElem.isJsonObject) {
-                    val pObj = pElem.asJsonObject
+        if (personsElement is JsonArray) {
+            for (pElem in personsElement) {
+                if (pElem is JsonObject) {
+                    val pObj = pElem
                     val name = when {
-                        pObj.has("name") -> pObj.get("name").asStringOrNull()
-                        pObj.has("personName") -> pObj.get("personName").asStringOrNull()
-                        pObj.has("person_name") -> pObj.get("person_name").asStringOrNull()
-                        pObj.has("person") && pObj.get("person").isJsonObject -> {
-                            pObj.getAsJsonObject("person").get("name")?.asStringOrNull()
+                        pObj.containsKey("name") -> pObj["name"]?.asStringOrNull()
+                        pObj.containsKey("personName") -> pObj["personName"]?.asStringOrNull()
+                        pObj.containsKey("person_name") -> pObj["person_name"]?.asStringOrNull()
+                        pObj["person"] is JsonObject -> {
+                            (pObj["person"] as JsonObject)["name"]?.asStringOrNull()
                         }
                         else -> null
                     }?.trim().orEmpty()
 
                     if (name.isNotEmpty()) {
-                        val pAmount = parseAmount(pObj.get("amount")) ?: amount
-                        val settled = parseBoolean(pObj.get("settled"), default = false)
-                        val isCustom = parseBoolean(pObj.get("isCustom"), default = false)
-                        val isSelf = parseBoolean(pObj.get("isSelf"), default = false)
+                        val pAmount = parseAmount(pObj["amount"]) ?: amount
+                        val settled = parseBoolean(pObj["settled"], default = false)
+                        val isCustom = parseBoolean(pObj["isCustom"], default = false)
+                        val isSelf = parseBoolean(pObj["isSelf"], default = false)
                         persons.add(ExportPersonAmount(name = name, amount = pAmount, settled = settled, isCustom = isCustom, isSelf = isSelf))
                     }
-                } else if (pElem.isJsonPrimitive) {
-                    val name = pElem.asString.trim()
+                } else if (pElem is JsonPrimitive && pElem !is JsonNull) {
+                    val name = pElem.content.trim()
                     if (name.isNotEmpty()) {
                         persons.add(ExportPersonAmount(name = name, amount = amount, settled = false))
                     }
@@ -363,31 +366,18 @@ class BackupRepository @Inject constructor(
     }
 
     private fun parseAmount(element: JsonElement?): Long? {
-        if (element == null || element.isJsonNull) return null
+        if (element == null || element is JsonNull) return null
         return try {
-            if (element.isJsonPrimitive) {
-                val prim = element.asJsonPrimitive
-                if (prim.isNumber) {
-                    val rawStr = prim.asString.trim()
-                    if (rawStr.contains(".")) {
-                        val parts = rawStr.split(".")
-                        val whole = parts[0].toLongOrNull() ?: 0L
-                        val frac = (parts.getOrNull(1) ?: "").padEnd(2, '0').take(2).toLongOrNull() ?: 0L
-                        (whole * 100L) + frac
-                    } else {
-                        prim.asLong
-                    }
-                } else if (prim.isString) {
-                    val str = prim.asString.trim()
-                    if (str.contains(".")) {
-                        val parts = str.split(".")
-                        val whole = parts[0].toLongOrNull() ?: 0L
-                        val frac = (parts.getOrNull(1) ?: "").padEnd(2, '0').take(2).toLongOrNull() ?: 0L
-                        (whole * 100L) + frac
-                    } else {
-                        str.toLongOrNull()
-                    }
-                } else null
+            if (element is JsonPrimitive) {
+                val rawStr = element.content.trim()
+                if (rawStr.contains(".")) {
+                    val parts = rawStr.split(".")
+                    val whole = parts[0].toLongOrNull() ?: 0L
+                    val frac = (parts.getOrNull(1) ?: "").padEnd(2, '0').take(2).toLongOrNull() ?: 0L
+                    (whole * 100L) + frac
+                } else {
+                    rawStr.toLongOrNull()
+                }
             } else null
         } catch (_: Exception) {
             null
@@ -395,18 +385,11 @@ class BackupRepository @Inject constructor(
     }
 
     private fun parseTimestamp(element: JsonElement?): Long {
-        if (element == null || element.isJsonNull) return System.currentTimeMillis()
+        if (element == null || element is JsonNull) return System.currentTimeMillis()
         return try {
-            if (element.isJsonPrimitive) {
-                val prim = element.asJsonPrimitive
-                if (prim.isNumber) {
-                    prim.asLong
-                } else if (prim.isString) {
-                    val str = prim.asString.trim()
-                    str.toLongOrNull() ?: parseDateString(str) ?: System.currentTimeMillis()
-                } else {
-                    System.currentTimeMillis()
-                }
+            if (element is JsonPrimitive) {
+                val str = element.content.trim()
+                str.toLongOrNull() ?: parseDateString(str) ?: System.currentTimeMillis()
             } else {
                 System.currentTimeMillis()
             }
@@ -439,14 +422,16 @@ class BackupRepository @Inject constructor(
     }
 
     private fun parseBoolean(element: JsonElement?, default: Boolean): Boolean {
-        if (element == null || element.isJsonNull) return default
+        if (element == null || element is JsonNull) return default
         return try {
-            if (element.isJsonPrimitive) {
-                val prim = element.asJsonPrimitive
-                if (prim.isBoolean) prim.asBoolean
-                else if (prim.isNumber) prim.asInt != 0
-                else if (prim.isString) prim.asString.trim().lowercase(Locale.ROOT) in listOf("true", "1", "yes")
-                else default
+            if (element is JsonPrimitive) {
+                val str = element.content.trim().lowercase(Locale.ROOT)
+                when {
+                    str == "true" || str == "1" || str == "yes" -> true
+                    str == "false" || str == "0" || str == "no" -> false
+                    str.toIntOrNull() != null -> str.toInt() != 0
+                    else -> default
+                }
             } else default
         } catch (_: Exception) {
             default
@@ -454,10 +439,10 @@ class BackupRepository @Inject constructor(
     }
 
     private fun JsonElement.asStringOrNull(): String? =
-        if (isJsonPrimitive && asJsonPrimitive.isString) asString else if (isJsonPrimitive) asString else null
+        (this as? JsonPrimitive)?.takeUnless { it is JsonNull }?.content
 
     private fun JsonElement.asLongOrNull(): Long? =
-        if (isJsonPrimitive && asJsonPrimitive.isNumber) asLong else if (isJsonPrimitive) asString.toLongOrNull() else null
+        (this as? JsonPrimitive)?.takeUnless { it is JsonNull }?.content?.toLongOrNull()
 
     private suspend fun applyParsedBackup(parsed: ParsedBackup): Result<BackupImportResult> {
         return try {

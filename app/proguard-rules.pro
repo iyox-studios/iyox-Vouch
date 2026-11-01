@@ -9,25 +9,13 @@
 -keepattributes SourceFile,LineNumberTable
 -renamesourcefileattribute SourceFile
 
-# Gson rules
--keepattributes Signature
--keepattributes *Annotation*
--dontwarn sun.misc.**
--keep class * extends com.google.gson.TypeAdapter
--keep class * implements com.google.gson.TypeAdapterFactory
--keep class * implements com.google.gson.JsonSerializer
--keep class * implements com.google.gson.JsonDeserializer
-
 # Keep model and backup classes to ensure backup serialization/deserialization integrity
 -keep class com.iyox.vouch.core.backup.** { *; }
 -keep class com.iyox.vouch.core.model.** { *; }
 -keepclassmembers enum * { *; }
--keepclassmembers class * {
-    @com.google.gson.annotations.SerializedName <fields>;
-}
 
-# KotlinX Serialization rules (for navigation routes)
--keepattributes *Annotation*,InnerClasses
+# KotlinX Serialization rules
+-keepattributes *Annotation*,InnerClasses,Signature
 -dontnote kotlinx.serialization.SerializationKt
 -keepclassmembers class * {
     *** Companion;

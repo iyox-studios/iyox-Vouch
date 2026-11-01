@@ -1,9 +1,11 @@
 package com.iyox.vouch.core.backup
 
-import com.google.gson.Gson
-import com.google.gson.GsonBuilder
-import com.google.gson.reflect.TypeToken
 import com.iyox.vouch.core.model.Vouch
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.decodeFromJsonElement
+import kotlinx.serialization.json.encodeToJsonElement
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -13,12 +15,15 @@ import org.junit.Test
 
 class BackupSerializationTest {
 
-    private lateinit var gson: Gson
+    private lateinit var json: Json
 
     @Before
     fun setUp() {
-        gson = GsonBuilder()
-            .create()
+        json = Json {
+            encodeDefaults = true
+            ignoreUnknownKeys = true
+            isLenient = true
+        }
     }
 
     @Test
@@ -38,15 +43,15 @@ class BackupSerializationTest {
             )
         )
 
-        val json = gson.toJson(exportVouch)
-        assertTrue(json.contains("\"name\":\"Alice\""))
-        assertTrue(json.contains("\"amount\":1500"))
-        assertTrue(json.contains("\"settled\":false"))
-        assertTrue(json.contains("\"settled\":true"))
-        assertTrue(json.contains("\"description\":\"Dinner split\""))
-        assertTrue(json.contains("1700000000000"))
+        val jsonStr = json.encodeToString(exportVouch)
+        assertTrue(jsonStr.contains("\"name\":\"Alice\""))
+        assertTrue(jsonStr.contains("\"amount\":1500"))
+        assertTrue(jsonStr.contains("\"settled\":false"))
+        assertTrue(jsonStr.contains("\"settled\":true"))
+        assertTrue(jsonStr.contains("\"description\":\"Dinner split\""))
+        assertTrue(jsonStr.contains("1700000000000"))
 
-        val deserialized = gson.fromJson(json, ExportVouch::class.java)
+        val deserialized = json.decodeFromString<ExportVouch>(jsonStr)
         assertEquals(exportVouch.vouch.id, deserialized.vouch.id)
         assertEquals(exportVouch.vouch.amount, deserialized.vouch.amount)
         assertEquals(exportVouch.vouch.description, deserialized.vouch.description)
@@ -70,7 +75,7 @@ class BackupSerializationTest {
             )
         )
 
-        val dataElement = gson.toJsonTree(vouches)
+        val dataElement = json.encodeToJsonElement(vouches)
         val envelope = IyoxEnvelope(
             appSignature = IyoxEnvelope.APP_SIGNATURE,
             type = IyoxEnvelope.TYPE_BACKUP,
@@ -78,19 +83,18 @@ class BackupSerializationTest {
             data = dataElement
         )
 
-        val envelopeJson = gson.toJson(envelope)
+        val envelopeJson = json.encodeToString(envelope)
         assertTrue(envelopeJson.contains(IyoxEnvelope.APP_SIGNATURE))
         assertTrue(envelopeJson.contains(IyoxEnvelope.TYPE_BACKUP))
         assertTrue(envelopeJson.contains(IyoxEnvelope.VERSION_1_0))
 
-        val deserializedEnvelope = gson.fromJson(envelopeJson, IyoxEnvelope::class.java)
+        val deserializedEnvelope = json.decodeFromString<IyoxEnvelope>(envelopeJson)
         assertNotNull(deserializedEnvelope)
         assertEquals(IyoxEnvelope.APP_SIGNATURE, deserializedEnvelope.appSignature)
         assertEquals(IyoxEnvelope.TYPE_BACKUP, deserializedEnvelope.type)
         assertEquals(IyoxEnvelope.VERSION_1_0, deserializedEnvelope.version)
 
-        val listType = object : TypeToken<List<ExportVouch>>() {}.type
-        val deserializedVouches: List<ExportVouch> = gson.fromJson(deserializedEnvelope.data, listType)
+        val deserializedVouches: List<ExportVouch> = json.decodeFromJsonElement(deserializedEnvelope.data)
         assertEquals(1, deserializedVouches.size)
         assertEquals("Groceries", deserializedVouches[0].vouch.description)
         assertEquals(3000L, deserializedVouches[0].vouch.amount)
@@ -104,7 +108,7 @@ class BackupSerializationTest {
             persons = listOf(ExportPersonAmount(name = "Dave", amount = 1200L, settled = true))
         )
 
-        val dataElement = gson.toJsonTree(singleExport)
+        val dataElement = json.encodeToJsonElement(singleExport)
         val envelope = IyoxEnvelope(
             appSignature = IyoxEnvelope.APP_SIGNATURE,
             type = IyoxEnvelope.TYPE_SINGLE,
@@ -112,11 +116,11 @@ class BackupSerializationTest {
             data = dataElement
         )
 
-        val envelopeJson = gson.toJson(envelope)
-        val deserializedEnvelope = gson.fromJson(envelopeJson, IyoxEnvelope::class.java)
+        val envelopeJson = json.encodeToString(envelope)
+        val deserializedEnvelope = json.decodeFromString<IyoxEnvelope>(envelopeJson)
         assertEquals(IyoxEnvelope.TYPE_SINGLE, deserializedEnvelope.type)
 
-        val deserializedSingle = gson.fromJson(deserializedEnvelope.data, ExportVouch::class.java)
+        val deserializedSingle: ExportVouch = json.decodeFromJsonElement(deserializedEnvelope.data)
         assertEquals(5, deserializedSingle.vouch.id)
         assertEquals("Coffee", deserializedSingle.vouch.description)
         assertEquals("Dave", deserializedSingle.persons[0].name)
@@ -134,7 +138,7 @@ class BackupSerializationTest {
             }
         """.trimIndent()
 
-        val deserialized = gson.fromJson(invalidEnvelope, IyoxEnvelope::class.java)
+        val deserialized = json.decodeFromString<IyoxEnvelope>(invalidEnvelope)
         assertNotNull(deserialized)
         assertTrue(deserialized.appSignature != IyoxEnvelope.APP_SIGNATURE)
     }
@@ -161,7 +165,7 @@ class BackupSerializationTest {
 
     @Test
     fun testAlternateSignatureDeserialization() {
-        val json = """
+        val jsonStr = """
             {
                 "app_signature": "com.iyox.vouch",
                 "type": "backup",
@@ -170,14 +174,14 @@ class BackupSerializationTest {
             }
         """.trimIndent()
 
-        val deserialized = gson.fromJson(json, IyoxEnvelope::class.java)
+        val deserialized = json.decodeFromString<IyoxEnvelope>(jsonStr)
         assertNotNull(deserialized)
         assertEquals(IyoxEnvelope.APP_SIGNATURE, deserialized.appSignature)
     }
 
     @Test
     fun testAlternatePersonNameDeserialization() {
-        val json = """
+        val jsonStr = """
             {
                 "personName": "Eve",
                 "amount": 500,
@@ -185,7 +189,7 @@ class BackupSerializationTest {
             }
         """.trimIndent()
 
-        val deserialized = gson.fromJson(json, ExportPersonAmount::class.java)
+        val deserialized = json.decodeFromString<ExportPersonAmount>(jsonStr)
         assertNotNull(deserialized)
         assertEquals("Eve", deserialized.name)
         assertEquals(500L, deserialized.amount)

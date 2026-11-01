@@ -4,7 +4,6 @@ import android.content.Context
 import android.net.Uri
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.google.gson.Gson
 import com.iyox.vouch.core.data.AppDatabase
 import com.iyox.vouch.core.data.VouchRepository
 import com.iyox.vouch.core.model.Person
@@ -12,6 +11,9 @@ import com.iyox.vouch.core.model.PersonWithAmount
 import com.iyox.vouch.core.model.Vouch
 import com.iyox.vouch.core.model.VouchWithPerson
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.encodeToJsonElement
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -200,7 +202,8 @@ class BackupRepositoryTest {
             ),
             persons = listOf(ExportPersonAmount(name = "Dave", amount = 1200L, settled = false))
         )
-        val dataElement = Gson().toJsonTree(singleExport)
+        val testJson = Json { encodeDefaults = true }
+        val dataElement = testJson.encodeToJsonElement(singleExport)
         val envelope = IyoxEnvelope(
             appSignature = IyoxEnvelope.APP_SIGNATURE,
             type = IyoxEnvelope.TYPE_SINGLE,
@@ -208,7 +211,7 @@ class BackupRepositoryTest {
             data = dataElement
         )
         FileOutputStream(file).use {
-            it.write(Gson().toJson(envelope).toByteArray())
+            it.write(testJson.encodeToString(envelope).toByteArray())
         }
 
         // Preview
