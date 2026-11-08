@@ -19,10 +19,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.OpenInNew
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -47,6 +43,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -137,7 +134,7 @@ fun OpenSourceLicensesScreen(
                 placeholder = { Text(stringResource(R.string.settings_licenses_search_placeholder)) },
                 leadingIcon = {
                     Icon(
-                        imageVector = Icons.Outlined.Search,
+                        painter = painterResource(R.drawable.ic_search),
                         contentDescription = null
                     )
                 },
@@ -145,7 +142,7 @@ fun OpenSourceLicensesScreen(
                     if (searchQuery.isNotEmpty()) {
                         IconButton(onClick = { searchQuery = "" }) {
                             Icon(
-                                imageVector = Icons.Default.Close,
+                                painter = painterResource(R.drawable.ic_close),
                                 contentDescription = null
                             )
                         }
@@ -349,7 +346,7 @@ private fun LicenseDetailDialog(
                 TextButton(onClick = { onOpenWebsite(url) }) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
-                            imageVector = Icons.AutoMirrored.Outlined.OpenInNew,
+                            painter = painterResource(R.drawable.ic_open_in_new),
                             contentDescription = null,
                             modifier = Modifier.size(16.dp)
                         )

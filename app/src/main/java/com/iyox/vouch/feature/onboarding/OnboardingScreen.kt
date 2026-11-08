@@ -2,6 +2,7 @@ package com.iyox.vouch.feature.onboarding
 
 import android.icu.util.Currency
 import androidx.activity.compose.BackHandler
+import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
@@ -26,17 +27,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Diversity3
-import androidx.compose.material.icons.filled.DoneAll
-import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.filled.SwapHoriz
-import androidx.compose.material.icons.outlined.Archive
-import androidx.compose.material.icons.outlined.Lightbulb
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -63,10 +53,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -234,7 +224,7 @@ private fun OnboardingBottomNavigation(
                     shape = MaterialTheme.shapes.medium
                 ) {
                     Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        painter = painterResource(R.drawable.ic_arrow_back),
                         contentDescription = stringResource(R.string.onboarding_back),
                         modifier = Modifier.size(18.dp)
                     )
@@ -266,11 +256,11 @@ private fun OnboardingBottomNavigation(
                 )
                 Spacer(modifier = Modifier.width(6.dp))
                 Icon(
-                    imageVector = if (currentPage == pageCount - 1) {
-                        Icons.Filled.Check
+                    painter = painterResource(if (currentPage == pageCount - 1) {
+                        R.drawable.ic_check
                     } else {
-                        Icons.AutoMirrored.Filled.ArrowForward
-                    },
+                        R.drawable.ic_arrow_forward
+                    }),
                     contentDescription = null,
                     modifier = Modifier.size(18.dp)
                 )
@@ -307,17 +297,17 @@ private fun WelcomeSlide() {
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 WelcomeFeatureRow(
-                    icon = Icons.Filled.SwapHoriz,
+                    icon = R.drawable.ic_swap_horiz,
                     title = stringResource(R.string.onboarding_welcome_feature1_title),
                     description = stringResource(R.string.onboarding_welcome_feature1_desc)
                 )
                 WelcomeFeatureRow(
-                    icon = Icons.Filled.Diversity3,
+                    icon = R.drawable.ic_diversity_3,
                     title = stringResource(R.string.onboarding_welcome_feature2_title),
                     description = stringResource(R.string.onboarding_welcome_feature2_desc)
                 )
                 WelcomeFeatureRow(
-                    icon = Icons.Filled.DoneAll,
+                    icon = R.drawable.ic_done_all,
                     title = stringResource(R.string.onboarding_welcome_feature3_title),
                     description = stringResource(R.string.onboarding_welcome_feature3_desc)
                 )
@@ -325,7 +315,7 @@ private fun WelcomeSlide() {
         }
 
         TipCard(
-            icon = Icons.Outlined.Lightbulb,
+            icon = R.drawable.ic_lightbulb,
             text = stringResource(R.string.onboarding_welcome_hint)
         )
     }
@@ -334,7 +324,7 @@ private fun WelcomeSlide() {
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun WelcomeFeatureRow(
-    icon: ImageVector,
+    @DrawableRes icon: Int,
     title: String,
     description: String,
     modifier: Modifier = Modifier
@@ -351,7 +341,7 @@ private fun WelcomeFeatureRow(
         ) {
             Box(contentAlignment = Alignment.Center) {
                 Icon(
-                    imageVector = icon,
+                    painter = painterResource(icon),
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onPrimaryContainer,
                     modifier = Modifier.size(20.dp)
@@ -433,7 +423,7 @@ private fun VouchesSlide() {
         }
 
         TipCard(
-            icon = Icons.Outlined.Lightbulb,
+            icon = R.drawable.ic_lightbulb,
             text = stringResource(R.string.onboarding_slide1_hint)
         )
     }
@@ -601,7 +591,7 @@ private fun GroupVouchesSlide() {
         Spacer(modifier = Modifier.height(16.dp))
 
         TipCard(
-            icon = Icons.Outlined.Lightbulb,
+            icon = R.drawable.ic_lightbulb,
             text = stringResource(R.string.onboarding_slide2_hint)
         )
     }
@@ -610,27 +600,27 @@ private fun GroupVouchesSlide() {
 private enum class OnboardingQuickAction(
     @param:StringRes val titleRes: Int,
     @param:StringRes val descriptionRes: Int,
-    val icon: ImageVector
+    @DrawableRes val icon: Int
 ) {
     SETTLED_SPACE(
         titleRes = R.string.onboarding_action_settled_space_title,
         descriptionRes = R.string.onboarding_action_settled_space_desc,
-        icon = Icons.Outlined.Archive
+        icon = R.drawable.ic_archive
     ),
     ADD_VOUCH(
         titleRes = R.string.onboarding_action_add_title,
         descriptionRes = R.string.onboarding_action_add_desc,
-        icon = Icons.Filled.Add
+        icon = R.drawable.ic_add
     ),
     SETTLE(
         titleRes = R.string.onboarding_action_settle_title,
         descriptionRes = R.string.onboarding_action_settle_desc,
-        icon = Icons.Filled.DoneAll
+        icon = R.drawable.ic_done_all
     ),
     SHARE(
         titleRes = R.string.onboarding_action_share_title,
         descriptionRes = R.string.onboarding_action_share_desc,
-        icon = Icons.Filled.Share
+        icon = R.drawable.ic_share
     )
 }
 
@@ -673,7 +663,7 @@ private fun PeopleSlide() {
         }
 
         TipCard(
-            icon = Icons.Outlined.Lightbulb,
+            icon = R.drawable.ic_lightbulb,
             text = stringResource(R.string.onboarding_slide3_hint)
         )
     }
@@ -689,7 +679,7 @@ private fun PeopleSlide() {
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
-                            imageVector = action.icon,
+                            painter = painterResource(action.icon),
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onPrimaryContainer,
                             modifier = Modifier.size(24.dp)
@@ -836,7 +826,7 @@ private fun SlideHeader(
 
 @Composable
 private fun TipCard(
-    icon: ImageVector,
+    @DrawableRes icon: Int,
     text: String,
     modifier: Modifier = Modifier
 ) {
@@ -853,7 +843,7 @@ private fun TipCard(
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Icon(
-                imageVector = icon,
+                painter = painterResource(icon),
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(18.dp)

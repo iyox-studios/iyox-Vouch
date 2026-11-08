@@ -24,15 +24,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.DoneAll
-import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.outlined.Archive
-import androidx.compose.material.icons.outlined.ArrowOutward
-import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.outlined.SouthWest
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -94,12 +85,12 @@ import com.iyox.vouch.ui.components.VouchBackButton
 import com.iyox.vouch.ui.components.VouchBalanceHeroCard
 import com.iyox.vouch.ui.components.VouchFilterRow
 import com.iyox.vouch.ui.components.vouches.VouchList
-import kotlinx.coroutines.android.awaitFrame
-import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import kotlin.math.abs
+import kotlinx.coroutines.android.awaitFrame
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -174,7 +165,7 @@ fun PersonScreen(
                             modifier = Modifier.size(48.dp)
                         ) {
                             Icon(
-                                imageVector = Icons.Outlined.Edit,
+                                painter = painterResource(R.drawable.ic_edit),
                                 contentDescription = stringResource(R.string.cd_rename_person)
                             )
                         }
@@ -285,7 +276,7 @@ fun PersonScreen(
                                 ) {
                                     Box(contentAlignment = Alignment.Center) {
                                         Icon(
-                                            imageVector = Icons.Outlined.Archive,
+                                            painter = painterResource(R.drawable.ic_archive),
                                             contentDescription = null,
                                             tint = MaterialTheme.colorScheme.onPrimaryContainer,
                                             modifier = Modifier.size(44.dp)
@@ -309,7 +300,7 @@ fun PersonScreen(
                                     modifier = Modifier.padding(top = 8.dp)
                                 ) {
                                     Icon(
-                                        imageVector = Icons.Outlined.Archive,
+                                        painter = painterResource(R.drawable.ic_archive),
                                         contentDescription = null,
                                         modifier = Modifier.size(18.dp)
                                     )
@@ -495,7 +486,7 @@ fun QuickActionsCard(
             contentPadding = PaddingValues(horizontal = 8.dp)
         ) {
             Icon(
-                imageVector = Icons.Outlined.Archive,
+                painter = painterResource(R.drawable.ic_archive),
                 contentDescription = null,
                 modifier = Modifier.size(18.dp)
             )
@@ -518,7 +509,7 @@ fun QuickActionsCard(
             contentPadding = PaddingValues(horizontal = 8.dp)
         ) {
             Icon(
-                imageVector = Icons.Filled.DoneAll,
+                painter = painterResource(R.drawable.ic_done_all),
                 contentDescription = null,
                 modifier = Modifier.size(18.dp)
             )
@@ -539,7 +530,7 @@ fun QuickActionsCard(
             contentPadding = PaddingValues(0.dp)
         ) {
             Icon(
-                imageVector = Icons.Filled.Share,
+                painter = painterResource(R.drawable.ic_share),
                 contentDescription = stringResource(R.string.cd_export_vouch_list),
                 modifier = Modifier.size(18.dp)
             )
@@ -551,7 +542,7 @@ fun QuickActionsCard(
             contentPadding = PaddingValues(0.dp)
         ) {
             Icon(
-                imageVector = Icons.Filled.Add,
+                painter = painterResource(R.drawable.ic_add),
                 contentDescription = stringResource(R.string.cd_add_vouch),
                 modifier = Modifier.size(20.dp)
             )
@@ -734,7 +725,7 @@ fun VouchExportTemplate(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        imageVector = Icons.Filled.Check,
+                        painter = painterResource(R.drawable.ic_check),
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(18.dp)
@@ -771,7 +762,7 @@ fun VouchExportTemplate(
                             ) {
                                 Box(contentAlignment = Alignment.Center) {
                                     Icon(
-                                        imageVector = if (isGiven) Icons.Outlined.ArrowOutward else Icons.Outlined.SouthWest,
+                                        painter = painterResource(if (isGiven) R.drawable.ic_arrow_outward else R.drawable.ic_south_west),
                                         contentDescription = null,
                                         tint = if (isGiven) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onErrorContainer,
                                         modifier = Modifier.size(18.dp)

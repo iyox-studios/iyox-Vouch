@@ -24,16 +24,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.GroupAdd
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.RestartAlt
-import androidx.compose.material.icons.outlined.ArrowOutward
-import androidx.compose.material.icons.outlined.Group
-import androidx.compose.material.icons.outlined.SouthWest
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
@@ -74,6 +64,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalLocale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -367,7 +358,7 @@ fun GroupVouchSummaryCard(
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
-                                imageVector = if (isGiven) Icons.Outlined.ArrowOutward else Icons.Outlined.SouthWest,
+                                painter = painterResource(if (isGiven) R.drawable.ic_arrow_outward else R.drawable.ic_south_west),
                                 contentDescription = null,
                                 tint = if (isGiven) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onErrorContainer,
                                 modifier = Modifier.size(20.dp)
@@ -412,7 +403,7 @@ fun GroupVouchSummaryCard(
                                 horizontalArrangement = Arrangement.spacedBy(6.dp)
                             ) {
                                 Icon(
-                                    imageVector = Icons.Outlined.Group,
+                                    painter = painterResource(R.drawable.ic_group),
                                     contentDescription = null,
                                     tint = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.size(16.dp)
@@ -492,7 +483,7 @@ fun GroupVouchSummaryCard(
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         Icon(
-                            imageVector = Icons.Default.CheckCircle,
+                            painter = painterResource(R.drawable.ic_check_circle),
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(16.dp)
@@ -537,7 +528,7 @@ fun GroupVouchSummaryCard(
                         },
                         leadingIcon = {
                             Icon(
-                                imageVector = Icons.Default.RestartAlt,
+                                painter = painterResource(R.drawable.ic_restart_alt),
                                 contentDescription = null,
                                 modifier = Modifier.size(14.dp)
                             )
@@ -608,7 +599,7 @@ private fun GroupMemberSelector(
                     .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable),
                 label = { Text(stringResource(R.string.label_person)) },
                 leadingIcon = {
-                    Icon(Icons.Filled.Person, null, tint = MaterialTheme.colorScheme.primary)
+                    Icon(painterResource(R.drawable.ic_person), null, tint = MaterialTheme.colorScheme.primary)
                 },
                 trailingIcon = {
                     IconButton(
@@ -621,7 +612,7 @@ private fun GroupMemberSelector(
                         enabled = query.isNotBlank()
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Add,
+                            painter = painterResource(R.drawable.ic_add),
                             contentDescription = stringResource(R.string.action_add_person),
                             tint = if (query.isNotBlank()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(
                                 alpha = 0.38f
@@ -708,7 +699,7 @@ fun GroupMemberSuggestionsRow(
                     },
                     icon = {
                         Icon(
-                            imageVector = Icons.Default.Add,
+                            painter = painterResource(R.drawable.ic_add),
                             contentDescription = null,
                             modifier = Modifier.size(16.dp)
                         )
@@ -753,7 +744,7 @@ fun GroupMemberSuggestionsRow(
                             },
                             icon = {
                                 Icon(
-                                    imageVector = Icons.Default.Add,
+                                    painter = painterResource(R.drawable.ic_add),
                                     contentDescription = null,
                                     modifier = Modifier.size(16.dp)
                                 )
@@ -798,7 +789,7 @@ fun GroupMemberList(
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
-                            imageVector = Icons.Filled.GroupAdd,
+                            painter = painterResource(R.drawable.ic_group_add),
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onPrimaryContainer,
                             modifier = Modifier.size(32.dp)
@@ -904,7 +895,7 @@ private fun GroupMemberCard(
                             )
                         }
                         Icon(
-                            imageVector = Icons.Default.RestartAlt,
+                            painter = painterResource(R.drawable.ic_restart_alt),
                             contentDescription = stringResource(R.string.group_vouch_reset_equal),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(14.dp)
@@ -974,7 +965,7 @@ private fun GroupMemberCard(
                 modifier = Modifier.size(36.dp)
             ) {
                 Icon(
-                    imageVector = Icons.Default.Close,
+                    painter = painterResource(R.drawable.ic_close),
                     contentDescription = stringResource(R.string.action_delete),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(20.dp)

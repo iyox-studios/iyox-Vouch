@@ -1,5 +1,6 @@
 package com.iyox.vouch.feature.vouches
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -8,12 +9,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.material.icons.filled.GroupAdd
-import androidx.compose.material.icons.filled.Payments
-import androidx.compose.material.icons.outlined.Archive
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonMenu
@@ -33,9 +28,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -89,7 +84,7 @@ fun VouchesScreen(
                         }
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Add,
+                            painter = painterResource(R.drawable.ic_add),
                             contentDescription = stringResource(R.string.action_add_vouch)
                         )
                     }
@@ -101,7 +96,7 @@ fun VouchesScreen(
                         fabMenuExpanded.value = false
                         onNavigateToAddGroupVouch()
                     },
-                    icon = { Icon(Icons.Default.GroupAdd, contentDescription = null) },
+                    icon = { Icon(painterResource(R.drawable.ic_group_add), contentDescription = null) },
                     text = { Text(stringResource(R.string.action_add_group_vouch)) }
                 )
                 FloatingActionButtonMenuItem(
@@ -110,7 +105,7 @@ fun VouchesScreen(
                         fabMenuExpanded.value = false
                         onNavigateToAddVouch()
                     },
-                    icon = { Icon(Icons.Default.Add, contentDescription = null) },
+                    icon = { Icon(painterResource(R.drawable.ic_add), contentDescription = null) },
                     text = { Text(stringResource(R.string.action_add_vouch)) }
                 )
             }
@@ -151,7 +146,7 @@ fun VouchesScreen(
                         onClearSearch = { viewModel.setSearchQuery("") }
                     )
                 } else {
-                    val emptyIcon: ImageVector
+                    @DrawableRes val emptyIcon: Int
                     val emptyTitle: String
                     val emptySubtitle: String
                     var showSettledButton = false
@@ -159,18 +154,18 @@ fun VouchesScreen(
 
                     when {
                         uiState.totalVouchesCount == 0 -> {
-                            emptyIcon = Icons.Filled.Payments
+                            emptyIcon = R.drawable.ic_payments
                             emptyTitle = stringResource(R.string.empty_vouches_title)
                             emptySubtitle = stringResource(R.string.empty_vouches_subtitle)
                         }
                         uiState.activeVouchesCount == 0 -> {
-                            emptyIcon = Icons.Outlined.Archive
+                            emptyIcon = R.drawable.ic_archive
                             emptyTitle = stringResource(R.string.all_settled_title)
                             emptySubtitle = stringResource(R.string.all_settled_global_subtitle)
                             showSettledButton = uiState.settledCount > 0
                         }
                         else -> {
-                            emptyIcon = Icons.Default.FilterList
+                            emptyIcon = R.drawable.ic_filter_list
                             emptyTitle = stringResource(R.string.empty_vouches_filtered_title)
                             emptySubtitle = stringResource(R.string.empty_vouches_filtered_subtitle)
                             showResetFilterButton = true
@@ -194,7 +189,7 @@ fun VouchesScreen(
                             ) {
                                 Box(contentAlignment = Alignment.Center) {
                                     Icon(
-                                        imageVector = emptyIcon,
+                                        painter = painterResource(emptyIcon),
                                         contentDescription = null,
                                         tint = MaterialTheme.colorScheme.onPrimaryContainer,
                                         modifier = Modifier.size(44.dp)
@@ -219,7 +214,7 @@ fun VouchesScreen(
                                     modifier = Modifier.padding(top = 8.dp)
                                 ) {
                                     Icon(
-                                        imageVector = Icons.Outlined.Archive,
+                                        painter = painterResource(R.drawable.ic_archive),
                                         contentDescription = null,
                                         modifier = Modifier.size(18.dp)
                                     )

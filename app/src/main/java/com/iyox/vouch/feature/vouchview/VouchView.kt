@@ -26,17 +26,6 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Description
-import androidx.compose.material.icons.filled.DoneAll
-import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.outlined.Archive
-import androidx.compose.material.icons.outlined.ArrowOutward
-import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.outlined.Group
-import androidx.compose.material.icons.outlined.SouthWest
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -71,6 +60,7 @@ import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -79,7 +69,6 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.platform.LocalLocale
 import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.iyox.vouch.R
@@ -95,11 +84,11 @@ import com.iyox.vouch.ui.components.VouchBackButton
 import com.iyox.vouch.ui.components.vouches.GroupSplitSection
 import com.iyox.vouch.ui.components.vouches.GroupVouchSplitSlider
 import com.iyox.vouch.ui.components.vouches.VouchSwipeToDismiss
-import kotlinx.coroutines.android.awaitFrame
-import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
+import kotlinx.coroutines.android.awaitFrame
+import kotlinx.coroutines.launch
 
 @Composable
 fun VouchView(
@@ -479,7 +468,7 @@ fun GroupVouchDetailHero(
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
-                                imageVector = if (vouch.vouch.given) Icons.Outlined.ArrowOutward else Icons.Outlined.SouthWest,
+                                painter = painterResource(if (vouch.vouch.given) R.drawable.ic_arrow_outward else R.drawable.ic_south_west),
                                 contentDescription = null,
                                 tint = if (vouch.vouch.given) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onErrorContainer,
                                 modifier = Modifier.size(20.dp)
@@ -525,7 +514,7 @@ fun GroupVouchDetailHero(
                             horizontalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
                             Icon(
-                                imageVector = Icons.Outlined.Group,
+                                painter = painterResource(R.drawable.ic_group),
                                 contentDescription = stringResource(R.string.cd_view_participants),
                                 tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(16.dp)
@@ -558,7 +547,7 @@ fun GroupVouchDetailHero(
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Description,
+                        painter = painterResource(R.drawable.ic_description),
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(16.dp)
@@ -676,11 +665,11 @@ fun GroupVouchParticipantItem(
                 MaterialTheme.colorScheme.onErrorContainer
             }
             val badgeIcon = if (isParticipantSettled) {
-                Icons.Filled.Check
+                R.drawable.ic_check
             } else if (isGiven) {
-                Icons.Outlined.ArrowOutward
+                R.drawable.ic_arrow_outward
             } else {
-                Icons.Outlined.SouthWest
+                R.drawable.ic_south_west
             }
 
             Surface(
@@ -702,7 +691,7 @@ fun GroupVouchParticipantItem(
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
-                        imageVector = badgeIcon,
+                        painter = painterResource(badgeIcon),
                         contentDescription = if (isParticipantSettled) {
                             stringResource(R.string.label_settled)
                         } else null,
@@ -822,7 +811,7 @@ fun VouchViewShortcutBar(
             contentPadding = PaddingValues(horizontal = 8.dp)
         ) {
             Icon(
-                imageVector = if (isSettled) Icons.Outlined.Archive else Icons.Filled.DoneAll,
+                painter = painterResource(if (isSettled) R.drawable.ic_archive else R.drawable.ic_done_all),
                 contentDescription = null,
                 modifier = Modifier.size(18.dp)
             )
@@ -844,7 +833,7 @@ fun VouchViewShortcutBar(
             contentPadding = PaddingValues(0.dp)
         ) {
             Icon(
-                imageVector = Icons.Filled.Share,
+                painter = painterResource(R.drawable.ic_share),
                 contentDescription = stringResource(R.string.cd_export_vouch_image),
                 modifier = Modifier.size(18.dp)
             )
@@ -858,7 +847,7 @@ fun VouchViewShortcutBar(
             contentPadding = PaddingValues(0.dp)
         ) {
             Icon(
-                imageVector = Icons.Outlined.Edit,
+                painter = painterResource(R.drawable.ic_edit),
                 contentDescription = stringResource(R.string.cd_edit_vouch),
                 modifier = Modifier.size(18.dp)
             )
@@ -872,7 +861,7 @@ fun VouchViewShortcutBar(
             contentPadding = PaddingValues(0.dp)
         ) {
             Icon(
-                imageVector = Icons.Outlined.Delete,
+                painter = painterResource(R.drawable.ic_delete),
                 contentDescription = stringResource(R.string.cd_delete_vouch),
                 tint = MaterialTheme.colorScheme.error,
                 modifier = Modifier.size(18.dp)
@@ -956,7 +945,7 @@ fun SingleVouchExportTemplate(
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
-                            imageVector = if (vouch.vouch.given) Icons.Outlined.ArrowOutward else Icons.Outlined.SouthWest,
+                            painter = painterResource(if (vouch.vouch.given) R.drawable.ic_arrow_outward else R.drawable.ic_south_west),
                             contentDescription = null,
                             tint = if (vouch.vouch.given) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onErrorContainer,
                             modifier = Modifier.size(24.dp)
@@ -982,7 +971,7 @@ fun SingleVouchExportTemplate(
                             horizontalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
                             Icon(
-                                imageVector = Icons.Filled.Check,
+                                painter = painterResource(R.drawable.ic_check),
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.onPrimaryContainer,
                                 modifier = Modifier.size(14.dp)
@@ -1058,7 +1047,7 @@ fun SingleVouchExportTemplate(
                             )
                             if (participant.settled && !participant.isSelf) {
                                 Icon(
-                                    imageVector = Icons.Filled.Check,
+                                    painter = painterResource(R.drawable.ic_check),
                                     contentDescription = null,
                                     tint = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.size(16.dp)

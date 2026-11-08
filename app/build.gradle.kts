@@ -131,7 +131,6 @@ dependencies {
     implementation(libs.google.material)
     implementation(libs.aboutlibraries.core)
     ksp(libs.androidx.room.compiler)
-    implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.fragment)
     implementation(libs.hilt.android)

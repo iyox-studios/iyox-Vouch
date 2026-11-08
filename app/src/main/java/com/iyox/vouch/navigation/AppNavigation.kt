@@ -1,7 +1,8 @@
 package com.iyox.vouch.navigation
 
-
 import androidx.activity.compose.BackHandler
+import androidx.annotation.DrawableRes
+
 import androidx.annotation.StringRes
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
@@ -10,13 +11,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Group
-import androidx.compose.material.icons.filled.Payments
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.outlined.Group
-import androidx.compose.material.icons.outlined.Payments
-import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ShortNavigationBar
@@ -29,9 +23,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -55,16 +49,16 @@ import com.iyox.vouch.feature.settings.SettingsViewModel
 import com.iyox.vouch.feature.settled.SettledSpaceScreen
 import com.iyox.vouch.feature.vouch.GroupVouchScreen
 import com.iyox.vouch.feature.vouch.SingleVouchScreen
-import com.iyox.vouch.feature.vouchview.VouchView
 import com.iyox.vouch.feature.vouches.VouchesScreen
 import com.iyox.vouch.feature.vouches.VouchesViewModel
+import com.iyox.vouch.feature.vouchview.VouchView
 import kotlinx.coroutines.launch
 
 data class NavigationItem(
     val targetPage: Int,
     @StringRes val titleRes: Int,
-    val icon: ImageVector,
-    val iconSelected: ImageVector,
+    @DrawableRes val icon: Int,
+    @DrawableRes val iconSelected: Int,
     val isSelected: (NavDestination?, Int) -> Boolean
 )
 
@@ -86,8 +80,8 @@ fun AppNavigation(
         NavigationItem(
             targetPage = 0,
             titleRes = R.string.screen_vouches,
-            icon = Icons.Outlined.Payments,
-            iconSelected = Icons.Filled.Payments,
+            icon = R.drawable.ic_payments,
+            iconSelected = R.drawable.ic_payments_filled,
             isSelected = { dest, page ->
                 (dest?.hasRoute<VouchesRoute>() == true && page == 0) ||
                         dest?.hasRoute<SingleVouchRoute>() == true ||
@@ -98,8 +92,8 @@ fun AppNavigation(
         NavigationItem(
             targetPage = 1,
             titleRes = R.string.screen_people,
-            icon = Icons.Outlined.Group,
-            iconSelected = Icons.Filled.Group,
+            icon = R.drawable.ic_group,
+            iconSelected = R.drawable.ic_group_filled,
             isSelected = { dest, page ->
                 (dest?.hasRoute<VouchesRoute>() == true && page == 1) ||
                         dest?.hasRoute<ViewPersonRoute>() == true
@@ -108,8 +102,8 @@ fun AppNavigation(
         NavigationItem(
             targetPage = 2,
             titleRes = R.string.screen_settings,
-            icon = Icons.Outlined.Settings,
-            iconSelected = Icons.Filled.Settings,
+            icon = R.drawable.ic_settings,
+            iconSelected = R.drawable.ic_settings_filled,
             isSelected = { dest, page ->
                 (dest?.hasRoute<VouchesRoute>() == true && page == 2) ||
                     dest?.hasRoute<OpenSourceLicensesRoute>() == true
@@ -162,7 +156,7 @@ fun AppNavigation(
                         ShortNavigationBarItem(
                             icon = {
                                 Icon(
-                                    imageVector = icon,
+                                    painter = painterResource(icon),
                                     contentDescription = stringResource(item.titleRes)
                                 )
                             },

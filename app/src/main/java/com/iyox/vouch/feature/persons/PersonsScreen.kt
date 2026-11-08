@@ -1,5 +1,6 @@
 package com.iyox.vouch.feature.persons
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,12 +16,6 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Group
-import androidx.compose.material.icons.outlined.Archive
-import androidx.compose.material.icons.outlined.ArrowOutward
-import androidx.compose.material.icons.outlined.SouthWest
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -39,8 +34,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -93,17 +88,17 @@ fun PersonsScreen(
                     modifier = Modifier.padding(top = innerPadding.calculateTopPadding())
                 )
             } else {
-                val emptyIcon: ImageVector
+                @DrawableRes val emptyIcon: Int
                 val emptyTitle: String
                 val emptySubtitle: String
                 var showResetFilterButton = false
 
                 if (uiState.totalPersonsCount == 0) {
-                    emptyIcon = Icons.Filled.Group
+                    emptyIcon = R.drawable.ic_group
                     emptyTitle = stringResource(R.string.empty_people_title)
                     emptySubtitle = stringResource(R.string.empty_people_subtitle)
                 } else {
-                    emptyIcon = Icons.Outlined.Archive
+                    emptyIcon = R.drawable.ic_archive
                     emptyTitle = stringResource(R.string.all_settled_title)
                     emptySubtitle = stringResource(R.string.all_settled_people_subtitle)
                     showResetFilterButton = uiState.showOnlyNonZero
@@ -127,7 +122,7 @@ fun PersonsScreen(
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 Icon(
-                                    imageVector = emptyIcon,
+                                    painter = painterResource(emptyIcon),
                                     contentDescription = null,
                                     tint = MaterialTheme.colorScheme.onPrimaryContainer,
                                     modifier = Modifier.size(44.dp)
@@ -252,9 +247,9 @@ fun PersonCard(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     val arrowIcon = when {
-                        amount > 0L -> Icons.Outlined.ArrowOutward
-                        amount < 0L -> Icons.Outlined.SouthWest
-                        else -> Icons.Filled.CheckCircle
+                        amount > 0L -> R.drawable.ic_arrow_outward
+                        amount < 0L -> R.drawable.ic_south_west
+                        else -> R.drawable.ic_check_circle
                     }
                     val containerColor = when {
                         amount > 0L -> MaterialTheme.colorScheme.primaryContainer
@@ -273,7 +268,7 @@ fun PersonCard(
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
-                                imageVector = arrowIcon,
+                                painter = painterResource(arrowIcon),
                                 contentDescription = null,
                                 tint = contentColor,
                                 modifier = Modifier.size(18.dp)

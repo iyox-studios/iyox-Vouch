@@ -1,5 +1,6 @@
 package com.iyox.vouch.ui.components
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,7 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
@@ -82,7 +83,7 @@ fun SelectionCard(
     isSelected: Boolean,
     onClick: () -> Unit,
     label: String,
-    icon: ImageVector,
+    @DrawableRes icon: Int,
     modifier: Modifier = Modifier
 ) {
     SelectionCard(
@@ -92,7 +93,7 @@ fun SelectionCard(
         modifier = modifier
     ) {
         Icon(
-            imageVector = icon,
+            painter = painterResource(icon),
             contentDescription = null,
             modifier = Modifier.size(32.dp)
         )

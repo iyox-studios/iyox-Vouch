@@ -18,10 +18,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.outlined.ArrowOutward
-import androidx.compose.material.icons.outlined.SouthWest
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -38,6 +34,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -135,11 +132,11 @@ fun VouchBalanceHeroCard(
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 Icon(
-                                    imageVector = when {
-                                        total > 0L -> Icons.Outlined.ArrowOutward
-                                        total < 0L -> Icons.Outlined.SouthWest
-                                        else -> Icons.Filled.CheckCircle
-                                    },
+                                    painter = painterResource(when {
+                                        total > 0L -> R.drawable.ic_arrow_outward
+                                        total < 0L -> R.drawable.ic_south_west
+                                        else -> R.drawable.ic_check_circle
+                                    }),
                                     contentDescription = null,
                                     tint = when {
                                         total > 0L -> MaterialTheme.colorScheme.onPrimaryContainer

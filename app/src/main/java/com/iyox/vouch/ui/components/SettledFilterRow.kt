@@ -2,10 +2,6 @@ package com.iyox.vouch.ui.components
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Sort
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.InputChip
@@ -14,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -63,7 +60,7 @@ fun SettledFilterRow(
                 )
             },
             leadingIcon = {
-                Icon(Icons.AutoMirrored.Filled.Sort, null, Modifier.size(18.dp))
+                Icon(painterResource(R.drawable.ic_sort), null, Modifier.size(18.dp))
             },
             modifier = Modifier.padding(end = 8.dp)
         )
@@ -83,7 +80,7 @@ fun SettledFilterRow(
             },
             leadingIcon = {
                 if (showOnlyGiven != VouchTypeFilter.ALL) {
-                    Icon(Icons.Default.FilterList, null, Modifier.size(18.dp))
+                    Icon(painterResource(R.drawable.ic_filter_list), null, Modifier.size(18.dp))
                 }
             },
             modifier = Modifier.padding(end = 8.dp)
@@ -106,7 +103,7 @@ fun SettledFilterRow(
                 },
                 trailingIcon = {
                     Icon(
-                        imageVector = Icons.Default.Close,
+                        painter = painterResource(R.drawable.ic_close),
                         contentDescription = stringResource(R.string.action_cancel),
                         modifier = Modifier.size(16.dp)
                     )

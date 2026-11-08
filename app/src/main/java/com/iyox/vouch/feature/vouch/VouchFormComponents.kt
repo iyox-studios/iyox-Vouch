@@ -10,10 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Description
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.outlined.CalendarToday
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -33,11 +29,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.material3.rememberDatePickerState
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalLocale
-import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.TimeZone
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -46,6 +37,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.focus.FocusRequester
@@ -53,6 +45,8 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalLocale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.error
 import androidx.compose.ui.semantics.semantics
@@ -64,6 +58,9 @@ import com.iyox.vouch.core.currency.CurrencyManager
 import com.iyox.vouch.core.model.Person
 import com.iyox.vouch.core.model.PersonTotal
 import com.iyox.vouch.ui.components.PersonAvatar
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.TimeZone
 
 @Composable
 fun VouchAmountHeader(
@@ -186,7 +183,7 @@ fun VouchDescriptionField(
         label = { Text(stringResource(R.string.label_description)) },
         leadingIcon = {
             Icon(
-                Icons.Filled.Description,
+                painterResource(R.drawable.ic_description),
                 null,
                 tint = MaterialTheme.colorScheme.primary
             )
@@ -272,7 +269,7 @@ fun PersonAutocompleteField(
             ),
             leadingIcon = {
                 Icon(
-                    Icons.Filled.Person,
+                    painterResource(R.drawable.ic_person),
                     null,
                     tint = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
                 )
@@ -326,7 +323,7 @@ fun VouchDateField(
             label = { Text(stringResource(R.string.label_date)) },
             leadingIcon = {
                 Icon(
-                    imageVector = Icons.Outlined.CalendarToday,
+                    painter = painterResource(R.drawable.ic_calendar_today),
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary
                 )

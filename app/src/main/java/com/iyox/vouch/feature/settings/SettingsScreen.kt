@@ -6,6 +6,7 @@ import android.content.ContextWrapper
 import android.icu.util.Currency
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
@@ -30,24 +31,6 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.AttachMoney
-import androidx.compose.material.icons.outlined.AutoAwesome
-import androidx.compose.material.icons.outlined.Brightness4
-import androidx.compose.material.icons.outlined.BrightnessAuto
-import androidx.compose.material.icons.outlined.DarkMode
-import androidx.compose.material.icons.outlined.Download
-import androidx.compose.material.icons.outlined.Explore
-import androidx.compose.material.icons.outlined.Fingerprint
-import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.Language
-import androidx.compose.material.icons.outlined.LightMode
-import androidx.compose.material.icons.outlined.Palette
-import com.iyox.vouch.ui.icons.License
-import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material.icons.outlined.Translate
-import androidx.compose.material.icons.outlined.Upload
-import androidx.compose.material.icons.outlined.Vibration
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
@@ -70,25 +53,25 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalLocale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.iyox.vouch.core.currency.CurrencyGridSlot
-import com.iyox.vouch.ui.components.SelectionCard
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.iyox.vouch.R
 import com.iyox.vouch.core.backup.IyoxEnvelope
+import com.iyox.vouch.core.currency.CurrencyGridSlot
 import com.iyox.vouch.core.currency.CurrencyManager
 import com.iyox.vouch.ui.components.PageHeader
+import com.iyox.vouch.ui.components.SelectionCard
 import com.iyox.vouch.ui.theme.AppColorTheme
 import java.util.Locale
 
@@ -96,11 +79,11 @@ data class SupportedLanguage(
     val tag: String,
     @field:StringRes val labelRes: Int,
     val displayCode: String,
-    val icon: ImageVector? = null
+    @DrawableRes val icon: Int? = null
 )
 
 private val supportedLanguages = listOf(
-    SupportedLanguage("system", R.string.settings_language_system, "AUTO", Icons.Outlined.Language),
+    SupportedLanguage("system", R.string.settings_language_system, "AUTO", R.drawable.ic_language),
     SupportedLanguage("en", R.string.settings_lang_en, "EN"),
     SupportedLanguage("de", R.string.settings_lang_de, "DE"),
 )
@@ -121,13 +104,13 @@ private fun findSupportedLanguage(tag: String): SupportedLanguage? {
 data class SupportedTheme(
     val mode: Int,
     @field:StringRes val labelRes: Int,
-    val icon: ImageVector
+    @DrawableRes val icon: Int
 )
 
 private val supportedThemes = listOf(
-    SupportedTheme(UiModeManager.MODE_NIGHT_AUTO, R.string.theme_system, Icons.Outlined.BrightnessAuto),
-    SupportedTheme(UiModeManager.MODE_NIGHT_YES, R.string.theme_dark, Icons.Outlined.DarkMode),
-    SupportedTheme(UiModeManager.MODE_NIGHT_NO, R.string.theme_light, Icons.Outlined.LightMode)
+    SupportedTheme(UiModeManager.MODE_NIGHT_AUTO, R.string.theme_system, R.drawable.ic_brightness_auto),
+    SupportedTheme(UiModeManager.MODE_NIGHT_YES, R.string.theme_dark, R.drawable.ic_dark_mode),
+    SupportedTheme(UiModeManager.MODE_NIGHT_NO, R.string.theme_light, R.drawable.ic_light_mode)
 )
 
 @Composable
@@ -237,7 +220,7 @@ fun SettingsScreen(
             SectionHeader(stringResource(R.string.settings_section_general))
 
             SettingItem(
-                icon = Icons.Outlined.Translate,
+                icon = R.drawable.ic_translate,
                 title = stringResource(R.string.settings_language),
                 subtitle = findSupportedLanguage(uiState.languageTag)
                     ?.let { stringResource(it.labelRes) }
@@ -246,21 +229,21 @@ fun SettingsScreen(
             )
 
             SettingItem(
-                icon = Icons.Outlined.AttachMoney,
+                icon = R.drawable.ic_attach_money,
                 title = stringResource(R.string.settings_currency),
                 subtitle = "${currentCurrency.getSymbol(LocalLocale.current.platformLocale)} (${currentCurrency.currencyCode})",
                 onClick = { showCurrencyDialog = true }
             )
 
             SettingItem(
-                icon = Icons.Outlined.Explore,
+                icon = R.drawable.ic_explore,
                 title = stringResource(R.string.settings_onboarding_guide),
                 subtitle = stringResource(R.string.settings_onboarding_guide_subtitle),
                 onClick = onNavigateToOnboarding
             )
 
             SettingItem(
-                icon = Icons.Outlined.Vibration,
+                icon = R.drawable.ic_vibration,
                 title = stringResource(R.string.settings_haptics),
                 subtitle = stringResource(R.string.settings_haptics_subtitle),
                 trailing = {
@@ -275,7 +258,7 @@ fun SettingsScreen(
             SectionHeader(stringResource(R.string.settings_section_appearance))
 
             SettingItem(
-                icon = Icons.Outlined.Brightness4,
+                icon = R.drawable.ic_brightness_4,
                 title = stringResource(R.string.settings_theme),
                 subtitle = when (uiState.theme) {
                     UiModeManager.MODE_NIGHT_NO -> stringResource(R.string.theme_light)
@@ -287,7 +270,7 @@ fun SettingsScreen(
             )
 
             SettingItem(
-                icon = Icons.Outlined.Palette,
+                icon = R.drawable.ic_palette,
                 title = stringResource(R.string.settings_color_theme),
                 subtitle = stringResource(uiState.colorTheme.labelRes),
                 onClick = { showColorDialog = true }
@@ -296,7 +279,7 @@ fun SettingsScreen(
             SectionHeader(stringResource(R.string.settings_section_security))
 
             SettingItem(
-                icon = Icons.Outlined.Fingerprint,
+                icon = R.drawable.ic_fingerprint,
                 title = stringResource(R.string.settings_biometric_auth),
                 subtitle = stringResource(R.string.settings_biometric_auth_subtitle),
                 trailing = {
@@ -356,7 +339,7 @@ fun SettingsScreen(
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Outlined.Upload,
+                        painter = painterResource(R.drawable.ic_upload),
                         contentDescription = null,
                         modifier = Modifier.size(20.dp)
                     )
@@ -378,7 +361,7 @@ fun SettingsScreen(
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Outlined.Download,
+                        painter = painterResource(R.drawable.ic_download),
                         contentDescription = null,
                         modifier = Modifier.size(20.dp)
                     )
@@ -397,14 +380,14 @@ fun SettingsScreen(
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp))
 
             SettingItem(
-                icon = Icons.Outlined.License,
+                icon = R.drawable.ic_license,
                 title = stringResource(R.string.settings_open_source_licenses),
                 subtitle = stringResource(R.string.settings_open_source_licenses_subtitle),
                 onClick = onNavigateToLicenses
             )
 
             SettingItem(
-                icon = Icons.Outlined.Info,
+                icon = R.drawable.ic_info,
                 title = stringResource(R.string.settings_app_version),
                 subtitle = viewModel.appVersion
             )
@@ -426,7 +409,7 @@ fun SectionHeader(title: String) {
 
 @Composable
 fun SettingItem(
-    icon: ImageVector,
+    @DrawableRes icon: Int,
     title: String,
     subtitle: String,
     onClick: (() -> Unit)? = null,
@@ -440,7 +423,7 @@ fun SettingItem(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
-            imageVector = icon,
+            painter = painterResource(icon),
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(24.dp)
@@ -496,7 +479,7 @@ fun LanguageSelectionDialog(
                     ) {
                         if (language.icon != null) {
                             Icon(
-                                imageVector = language.icon,
+                                painter = painterResource(language.icon),
                                 contentDescription = null,
                                 modifier = Modifier.size(32.dp)
                             )
@@ -613,14 +596,14 @@ fun CurrencySelectionDialog(
                                         )
                                         Spacer(modifier = Modifier.width(2.dp))
                                         Icon(
-                                            imageVector = Icons.Outlined.Search,
+                                            painter = painterResource(R.drawable.ic_search),
                                             contentDescription = stringResource(R.string.currency_search_button),
                                             modifier = Modifier.size(14.dp)
                                         )
                                     }
                                 } else {
                                     Icon(
-                                        imageVector = Icons.Outlined.Search,
+                                        painter = painterResource(R.drawable.ic_search),
                                         contentDescription = stringResource(R.string.currency_search_button),
                                         modifier = Modifier.size(32.dp)
                                     )
@@ -707,7 +690,7 @@ fun ColorThemeSelectionDialog(
                     ) {
                         if (colorTheme.previewColor == null) {
                             Icon(
-                                imageVector = Icons.Outlined.AutoAwesome,
+                                painter = painterResource(R.drawable.ic_auto_awesome),
                                 contentDescription = null,
                                 modifier = Modifier.size(32.dp)
                             )

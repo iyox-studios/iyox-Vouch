@@ -36,7 +36,6 @@ qodana = "2026.2.2"
 [libraries]
 fastlane-screengrab = { module = "tools.fastlane:screengrab", version.ref = "screengrab" }
 androidx-biometric = { module = "androidx.biometric:biometric", version.ref = "biometric" }
-androidx-compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "coreSplashscreen" }
 androidx-fragment = { module = "androidx.fragment:fragment", version.ref = "fragment" }
