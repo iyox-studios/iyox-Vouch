@@ -18,6 +18,7 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.appcompat.app.AppCompatActivity
 import com.iyox.vouch.core.utils.PreferenceKeys
 import dagger.hilt.android.AndroidEntryPoint
+import com.iyox.vouch.navigation.VouchShortcut
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -25,6 +26,7 @@ class MainActivity : AppCompatActivity() {
     private var isAuthenticated = false
     private var isIntentConsumed = false
     private val pendingImportUri = mutableStateOf<Uri?>(null)
+    private val pendingShortcut = mutableStateOf<VouchShortcut?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
@@ -33,6 +35,7 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
 
         if (savedInstanceState != null) {
+            pendingShortcut.value = VouchShortcut.fromAction(savedInstanceState.getString(KEY_PENDING_SHORTCUT))
             isAuthenticated = savedInstanceState.getBoolean(KEY_IS_AUTHENTICATED, false)
             isIntentConsumed = savedInstanceState.getBoolean(KEY_IS_INTENT_CONSUMED, false)
         }
@@ -67,6 +70,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
+        outState.putString(KEY_PENDING_SHORTCUT, pendingShortcut.value?.action)
         outState.putBoolean(KEY_IS_AUTHENTICATED, isAuthenticated)
         outState.putBoolean(KEY_IS_INTENT_CONSUMED, isIntentConsumed)
     }
@@ -89,6 +93,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun handleIntentData(intent: Intent?) {
         if (isIntentConsumed) return
+        VouchShortcut.fromAction(intent?.action)?.let {
+            pendingShortcut.value = it
+            isIntentConsumed = true
+            return
+        }
         val uri = extractUriFromIntent(intent) ?: return
         if (intent?.action == Intent.ACTION_VIEW || intent?.action == Intent.ACTION_SEND) {
             pendingImportUri.value = uri
@@ -107,6 +116,8 @@ class MainActivity : AppCompatActivity() {
         setContent {
             VouchApp(
                 pendingImportUri = pendingImportUri.value,
+                pendingShortcut = pendingShortcut.value,
+                onShortcutConsumed = { pendingShortcut.value = null },
                 onImportUriConsumed = { consumePendingImport() }
             )
         }
@@ -157,6 +168,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     companion object {
+        private const val KEY_PENDING_SHORTCUT = "pending_shortcut"
         private const val KEY_IS_AUTHENTICATED = "is_authenticated"
         private const val KEY_IS_INTENT_CONSUMED = "is_intent_consumed"
     }

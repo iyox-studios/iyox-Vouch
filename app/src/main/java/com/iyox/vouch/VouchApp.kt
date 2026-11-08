@@ -22,6 +22,7 @@ import com.iyox.vouch.core.utils.ToastManager
 import com.iyox.vouch.feature.settings.SettingsViewModel
 import com.iyox.vouch.feature.settings.ToastEvent
 import com.iyox.vouch.navigation.AppNavigation
+import com.iyox.vouch.navigation.VouchShortcut
 import com.iyox.vouch.ui.components.ImportConfirmationDialog
 import com.iyox.vouch.ui.components.VouchSnackbarHost
 import com.iyox.vouch.ui.theme.IyoxVouchTheme
@@ -29,7 +30,9 @@ import com.iyox.vouch.ui.theme.IyoxVouchTheme
 @Composable
 fun VouchApp(
     pendingImportUri: Uri? = null,
-    onImportUriConsumed: () -> Unit = {}
+    onImportUriConsumed: () -> Unit = {},
+    pendingShortcut: VouchShortcut? = null,
+    onShortcutConsumed: () -> Unit = {}
 ) {
     val appContext = LocalContext.current.applicationContext
     val snackbarHostState = remember { SnackbarHostState() }
@@ -79,7 +82,9 @@ fun VouchApp(
         ) {
             AppNavigation(
                 snackbarHost = { VouchSnackbarHost(snackbarHostState) },
-                settingsViewModel = settingsViewModel
+                settingsViewModel = settingsViewModel,
+                pendingShortcut = pendingShortcut,
+                onShortcutConsumed = onShortcutConsumed
             )
 
             pendingImportPreview?.let { preview ->

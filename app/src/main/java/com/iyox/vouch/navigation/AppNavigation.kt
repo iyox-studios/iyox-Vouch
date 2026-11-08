@@ -71,7 +71,9 @@ data class NavigationItem(
 @Composable
 fun AppNavigation(
     snackbarHost: @Composable (() -> Unit) = {},
-    settingsViewModel: SettingsViewModel = hiltViewModel()
+    settingsViewModel: SettingsViewModel = hiltViewModel(),
+    pendingShortcut: VouchShortcut? = null,
+    onShortcutConsumed: () -> Unit = {}
 ) {
     val navController = rememberNavController()
     val coroutineScope = rememberCoroutineScope()
@@ -123,6 +125,23 @@ fun AppNavigation(
 
     val startDestination: Any = remember {
         if (settingsViewModel.isOnboardingCompleted()) VouchesRoute else OnboardingRoute
+    }
+
+    LaunchedEffect(pendingShortcut, currentDestination) {
+        if (pendingShortcut != null && currentDestination != null &&
+            settingsViewModel.isOnboardingCompleted()
+        ) {
+            pagerState.scrollToPage(0)
+            when (pendingShortcut) {
+                VouchShortcut.ADD_VOUCH -> navController.navigate(SingleVouchRoute()) {
+                    popUpTo<VouchesRoute>()
+                }
+                VouchShortcut.ADD_GROUP_VOUCH -> navController.navigate(GroupVouchRoute()) {
+                    popUpTo<VouchesRoute>()
+                }
+            }
+            onShortcutConsumed()
+        }
     }
 
     val isMainDestination = currentDestination?.hasRoute<VouchesRoute>() == true

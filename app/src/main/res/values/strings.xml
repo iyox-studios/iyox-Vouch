@@ -261,4 +261,6 @@
     <string name="settings_open_source_licenses_subtitle">Licenses and notices for third-party libraries</string>
     <string name="settings_licenses_website">Website</string>
     <string name="settings_licenses_search_placeholder">Search libraries or licenses…</string>
+    <string name="shortcut_add_vouch">New vouch</string>
+    <string name="shortcut_add_group_vouch">New group vouch</string>
 </resources>
