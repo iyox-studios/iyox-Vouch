@@ -24,6 +24,8 @@
     <string name="biometric_subtitle">Authenticate to access the app</string>
 
     <string name="settings_section_general">General</string>
+    <string name="settings_haptics">Haptic feedback</string>
+    <string name="settings_haptics_subtitle">Vibration feedback for interactions</string>
     <string name="settings_section_appearance">Appearance</string>
     <string name="settings_section_security">Security</string>
     <string name="settings_language">Language</string>

@@ -45,7 +45,8 @@ data class SettingsUiState(
     val languageTag: String,
     val currencyCode: String,
     val biometricEnabled: Boolean,
-    val onboardingCompleted: Boolean = false
+    val onboardingCompleted: Boolean = false,
+    val hapticsEnabled: Boolean = true
 )
 
 @HiltViewModel
@@ -104,6 +105,7 @@ class SettingsViewModel @Inject constructor(
     private val _colorTheme = MutableStateFlow(resolveInitialColorTheme())
     private val _languageTag = MutableStateFlow(currentLanguageTag())
     private val _biometricEnabled = MutableStateFlow(prefs.getBoolean(PreferenceKeys.KEY_BIOMETRIC_ENABLED, false))
+    private val _hapticsEnabled = MutableStateFlow(prefs.getBoolean(PreferenceKeys.KEY_HAPTICS_ENABLED, true))
     private val _onboardingCompleted = MutableStateFlow(prefs.getBoolean(PreferenceKeys.KEY_ONBOARDING_COMPLETED, false))
 
     val uiState: StateFlow<SettingsUiState> = combine(
@@ -119,6 +121,8 @@ class SettingsViewModel @Inject constructor(
         )
     }.combine(_onboardingCompleted) { state, onboardingCompleted ->
         state.copy(onboardingCompleted = onboardingCompleted)
+    }.combine(_hapticsEnabled) { state, hapticsEnabled ->
+        state.copy(hapticsEnabled = hapticsEnabled)
     }.stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(5000),
@@ -128,7 +132,8 @@ class SettingsViewModel @Inject constructor(
             languageTag = _languageTag.value,
             currencyCode = currencyManager.getCurrency().currencyCode,
             biometricEnabled = _biometricEnabled.value,
-            onboardingCompleted = _onboardingCompleted.value
+            onboardingCompleted = _onboardingCompleted.value,
+            hapticsEnabled = _hapticsEnabled.value
         )
     )
 
@@ -162,6 +167,11 @@ class SettingsViewModel @Inject constructor(
     fun setBiometricEnabled(enabled: Boolean) {
         _biometricEnabled.value = enabled
         prefs.edit { putBoolean(PreferenceKeys.KEY_BIOMETRIC_ENABLED, enabled) }
+    }
+
+    fun setHapticsEnabled(enabled: Boolean) {
+        _hapticsEnabled.value = enabled
+        prefs.edit { putBoolean(PreferenceKeys.KEY_HAPTICS_ENABLED, enabled) }
     }
 
     fun showBiometricError(@StringRes messageRes: Int) {

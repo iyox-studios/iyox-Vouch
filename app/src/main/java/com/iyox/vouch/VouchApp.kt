@@ -11,11 +11,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.iyox.vouch.core.utils.LocalSnackbarHostState
 import com.iyox.vouch.core.utils.LocalToastManager
+import com.iyox.vouch.core.utils.PreferenceHapticFeedback
 import com.iyox.vouch.core.utils.ToastManager
 import com.iyox.vouch.feature.settings.SettingsViewModel
 import com.iyox.vouch.feature.settings.ToastEvent
@@ -32,12 +34,16 @@ fun VouchApp(
     val appContext = LocalContext.current.applicationContext
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
-    val haptic = LocalHapticFeedback.current
+    val settingsViewModel: SettingsViewModel = hiltViewModel()
+    val uiState by settingsViewModel.uiState.collectAsState()
+    val platformHaptic = LocalHapticFeedback.current
+    val hapticsEnabled = rememberUpdatedState(uiState.hapticsEnabled)
+    val haptic = remember(platformHaptic) {
+        PreferenceHapticFeedback(platformHaptic) { hapticsEnabled.value }
+    }
     val toastManager = remember(snackbarHostState, coroutineScope, appContext, haptic) {
         ToastManager(snackbarHostState, coroutineScope, appContext, haptic)
     }
-    val settingsViewModel: SettingsViewModel = hiltViewModel()
-    val uiState by settingsViewModel.uiState.collectAsState()
     val pendingImportPreview by settingsViewModel.pendingImportPreview.collectAsState()
 
     LaunchedEffect(settingsViewModel) {
@@ -67,6 +73,7 @@ fun VouchApp(
         colorTheme = uiState.colorTheme
     ) {
         CompositionLocalProvider(
+            LocalHapticFeedback provides haptic,
             LocalSnackbarHostState provides snackbarHostState,
             LocalToastManager provides toastManager
         ) {

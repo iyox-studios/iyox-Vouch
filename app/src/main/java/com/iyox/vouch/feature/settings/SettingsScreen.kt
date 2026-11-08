@@ -47,6 +47,7 @@ import com.iyox.vouch.ui.icons.License
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.material.icons.outlined.Upload
+import androidx.compose.material.icons.outlined.Vibration
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
@@ -256,6 +257,19 @@ fun SettingsScreen(
                 title = stringResource(R.string.settings_onboarding_guide),
                 subtitle = stringResource(R.string.settings_onboarding_guide_subtitle),
                 onClick = onNavigateToOnboarding
+            )
+
+            SettingItem(
+                icon = Icons.Outlined.Vibration,
+                title = stringResource(R.string.settings_haptics),
+                subtitle = stringResource(R.string.settings_haptics_subtitle),
+                trailing = {
+                    Switch(
+                        checked = uiState.hapticsEnabled,
+                        onCheckedChange = viewModel::setHapticsEnabled
+                    )
+                },
+                onClick = { viewModel.setHapticsEnabled(!uiState.hapticsEnabled) }
             )
 
             SectionHeader(stringResource(R.string.settings_section_appearance))
