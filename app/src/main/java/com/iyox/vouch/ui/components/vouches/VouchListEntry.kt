@@ -30,7 +30,7 @@ internal fun buildVouchListEntries(
     val calendar = Calendar.getInstance(timeZone)
     val months = vouches.groupBy {
         calendar.timeInMillis = it.vouch.timestamp
-        calendar.get(Calendar.YEAR) * 12 + calendar.get(Calendar.MONTH)
+        calendar[Calendar.YEAR] * 12 + calendar[Calendar.MONTH]
     }
     return buildList {
         for ((monthIndex, items) in months.toSortedMap(reverseOrder())) {
