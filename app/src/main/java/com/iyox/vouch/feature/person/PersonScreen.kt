@@ -83,6 +83,7 @@ import com.iyox.vouch.ui.components.PersonAvatar
 import com.iyox.vouch.ui.components.RenamePersonDialog
 import com.iyox.vouch.ui.components.VouchBackButton
 import com.iyox.vouch.ui.components.VouchBalanceHeroCard
+import com.iyox.vouch.ui.components.VouchBalanceHeroDecoration
 import com.iyox.vouch.ui.components.VouchFilterRow
 import com.iyox.vouch.ui.components.vouches.VouchList
 import java.io.File
@@ -452,6 +453,7 @@ fun PersonInfoCard(
         amountOwed = amountOwed,
         total = personData?.amount ?: (amountGiven - amountOwed),
         vouchCount = vouchCount,
+        decoration = VouchBalanceHeroDecoration.PentagonBottomStart,
         modifier = modifier
             .padding(horizontal = 16.dp)
             .padding(bottom = 10.dp)

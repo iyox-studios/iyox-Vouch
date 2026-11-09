@@ -43,6 +43,11 @@ import androidx.compose.ui.unit.dp
 import com.iyox.vouch.R
 import com.iyox.vouch.core.currency.CurrencyManager
 
+enum class VouchBalanceHeroDecoration {
+    CookieTopEnd,
+    PentagonBottomStart
+}
+
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun VouchBalanceHeroCard(
@@ -54,7 +59,8 @@ fun VouchBalanceHeroCard(
     vouchCount: Int? = null,
     enableRotation: Boolean = true,
     rotationDurationMillis: Int = 40_000,
-    shapeRotation: Float? = null
+    shapeRotation: Float? = null,
+    decoration: VouchBalanceHeroDecoration = VouchBalanceHeroDecoration.CookieTopEnd
 ) {
     val cardShape = MaterialTheme.shapes.largeIncreased
 
@@ -84,7 +90,12 @@ fun VouchBalanceHeroCard(
             .clip(cardShape)
     ) {
         Box(modifier = Modifier.fillMaxWidth()) {
-            val cookieShape = MaterialShapes.Cookie9Sided.toShape()
+            val isBottomStart = decoration == VouchBalanceHeroDecoration.PentagonBottomStart
+            val decorationShape = if (isBottomStart) {
+                MaterialShapes.Pentagon.toShape()
+            } else {
+                MaterialShapes.Cookie9Sided.toShape()
+            }
             Box(
                 modifier = Modifier
                     .matchParentSize()
@@ -92,15 +103,18 @@ fun VouchBalanceHeroCard(
             ) {
                 Box(
                     modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .offset(x = 65.dp, y = (-55).dp)
+                        .align(if (isBottomStart) Alignment.BottomStart else Alignment.TopEnd)
+                        .offset(
+                            x = if (isBottomStart) (-65).dp else 65.dp,
+                            y = if (isBottomStart) 55.dp else (-55).dp
+                        )
                         .size(200.dp)
                         .graphicsLayer {
                             rotationZ = rotation
                         }
                         .background(
                             color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
-                            shape = cookieShape
+                            shape = decorationShape
                         )
                 )
             }
