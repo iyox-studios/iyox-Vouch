@@ -121,6 +121,6 @@ class VouchesViewModel @Inject constructor(
     }
 
     fun toggleSortedBy() {
-        _sortedBy.value = _sortedBy.value.next(supportsPerson = true)
+        _sortedBy.value = _sortedBy.value.next()
     }
 }

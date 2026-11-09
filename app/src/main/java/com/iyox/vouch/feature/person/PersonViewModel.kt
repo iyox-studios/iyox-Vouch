@@ -172,7 +172,7 @@ class PersonViewModel @Inject constructor(
     }
 
     fun toggleSortedBy() {
-        _sortedBy.value = _sortedBy.value.next(supportsPerson = false)
+        _sortedBy.value = _sortedBy.value.next()
     }
 
     suspend fun renamePerson(newName: String): Result<Unit> {

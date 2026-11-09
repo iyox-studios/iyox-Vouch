@@ -7,10 +7,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.iyox.vouch.R
@@ -18,6 +20,8 @@ import com.iyox.vouch.core.domain.SharedVouchActions
 import com.iyox.vouch.core.model.VouchWithPerson
 import com.iyox.vouch.core.model.isSettled
 import com.iyox.vouch.core.utils.rememberToastManager
+import java.text.SimpleDateFormat
+import java.util.TimeZone
 
 /**
  * Displays a list of vouches with swipe-to-dismiss and edit capabilities.
@@ -30,6 +34,7 @@ import com.iyox.vouch.core.utils.rememberToastManager
  * @param isSettled A predicate to determine if a vouch is settled.
  * @param groupSingleContextPersonId Determines if a group vouch is shown for the context of the full group or of one person
  * @param contentPadding The padding applied to the list content.
+ * @param groupByMonth Whether to show newest-first month sections, preserving the sort within each month.
  */
 @Composable
 fun VouchList(
@@ -41,8 +46,20 @@ fun VouchList(
     onNavigateToPerson: (String) -> Unit = {},
     isSettled: (VouchWithPerson) -> Boolean = { it.isSettled() },
     groupSingleContextPersonId: Long? = null,
-    contentPadding: PaddingValues = PaddingValues(16.dp)
+    contentPadding: PaddingValues = PaddingValues(16.dp),
+    groupByMonth: Boolean = false
 ) {
+    val timeZone = TimeZone.getDefault()
+    val locale = LocalLocale.current.platformLocale
+    val entries = remember(displayedSorted, groupByMonth, timeZone) {
+        buildVouchListEntries(displayedSorted, groupByMonth, timeZone)
+    }
+    val monthFormat = remember(locale, timeZone) {
+        SimpleDateFormat(
+            android.text.format.DateFormat.getBestDateTimePattern(locale, "yMMMM"),
+            locale
+        ).apply { this.timeZone = timeZone }
+    }
     val toastManager = rememberToastManager()
     val msgVouchUnsettled = stringResource(R.string.msg_vouch_unsettled)
     val msgVouchDeleted = stringResource(R.string.msg_vouch_deleted)
@@ -58,8 +75,23 @@ fun VouchList(
         contentPadding = contentPadding,
         verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.Top)
     ) {
-        itemsIndexed(
-            displayedSorted, { _, item -> item.vouch.id }) { _, vouch ->
+        items(entries, key = { it.key }, contentType = {
+            when (it) {
+                is VouchListEntry.Month -> "month"
+                is VouchListEntry.VouchItem -> "vouch"
+            }
+        }) { entry ->
+            if (entry is VouchListEntry.Month) {
+                VouchMonthHeader(
+                    month = monthFormat.format(entry.timestamp),
+                    totalAmount = entry.totalAmount,
+                    modifier = Modifier
+                        .animateItem()
+                        .padding(top = if (entry == entries.first()) 0.dp else 16.dp)
+                )
+                return@items
+            }
+            val vouch = (entry as VouchListEntry.VouchItem).vouch
             val settled = isSettled(vouch)
             val boxModifier = Modifier.animateItem()
             val settleMessage = if (settled) msgVouchUnsettled else msgVouchSettled

@@ -133,11 +133,6 @@ class VouchesViewModelTest {
         )
         viewModel.toggleSortedBy()
         assertEquals(
-            VouchSortOrder.PERSON,
-            viewModel.uiState.first { it.sortedBy == VouchSortOrder.PERSON }.sortedBy
-        )
-        viewModel.toggleSortedBy()
-        assertEquals(
             VouchSortOrder.DATE,
             viewModel.uiState.first { it.sortedBy == VouchSortOrder.DATE }.sortedBy
         )

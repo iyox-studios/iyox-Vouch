@@ -78,7 +78,6 @@
     <string name="filter_unsettled">Offen</string>
     <string name="filter_date">Datum</string>
     <string name="filter_amount">Betrag</string>
-    <string name="filter_person">Person</string>
     <string name="filter_given_received_short">Geg. &amp; Erh.</string>
 
     <string name="search_vouches_placeholder">&vouches; durchsuchen&#8230;</string>

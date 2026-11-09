@@ -61,7 +61,6 @@ fun VouchFilterRow(
                     when (sortedBy) {
                         VouchSortOrder.DATE -> stringResource(R.string.filter_date)
                         VouchSortOrder.AMOUNT -> stringResource(R.string.filter_amount)
-                        VouchSortOrder.PERSON -> stringResource(R.string.filter_person)
                     }
                 )
             },

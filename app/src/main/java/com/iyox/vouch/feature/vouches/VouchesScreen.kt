@@ -37,6 +37,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.iyox.vouch.R
+import com.iyox.vouch.core.model.VouchSortOrder
 import com.iyox.vouch.ui.components.EmptySearchContent
 import com.iyox.vouch.ui.components.PageHeader
 import com.iyox.vouch.ui.components.VouchBalanceHeroCard
@@ -245,7 +246,8 @@ fun VouchesScreen(
                     innerPadding = PaddingValues(0.dp),
                     sharedVouchActions = viewModel.sharedActions,
                     onEdit = handleVouchClick,
-                    onNavigateToPerson = onNavigateToPerson
+                    onNavigateToPerson = onNavigateToPerson,
+                    groupByMonth = uiState.sortedBy == VouchSortOrder.DATE
                 )
             }
         }

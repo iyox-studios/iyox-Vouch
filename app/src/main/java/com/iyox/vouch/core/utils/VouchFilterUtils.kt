@@ -39,13 +39,12 @@ object VouchFilterUtils {
     }
 
     /**
-     * Sorts vouches by date, amount, or person name in descending order using [VouchSortOrder].
+     * Sorts vouches by date or amount in descending order using [VouchSortOrder].
      */
     fun List<VouchWithPerson>.sortVouches(sortOrder: VouchSortOrder): List<VouchWithPerson> {
         return when (sortOrder) {
             VouchSortOrder.DATE -> sortedByDescending { it.vouch.timestamp }
             VouchSortOrder.AMOUNT -> sortedByDescending { it.vouch.amount }
-            VouchSortOrder.PERSON -> sortedByDescending { if (it.persons.size == 1) it.persons.first().person.name else "" }
         }
     }
 

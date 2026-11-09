@@ -14,12 +14,10 @@ enum class VouchTypeFilter {
 
 enum class VouchSortOrder {
     DATE,
-    AMOUNT,
-    PERSON;
+    AMOUNT;
 
-    fun next(supportsPerson: Boolean = true): VouchSortOrder = when (this) {
+    fun next(): VouchSortOrder = when (this) {
         DATE -> AMOUNT
-        AMOUNT -> if (supportsPerson) PERSON else DATE
-        PERSON -> DATE
+        AMOUNT -> DATE
     }
 }

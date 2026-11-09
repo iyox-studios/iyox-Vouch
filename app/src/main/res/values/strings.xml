@@ -80,7 +80,6 @@
     <string name="filter_unsettled">Unsettled</string>
     <string name="filter_date">Date</string>
     <string name="filter_amount">Amount</string>
-    <string name="filter_person">Person</string>
     <string name="filter_given_received_short">Giv. &amp; Rec.</string>
 
     <string name="search_vouches_placeholder">Search &vouches;&#8230;</string>
