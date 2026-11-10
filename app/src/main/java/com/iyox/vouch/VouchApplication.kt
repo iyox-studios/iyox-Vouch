@@ -17,10 +17,14 @@ class VouchApplication : Application() {
     @Inject
     lateinit var personRepository: PersonRepository
 
+    @Inject
+    lateinit var widgetUpdater: com.iyox.vouch.widget.VouchWidgetUpdater
+
     override fun onCreate() {
         super.onCreate()
         personRepository.warmUp()
         migrateLegacyLocalesIfNeeded()
+        widgetUpdater.start()
     }
 
     private fun migrateLegacyLocalesIfNeeded() {

@@ -32,7 +32,9 @@ data class GroupVouchRoute(
 
 @Serializable
 data class ViewPersonRoute(
-    val personName: String
+    val personName: String,
+    val settleAll: Boolean = false,
+    val share: Boolean = false
 )
 
 @Serializable

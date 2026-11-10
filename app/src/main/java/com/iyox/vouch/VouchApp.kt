@@ -32,6 +32,7 @@ fun VouchApp(
     pendingImportUri: Uri? = null,
     onImportUriConsumed: () -> Unit = {},
     pendingShortcut: VouchShortcut? = null,
+    pendingShortcutPersonName: String? = null,
     onShortcutConsumed: () -> Unit = {}
 ) {
     val appContext = LocalContext.current.applicationContext
@@ -84,6 +85,7 @@ fun VouchApp(
                 snackbarHost = { VouchSnackbarHost(snackbarHostState) },
                 settingsViewModel = settingsViewModel,
                 pendingShortcut = pendingShortcut,
+                pendingShortcutPersonName = pendingShortcutPersonName,
                 onShortcutConsumed = onShortcutConsumed
             )
 

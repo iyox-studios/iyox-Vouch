@@ -47,6 +47,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -102,7 +103,9 @@ fun PersonScreen(
     onVouchClick: ((Long, Boolean) -> Unit)? = null,
     onNavigateToPerson: (String) -> Unit = {},
     onNavigateToSettledSpace: (String) -> Unit = {},
-    onNavigateToEditVouch: (Long, Boolean) -> Unit = { _, _ -> }
+    onNavigateToEditVouch: (Long, Boolean) -> Unit = { _, _ -> },
+    settleAllOnOpen: Boolean = false,
+    shareOnOpen: Boolean = false
 ) {
     val handleVouchClick = onVouchClick ?: onNavigateToEditVouch
     val viewModel: PersonViewModel = hiltViewModel()
@@ -127,10 +130,39 @@ fun PersonScreen(
     val shareVouchSummaryTitle = stringResource(R.string.share_vouch_summary_title)
     val msgNoActiveVouches = stringResource(R.string.msg_no_active_vouches_to_settle)
 
-    var showSettleDialog by remember { mutableStateOf(false) }
+    var showSettleDialog by rememberSaveable(personName) { mutableStateOf(settleAllOnOpen) }
     var showRenameDialog by remember { mutableStateOf(false) }
     var renameErrorMessage by remember { mutableStateOf<String?>(null) }
     var capturing by remember { mutableStateOf(false) }
+    var shareOnOpenHandled by rememberSaveable(personName) { mutableStateOf(false) }
+
+    suspend fun sharePersonSummary() {
+        capturing = true
+        try {
+            // Allow the export content to compose and draw before reading its graphics layer.
+            awaitFrame()
+            awaitFrame()
+            val bitmap = exportLayer.toImageBitmap().asAndroidBitmap()
+            shareBitmap(
+                context = context,
+                bitmap = bitmap,
+                personName = currentPersonName,
+                vouchSummaryLabel = vouchSummaryLabel,
+                shareVouchSummaryTitle = shareVouchSummaryTitle
+            )
+        } catch (_: Exception) {
+            toastManager.showError(R.string.msg_share_failed)
+        } finally {
+            capturing = false
+        }
+    }
+
+    LaunchedEffect(shareOnOpen, state.isLoading) {
+        if (shareOnOpen && !state.isLoading && !shareOnOpenHandled) {
+            shareOnOpenHandled = true
+            sharePersonSummary()
+        }
+    }
 
     val listState = remember(state.showOnlyGiven, state.sortedBy) {
         LazyListState()
@@ -218,22 +250,7 @@ fun PersonScreen(
                     },
                     onShareClick = {
                         coroutineScope.launch {
-                            capturing = true
-                            try {
-                                awaitFrame()
-                                val bitmap = exportLayer.toImageBitmap().asAndroidBitmap()
-                                shareBitmap(
-                                    context = context,
-                                    bitmap = bitmap,
-                                    personName = currentPersonName,
-                                    vouchSummaryLabel = vouchSummaryLabel,
-                                    shareVouchSummaryTitle = shareVouchSummaryTitle
-                                )
-                            } catch (_: Exception) {
-                                toastManager.showError(R.string.msg_share_failed)
-                            } finally {
-                                capturing = false
-                            }
+                            sharePersonSummary()
                         }
                     }
                 )
@@ -399,7 +416,7 @@ fun PersonScreen(
             )
         }
 
-        if (showSettleDialog) {
+        if (showSettleDialog && !state.isLoading) {
             SettlePersonDialog(
                 personName = currentPersonName,
                 personData = state.personData,

@@ -27,6 +27,7 @@ class MainActivity : AppCompatActivity() {
     private var isIntentConsumed = false
     private val pendingImportUri = mutableStateOf<Uri?>(null)
     private val pendingShortcut = mutableStateOf<VouchShortcut?>(null)
+    private val pendingShortcutPersonName = mutableStateOf<String?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
@@ -36,6 +37,7 @@ class MainActivity : AppCompatActivity() {
 
         if (savedInstanceState != null) {
             pendingShortcut.value = VouchShortcut.fromAction(savedInstanceState.getString(KEY_PENDING_SHORTCUT))
+            pendingShortcutPersonName.value = savedInstanceState.getString(VouchShortcut.EXTRA_PERSON_NAME)
             isAuthenticated = savedInstanceState.getBoolean(KEY_IS_AUTHENTICATED, false)
             isIntentConsumed = savedInstanceState.getBoolean(KEY_IS_INTENT_CONSUMED, false)
         }
@@ -71,6 +73,7 @@ class MainActivity : AppCompatActivity() {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putString(KEY_PENDING_SHORTCUT, pendingShortcut.value?.action)
+        outState.putString(VouchShortcut.EXTRA_PERSON_NAME, pendingShortcutPersonName.value)
         outState.putBoolean(KEY_IS_AUTHENTICATED, isAuthenticated)
         outState.putBoolean(KEY_IS_INTENT_CONSUMED, isIntentConsumed)
     }
@@ -95,6 +98,7 @@ class MainActivity : AppCompatActivity() {
         if (isIntentConsumed) return
         VouchShortcut.fromAction(intent?.action)?.let {
             pendingShortcut.value = it
+            pendingShortcutPersonName.value = intent?.getStringExtra(VouchShortcut.EXTRA_PERSON_NAME)
             isIntentConsumed = true
             return
         }
@@ -117,7 +121,11 @@ class MainActivity : AppCompatActivity() {
             VouchApp(
                 pendingImportUri = pendingImportUri.value,
                 pendingShortcut = pendingShortcut.value,
-                onShortcutConsumed = { pendingShortcut.value = null },
+                pendingShortcutPersonName = pendingShortcutPersonName.value,
+                onShortcutConsumed = {
+                    pendingShortcut.value = null
+                    pendingShortcutPersonName.value = null
+                },
                 onImportUriConsumed = { consumePendingImport() }
             )
         }

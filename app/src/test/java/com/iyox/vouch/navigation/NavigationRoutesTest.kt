@@ -35,5 +35,9 @@ class NavigationRoutesTest {
 
         val person = ViewPersonRoute(personName = "Charlie")
         assertEquals("Charlie", person.personName)
+        assertEquals(false, person.settleAll)
+        assertEquals(true, ViewPersonRoute(personName = "Charlie", settleAll = true).settleAll)
+        assertEquals(false, person.share)
+        assertEquals(true, ViewPersonRoute(personName = "Charlie", share = true).share)
     }
 }
