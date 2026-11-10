@@ -13,7 +13,9 @@ import com.iyox.vouch.core.model.Person
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -50,8 +52,8 @@ class SingleVouchValidationTest {
     }
 
     @After
-    fun tearDown() {
-        repositoryScope.cancel()
+    fun tearDown() = runBlocking {
+        repositoryScope.coroutineContext[Job]!!.cancelAndJoin()
         database.close()
     }
 

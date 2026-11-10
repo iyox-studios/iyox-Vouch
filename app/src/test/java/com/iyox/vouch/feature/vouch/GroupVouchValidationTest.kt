@@ -12,7 +12,9 @@ import com.iyox.vouch.core.data.VouchRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -42,13 +44,13 @@ class GroupVouchValidationTest {
             .build()
         repositoryScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
         repository = VouchRepository(database, database.vouchDao(), database.personDao(), repositoryScope)
-        personRepository = PersonRepository(database.personDao())
+        personRepository = PersonRepository(database.personDao(), repositoryScope)
         currencyManager = CurrencyManager(application)
     }
 
     @After
-    fun tearDown() {
-        repositoryScope.cancel()
+    fun tearDown() = runBlocking {
+        repositoryScope.coroutineContext[Job]!!.cancelAndJoin()
         database.close()
     }
 
