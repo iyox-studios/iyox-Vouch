@@ -267,15 +267,12 @@
     <string name="widget_person_description">Vouches mit einer Person teilen und begleichen.</string>
     <string name="widget_shortcuts_name">Schnellaktionsleiste</string>
     <string name="widget_shortcuts_description">Vouch oder Gruppen-Vouch mit einem Tippen hinzufügen.</string>
-    <string name="widget_unsettled">Offene Vouches</string>
-    <string name="widget_unsettled_short">%d offen</string>
     <string name="widget_choose_person">Person auswählen</string>
     <string name="widget_choose_person_hint">Ihr Saldo erscheint auf deinem Startbildschirm.</string>
     <string name="widget_person_missing">Andere Person auswählen</string>
     <string name="widget_no_people">Füge zuerst einen Vouch mit einer Person hinzu.</string>
     <string name="widget_open_app">Vouch öffnen</string>
     <plurals name="widget_unsettled_count"><item quantity="one">%d offener Vouch</item><item quantity="other">%d offene Vouches</item></plurals>
-    <string name="widget_person_details">Personendetails</string>
     <string name="widget_preview_balance">125,00 €</string>
     <string name="widget_settle_all">Alle begleichen</string>
     <string name="widget_new_vouch">Neuer Vouch</string>

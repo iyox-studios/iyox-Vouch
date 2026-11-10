@@ -91,6 +91,12 @@ android {
         generateLocaleConfig = true
         localeFilters += listOf("en-rUS", "de-rDE")
     }
+    bundle {
+        language {
+            // App language changes must work without downloading another language split.
+            enableSplit = false
+        }
+    }
     testOptions {
         unitTests {
             isIncludeAndroidResources = true

@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- API 24–30 use rounded drawables; outline clipping is an additional API 31+ enhancement. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:ignore="UseAppTint"
+    tools:ignore="UseAppTint,UnusedAttribute"
     android:id="@+id/widget_person_actions"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"

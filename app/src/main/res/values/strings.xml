@@ -269,16 +269,13 @@
     <string name="widget_person_description">Add, share and settle vouches with one person.</string>
     <string name="widget_shortcuts_name">Quick action bar</string>
     <string name="widget_shortcuts_description">Add a vouch or a group vouch in one tap.</string>
-    <string name="widget_unsettled">Unsettled vouches</string>
     <string name="widget_amount_placeholder" translatable="false">—</string>
-    <string name="widget_unsettled_short">%d open</string>
     <string name="widget_choose_person">Choose a person</string>
     <string name="widget_choose_person_hint">Their balance will appear on your home screen.</string>
     <string name="widget_person_missing">Choose another person</string>
     <string name="widget_no_people">Add a person with a vouch first.</string>
     <string name="widget_open_app">Open Vouch</string>
     <plurals name="widget_unsettled_count"><item quantity="one">%d unsettled vouch</item><item quantity="other">%d unsettled vouches</item></plurals>
-    <string name="widget_person_details">Person details</string>
     <string name="widget_preview_person" translatable="false">Alex</string>
     <string name="widget_preview_balance">€125.00</string>
     <string name="widget_settle_all">Settle all</string>

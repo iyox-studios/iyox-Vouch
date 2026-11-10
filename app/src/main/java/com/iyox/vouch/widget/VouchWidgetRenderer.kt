@@ -1,5 +1,6 @@
 package com.iyox.vouch.widget
 
+import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.app.UiModeManager
 import android.appwidget.AppWidgetManager
@@ -31,6 +32,8 @@ import com.iyox.vouch.ui.theme.resolveAppColorScheme
 import java.util.Locale
 
 internal class VouchWidgetRenderer(baseContext: Context, private val currency: Currency) {
+    // Both app languages are bundled: app/build.gradle.kts disables language splitting.
+    @SuppressLint("AppBundleLocaleChanges")
     private val context = if (Build.VERSION.SDK_INT < 33 && !AppCompatDelegate.getApplicationLocales().isEmpty) {
         val configuration = Configuration(baseContext.resources.configuration)
         configuration.setLocales(android.os.LocaleList.forLanguageTags(AppCompatDelegate.getApplicationLocales().toLanguageTags()))
@@ -100,7 +103,7 @@ internal class VouchWidgetRenderer(baseContext: Context, private val currency: C
         views.setTextViewText(R.id.widget_title, title)
         views.setTextViewTextSize(R.id.widget_title, TypedValue.COMPLEX_UNIT_SP, if (isPerson) 16f else 12f)
         views.textColor(R.id.widget_title) { onSurfaceVariant }
-        views.setTextViewText(R.id.widget_amount, if (isPerson && personName == null) "—" else amount(balance.total))
+        views.setTextViewText(R.id.widget_amount, if (isPerson && personName == null) context.getString(R.string.widget_amount_placeholder) else amount(balance.total))
         views.textColor(R.id.widget_amount) { if (balance.total < 0) error else onSurface }
         val countText = context.resources.getQuantityString(R.plurals.vouch_count, balance.count, balance.count)
         val metrics = context.resources.displayMetrics
@@ -230,7 +233,7 @@ internal class VouchWidgetRenderer(baseContext: Context, private val currency: C
         val paint = TextPaint().apply {
             textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, maxSp, metrics)
             if (id == R.id.widget_amount) textSize = textSize.coerceAtMost(36f * metrics.density)
-            typeface = android.graphics.Typeface.DEFAULT_BOLD
+            typeface = Typeface.DEFAULT_BOLD
         }
         val ratio = (widthDp.coerceAtLeast(1f) * metrics.density / paint.measureText(amount(value))).coerceAtMost(1f)
         setTextViewTextSize(id, TypedValue.COMPLEX_UNIT_PX, paint.textSize * ratio)
