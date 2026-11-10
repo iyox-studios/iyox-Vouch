@@ -25,9 +25,8 @@ import androidx.compose.ui.graphics.toArgb
 import com.iyox.vouch.MainActivity
 import com.iyox.vouch.R
 import com.iyox.vouch.core.currency.CurrencyManager
-import com.iyox.vouch.core.utils.PreferenceKeys
 import com.iyox.vouch.navigation.VouchShortcut
-import com.iyox.vouch.ui.theme.AppColorTheme
+import com.iyox.vouch.ui.theme.AppThemeSettings
 import com.iyox.vouch.ui.theme.resolveAppColorScheme
 import java.util.Locale
 
@@ -39,19 +38,11 @@ internal class VouchWidgetRenderer(baseContext: Context, private val currency: C
         configuration.setLocales(android.os.LocaleList.forLanguageTags(AppCompatDelegate.getApplicationLocales().toLanguageTags()))
         baseContext.createConfigurationContext(configuration)
     } else baseContext
-    private val settings = context.getSharedPreferences(PreferenceKeys.PREFS_SETTINGS, Context.MODE_PRIVATE)
-    private val theme = settings.getInt(PreferenceKeys.KEY_THEME, UiModeManager.MODE_NIGHT_AUTO)
-    private val dark = when (theme) {
-        UiModeManager.MODE_NIGHT_YES -> true
-        UiModeManager.MODE_NIGHT_NO -> false
-        else -> context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
-    }
-    private val colorTheme = AppColorTheme.fromKey(
-        settings.getString(PreferenceKeys.KEY_COLOR_THEME, null)
-            ?: if (settings.getBoolean(PreferenceKeys.KEY_DYNAMIC_COLORS, true)) "dynamic" else "purple"
-    )
-    private val lightPalette = resolveAppColorScheme(context, false, colorTheme)
-    private val darkPalette = resolveAppColorScheme(context, true, colorTheme)
+    private val settings = AppThemeSettings.read(context)
+    private val theme = settings.nightMode
+    private val dark = settings.isDark(context.resources.configuration)
+    private val lightPalette = resolveAppColorScheme(context, false, settings.colorTheme)
+    private val darkPalette = resolveAppColorScheme(context, true, settings.colorTheme)
     private val palette = if (dark) darkPalette else lightPalette
     private val locale: Locale = context.resources.configuration.locales[0]
 

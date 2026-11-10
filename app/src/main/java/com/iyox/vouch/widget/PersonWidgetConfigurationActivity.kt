@@ -41,9 +41,7 @@ import com.iyox.vouch.R
 import com.iyox.vouch.core.data.PersonDao
 import com.iyox.vouch.core.model.Person
 import com.iyox.vouch.core.utils.authenticateForApp
-import com.iyox.vouch.ui.theme.AppColorTheme
-import com.iyox.vouch.core.utils.PreferenceKeys
-import android.app.UiModeManager
+import com.iyox.vouch.ui.theme.AppThemeSettings
 import com.iyox.vouch.ui.theme.IyoxVouchTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -84,19 +82,12 @@ class PersonWidgetConfigurationActivity : AppCompatActivity() {
     }
 
     private fun showPicker(id: Int) {
-        val prefs = getSharedPreferences(PreferenceKeys.PREFS_SETTINGS, MODE_PRIVATE)
-        val color = AppColorTheme.fromKey(prefs.getString(PreferenceKeys.KEY_COLOR_THEME, null)
-            ?: if (prefs.getBoolean(PreferenceKeys.KEY_DYNAMIC_COLORS, true)) "dynamic" else "purple")
-        val night = when (prefs.getInt(PreferenceKeys.KEY_THEME, UiModeManager.MODE_NIGHT_AUTO)) {
-            UiModeManager.MODE_NIGHT_YES -> true
-            UiModeManager.MODE_NIGHT_NO -> false
-            else -> resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK == android.content.res.Configuration.UI_MODE_NIGHT_YES
-        }
+        val theme = AppThemeSettings.read(this)
         lifecycleScope.launch {
             people = personDao.getPersonsTotalAll().map { it.person }.sortedBy { it.name.lowercase() }
         }
         setContent {
-            IyoxVouchTheme(darkTheme = night, colorTheme = color) {
+            IyoxVouchTheme(darkTheme = theme.isDark(resources.configuration), colorTheme = theme.colorTheme) {
                 Scaffold { padding ->
                     Column(Modifier.fillMaxSize().padding(padding).padding(horizontal = 24.dp)) {
                         Icon(painterResource(R.drawable.ic_person), null,
