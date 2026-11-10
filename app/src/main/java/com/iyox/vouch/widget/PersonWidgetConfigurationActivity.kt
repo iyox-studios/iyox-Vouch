@@ -1,6 +1,5 @@
 package com.iyox.vouch.widget
 
-import android.app.UiModeManager
 import android.appwidget.AppWidgetManager
 import android.content.Intent
 import android.os.Bundle
@@ -41,8 +40,10 @@ import com.iyox.vouch.MainActivity
 import com.iyox.vouch.R
 import com.iyox.vouch.core.data.PersonDao
 import com.iyox.vouch.core.model.Person
-import com.iyox.vouch.core.utils.PreferenceKeys
+import com.iyox.vouch.core.utils.authenticateForApp
 import com.iyox.vouch.ui.theme.AppColorTheme
+import com.iyox.vouch.core.utils.PreferenceKeys
+import android.app.UiModeManager
 import com.iyox.vouch.ui.theme.IyoxVouchTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -54,6 +55,7 @@ class PersonWidgetConfigurationActivity : AppCompatActivity() {
     @Inject lateinit var updater: VouchWidgetUpdater
     private var people by mutableStateOf<List<Person>?>(null)
     private var saving by mutableStateOf(false)
+    private var isAuthenticated = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -65,6 +67,23 @@ class PersonWidgetConfigurationActivity : AppCompatActivity() {
             return
         }
         enableEdgeToEdge()
+        isAuthenticated = savedInstanceState?.getBoolean(KEY_IS_AUTHENTICATED, false) == true
+        if (isAuthenticated) {
+            showPicker(id)
+        } else {
+            authenticateForApp {
+                isAuthenticated = true
+                showPicker(id)
+            }
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBoolean(KEY_IS_AUTHENTICATED, isAuthenticated)
+    }
+
+    private fun showPicker(id: Int) {
         val prefs = getSharedPreferences(PreferenceKeys.PREFS_SETTINGS, MODE_PRIVATE)
         val color = AppColorTheme.fromKey(prefs.getString(PreferenceKeys.KEY_COLOR_THEME, null)
             ?: if (prefs.getBoolean(PreferenceKeys.KEY_DYNAMIC_COLORS, true)) "dynamic" else "purple")
@@ -127,5 +146,9 @@ class PersonWidgetConfigurationActivity : AppCompatActivity() {
             setResult(RESULT_OK, Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId))
             finish()
         }
+    }
+
+    companion object {
+        private const val KEY_IS_AUTHENTICATED = "is_authenticated"
     }
 }

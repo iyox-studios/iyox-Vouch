@@ -8,14 +8,10 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.biometric.BiometricManager
-import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
-import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_WEAK
-import androidx.biometric.BiometricPrompt
 import androidx.compose.runtime.mutableStateOf
-import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.appcompat.app.AppCompatActivity
+import com.iyox.vouch.core.utils.authenticateForApp
 import com.iyox.vouch.core.utils.PreferenceKeys
 import dagger.hilt.android.AndroidEntryPoint
 import com.iyox.vouch.navigation.VouchShortcut
@@ -143,32 +139,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun authenticateUser() {
-        val biometricManager = BiometricManager.from(this)
-        if (biometricManager.canAuthenticate(BIOMETRIC_STRONG or BIOMETRIC_WEAK) == BiometricManager.BIOMETRIC_SUCCESS) {
-            val executor = ContextCompat.getMainExecutor(this)
-            val biometricPrompt = BiometricPrompt(
-                this, executor, object : BiometricPrompt.AuthenticationCallback() {
-                    override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                        super.onAuthenticationSucceeded(result)
-                        isAuthenticated = true
-                        handleIntentData(intent)
-                        showApp()
-                    }
-
-                    override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                        super.onAuthenticationError(errorCode, errString)
-                        finish()
-                    }
-                })
-
-            val promptInfo = BiometricPrompt.PromptInfo.Builder()
-                .setTitle(getString(R.string.biometric_title))
-                .setSubtitle(getString(R.string.biometric_subtitle))
-                .setNegativeButtonText(getString(R.string.action_cancel))
-                .build()
-
-            biometricPrompt.authenticate(promptInfo)
-        } else {
+        authenticateForApp {
             isAuthenticated = true
             handleIntentData(intent)
             showApp()
