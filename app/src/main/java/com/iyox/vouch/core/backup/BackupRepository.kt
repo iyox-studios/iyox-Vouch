@@ -459,15 +459,19 @@ class BackupRepository @Inject constructor(
                 IyoxEnvelope.TYPE_BACKUP -> {
                     val vouches = parsed.vouches
                     database.withTransaction {
-                        database.vouchDao().deleteAll()
-                        database.personDao().deleteAll()
-
                         val allNames = vouches.flatMap { it.persons }
                             .mapNotNull { it.name.trim().takeIf { n -> n.isNotEmpty() } }
                             .distinct()
+                        // Keep identities used by person widgets when replacing the same people.
+                        val existingPeople = allNames.chunked(900)
+                            .flatMap { database.personDao().getByNames(it) }
+                            .associateBy { it.name }
+
+                        database.vouchDao().deleteAll()
+                        database.personDao().deleteAll()
 
                         val personMap = if (allNames.isNotEmpty()) {
-                            database.personDao().insertAll(allNames.map { Person(name = it) })
+                            database.personDao().insertAll(allNames.map { existingPeople[it] ?: Person(name = it) })
                             allNames.chunked(900).flatMap { database.personDao().getByNames(it) }
                                 .associateBy { it.name }
                         } else {
