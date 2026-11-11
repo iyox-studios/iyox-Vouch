@@ -10,13 +10,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenu
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
@@ -134,7 +132,6 @@ fun VouchAmountHeader(
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun VouchDirectionToggle(
     isGiven: Boolean,
@@ -159,8 +156,8 @@ fun VouchDirectionToggle(
                     }
                 },
                 modifier = Modifier.weight(1f),
-                colors = ToggleButtonDefaults.toggleButtonColors(),
-                elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp),
+                colors = ToggleButtonDefaults.colors(),
+                elevation = ToggleButtonDefaults.elevation(defaultElevation = 0.dp),
                 contentPadding = PaddingValues(8.dp)
             ) {
                 Text(label)
@@ -207,7 +204,6 @@ fun PersonListItem(
 ) {
     ListItem(
         modifier = modifier,
-        headlineContent = { Text(name, style = MaterialTheme.typography.bodyLarge) },
         leadingContent = {
             PersonAvatar(name = name, size = 32.dp)
         },
@@ -220,10 +216,11 @@ fun PersonListItem(
             }
         },
         colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-    )
+    ) {
+        Text(name, style = MaterialTheme.typography.bodyLarge)
+    }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PersonAutocompleteField(
     value: String,

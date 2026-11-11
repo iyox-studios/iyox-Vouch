@@ -175,7 +175,6 @@ fun PersonsScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun PersonCard(
     name: String,
