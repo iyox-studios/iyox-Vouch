@@ -22,7 +22,7 @@
             android:id="@+id/person_add_background"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:src="@drawable/widget_pill"
+            android:src="@drawable/widget_action_tile"
             android:scaleType="fitXY"
             android:tint="@color/widget_primary_container"
             android:importantForAccessibility="no" />
@@ -51,7 +51,7 @@
             android:id="@+id/person_share_background"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:src="@drawable/widget_pill"
+            android:src="@drawable/widget_action_tile"
             android:scaleType="fitXY"
             android:tint="@color/widget_primary_container"
             android:importantForAccessibility="no" />
@@ -80,7 +80,7 @@
             android:id="@+id/person_settle_background"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:src="@drawable/widget_pill"
+            android:src="@drawable/widget_action_tile"
             android:scaleType="fitXY"
             android:tint="@color/widget_primary_container"
             android:importantForAccessibility="no" />

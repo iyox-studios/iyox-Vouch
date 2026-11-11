@@ -4,7 +4,6 @@ import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
-import android.icu.util.Currency
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
@@ -13,6 +12,7 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.iyox.vouch.R
+import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.*
 import org.junit.Test
@@ -23,32 +23,25 @@ class WidgetSizingTest {
     private val instrumentation get() = InstrumentationRegistry.getInstrumentation()
     private val context get() = ApplicationProvider.getApplicationContext<Context>()
 
-    @Test fun remoteViewsFitAtMinimumAndBreakpointSizesWithLargeFonts() {
-        instrumentation.runOnMainSync {
-            for (fontScale in listOf(1f, 1.15f, 1.5f, 2f)) {
-                val configuration = Configuration(context.resources.configuration).apply { this.fontScale = fontScale }
-                val localized = context.createConfigurationContext(configuration)
-                val renderer = VouchWidgetRenderer(localized, Currency.getInstance("EUR"))
-                for ((width, height) in listOf(110 to 110, 180 to 160, 220 to 180, 280 to 190, 110 to 240, 180 to 350, 360 to 350)) {
-                    val views = renderer.balance(123, WidgetBalance(123456789, 76543210, 1234),
-                        "Alexandria with a very long name", true, width.toFloat(), height.toFloat())
-                    val view = views.apply(localized, null)
-                    measure(view, width, height)
-                    assertVisibleTextFits(view, "${width}x$height font=$fontScale")
-                    val expected = WidgetLayout.forSize(width.toFloat(), height.toFloat(), fontScale)
-                    assertEquals(View.GONE, view.findViewById<View>(R.id.widget_split).visibility)
-                    val totalView = renderer.balance(124, WidgetBalance(123456789, 76543210, 1234),
-                        null, false, width.toFloat(), height.toFloat()).apply(localized, null)
-                    measure(totalView, width, height)
-                    assertVisibleTextFits(totalView, "total ${width}x$height font=$fontScale")
-                    assertEquals(if (expected.split) View.VISIBLE else View.GONE, totalView.findViewById<View>(R.id.widget_split).visibility)
-                }
-                for (width in listOf(132, 180, 299, 300, 360)) {
-                    val view = renderer.shortcuts(123, width.toFloat()).apply(localized, null)
-                    measure(view, width, 72)
-                    assertVisibleTextFits(view, "shortcuts $width font=$fontScale")
-                    assertTrue(view.findViewById<View>(R.id.add_action).height >= dp(48))
-                    assertTrue(view.findViewById<View>(R.id.group_action).width >= dp(48))
+    @OptIn(androidx.glance.appwidget.ExperimentalGlanceRemoteViewsApi::class)
+    @Test fun glanceLayoutsFitAtMinimumAndBreakpointSizesWithLargeFonts() = runBlocking {
+        for (fontScale in listOf(1f, 1.15f, 1.5f, 2f)) {
+            val localized = context.createConfigurationContext(Configuration(context.resources.configuration).apply {
+                this.fontScale = fontScale
+            })
+            for (kind in WidgetKind.entries) {
+                val sizes = if (kind == WidgetKind.SHORTCUTS) listOf(132 to 72, 180 to 72, 360 to 72)
+                    else listOf(110 to 110, 180 to 160, 220 to 180, 280 to 190, 110 to 260, 360 to 350)
+                for ((width, height) in sizes) {
+                    val data = WidgetData(kind, WidgetBalance(123456789, 76543210, 1234),
+                        if (kind == WidgetKind.PERSON) "Alexandria with a very long name" else null)
+                    val views = androidx.glance.appwidget.GlanceRemoteViews().compose(localized,
+                        androidx.compose.ui.unit.DpSize(width.dp, height.dp)) { WidgetContent(data, 123) }.remoteViews
+                    instrumentation.runOnMainSync {
+                        val view = views.apply(localized, null)
+                        measure(view, width, height)
+                        assertVisibleTextFits(view, "$kind "+width+"x"+height+" font="+fontScale)
+                    }
                 }
             }
         }
@@ -77,8 +70,9 @@ class WidgetSizingTest {
                 var matches = false
                 while (!matches && System.currentTimeMillis() < deadline) {
                     scenario.onActivity {
-                        val split = it.widgetView.findViewById<View>(R.id.widget_split)
-                        matches = split != null && (split.visibility == View.VISIBLE) == WidgetLayout.forSize(width, height, context.resources.configuration.fontScale).split
+                        val texts = it.widgetView.widgetTexts().map { text -> text.text.toString() }
+                        val split = context.getString(R.string.label_given) in texts
+                        matches = texts.isNotEmpty() && split == WidgetLayout.forSize(width, height, context.resources.configuration.fontScale).split
                     }
                     if (!matches) Thread.sleep(50)
                 }

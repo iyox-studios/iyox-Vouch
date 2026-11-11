@@ -12,7 +12,7 @@
     android:targetCellHeight="1"
     android:resizeMode="horizontal"
     android:updatePeriodMillis="1800000"
-    android:initialLayout="@layout/widget_shortcuts"
-    android:previewLayout="@layout/widget_shortcuts"
+    android:initialLayout="@layout/glance_default_loading_layout"
+    android:previewLayout="@layout/widget_shortcuts_preview"
     android:description="@string/widget_shortcuts_description"
     android:widgetCategory="home_screen" />

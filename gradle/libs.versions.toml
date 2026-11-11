@@ -32,8 +32,10 @@ hiltNavigationCompose = "1.2.0"
 screengrab = "2.1.1"
 aboutlibraries = "11.6.3"
 qodana = "2026.2.2"
+glance = "1.2.0"
 
 [libraries]
+androidx-glance-appwidget = { module = "androidx.glance:glance-appwidget", version.ref = "glance" }
 fastlane-screengrab = { module = "tools.fastlane:screengrab", version.ref = "screengrab" }
 androidx-biometric = { module = "androidx.biometric:biometric", version.ref = "biometric" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }

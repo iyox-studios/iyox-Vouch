@@ -4,7 +4,6 @@ import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
 import android.os.ParcelFileDescriptor
-import android.widget.TextView
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -25,6 +24,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -67,17 +67,17 @@ class PersonWidgetTest {
                     .getLong(VouchWidgetProvider.personKey(widgetId), -1))
                 waitForTitle(host, name)
                 host.onActivity {
-                    assertEquals(com.iyox.vouch.core.currency.CurrencyManager.formatAmountWithSymbol(2000),
-                        it.widgetView.findViewById<TextView>(R.id.widget_amount).text.toString())
+                    val amount = com.iyox.vouch.core.currency.CurrencyManager.formatAmountWithSymbol(2000)
+                    assertTrue(it.widgetView.widgetTexts().any { text -> text.text.toString() == amount })
                 }
                 // Stable database identity keeps the widget attached through renames.
                 database.personDao().updateName(person.id, "$name renamed")
                 waitForTitle(host, "$name renamed")
                 repository.setPersonSettlement(vouch.vouch.id, person.id, true)
                 compose.waitUntil(5000) {
-                    var count = ""
-                    host.onActivity { count = it.widgetView.findViewById<TextView>(R.id.widget_count)?.text.toString() }
-                    count.startsWith("0 ")
+                    var settled = false
+                    host.onActivity { settled = it.widgetView.widgetTexts().any { text -> text.text.startsWith("0 ") } }
+                    settled
                 }
                 repository.delete(vouch.vouch.id)
                 waitForTitle(host, context.getString(R.string.widget_person_missing))
@@ -90,9 +90,9 @@ class PersonWidgetTest {
 
     private fun waitForTitle(host: ActivityScenario<WidgetHostTestActivity>, expected: String) {
         compose.waitUntil(5000) {
-            var title = ""
-            host.onActivity { title = it.widgetView.findViewById<TextView>(R.id.widget_title)?.text.toString() }
-            title == expected
+            var found = false
+            host.onActivity { found = it.widgetView.widgetTexts().any { text -> text.text.toString() == expected } }
+            found
         }
     }
 }

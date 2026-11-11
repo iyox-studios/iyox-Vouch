@@ -117,6 +117,7 @@ kotlin {
 
 
 dependencies {
+    implementation(libs.androidx.glance.appwidget)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

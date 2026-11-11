@@ -31,15 +31,15 @@
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="match_parent"
-            android:foreground="@drawable/widget_shortcut_feedback"
-            android:background="@drawable/widget_shortcut_outline"
+            android:foreground="@drawable/widget_action_feedback"
+            android:background="@drawable/widget_action_outline"
             android:clipToOutline="true"
             android:contentDescription="@string/action_add_vouch">
             <ImageView
                 android:id="@+id/add_background"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:src="@drawable/widget_shortcut_tile"
+                android:src="@drawable/widget_action_tile"
                 android:scaleType="fitXY"
                 android:importantForAccessibility="no"
                 android:tint="@color/widget_primary_container" />
@@ -81,15 +81,15 @@
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="match_parent"
-            android:foreground="@drawable/widget_shortcut_feedback"
-            android:background="@drawable/widget_shortcut_outline"
+            android:foreground="@drawable/widget_action_feedback"
+            android:background="@drawable/widget_action_outline"
             android:clipToOutline="true"
             android:contentDescription="@string/action_add_group_vouch">
             <ImageView
                 android:id="@+id/group_background"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:src="@drawable/widget_shortcut_tile"
+                android:src="@drawable/widget_action_tile"
                 android:scaleType="fitXY"
                 android:importantForAccessibility="no"
                 android:tint="@color/widget_tertiary_container" />

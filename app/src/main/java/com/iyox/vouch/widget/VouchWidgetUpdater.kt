@@ -5,19 +5,24 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
+import androidx.glance.appwidget.GlanceAppWidgetManager
 import com.iyox.vouch.core.currency.CurrencyManager
 import com.iyox.vouch.core.data.AppDatabase
 import com.iyox.vouch.core.data.VouchRepository
 import com.iyox.vouch.core.di.ApplicationScope
 import com.iyox.vouch.core.utils.PreferenceKeys
 import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
+import javax.inject.Singleton
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import javax.inject.Inject
-import javax.inject.Singleton
 
 @Singleton
 class VouchWidgetUpdater @Inject constructor(
@@ -28,6 +33,8 @@ class VouchWidgetUpdater @Inject constructor(
     @param:ApplicationScope private val scope: CoroutineScope
 ) {
     private val mutex = Mutex()
+    private val refreshRevision = MutableStateFlow(0L)
+    internal val revision = refreshRevision.asStateFlow()
     private val settings = context.getSharedPreferences(PreferenceKeys.PREFS_SETTINGS, Context.MODE_PRIVATE)
     // Keep the listener strongly referenced; SharedPreferences holds only a weak reference.
     private val preferenceListener = SharedPreferences.OnSharedPreferenceChangeListener { _, _ -> refresh() }
@@ -47,34 +54,36 @@ class VouchWidgetUpdater @Inject constructor(
         scope.launch {
             try {
                 updateAll()
+            } catch (cancelled: CancellationException) {
+                throw cancelled
             } catch (error: Exception) {
                 Log.e("VouchWidgets", "Unable to refresh widgets", error)
             }
         }
     }
 
+    internal suspend fun load(kind: WidgetKind, widgetId: Int): WidgetData {
+        val personId = if (kind == WidgetKind.PERSON) {
+            context.getSharedPreferences(VouchWidgetProvider.WIDGET_PREFERENCES, Context.MODE_PRIVATE)
+                .getLong(VouchWidgetProvider.personKey(widgetId), -1)
+        } else null
+        return WidgetData(
+            kind = kind,
+            balance = if (kind == WidgetKind.SHORTCUTS) WidgetBalance()
+                else WidgetBalance.from(repository.getAll(), personId),
+            personName = personId?.let { database.personDao().getById(it)?.name },
+            currencyCode = currency.getCurrency().currencyCode
+        )
+    }
+
     suspend fun updateAll() = mutex.withLock {
+        refreshRevision.update { it + 1 }
         val manager = AppWidgetManager.getInstance(context)
-        val providers = listOf(BalanceWidgetProvider::class.java, PersonWidgetProvider::class.java, ShortcutsWidgetProvider::class.java)
-        val ids = providers.associateWith { manager.getAppWidgetIds(ComponentName(context, it)) }
-        if (ids.values.all { it.isEmpty() }) return@withLock
-        val vouches = repository.getAll()
-        val people = database.personDao().getPersonsTotalAll().associate { it.person.id to it.person.name }
-        val prefs = context.getSharedPreferences(VouchWidgetProvider.WIDGET_PREFERENCES, Context.MODE_PRIVATE)
-        val renderer = VouchWidgetRenderer(context, currency.getCurrency())
-        for ((provider, widgetIds) in ids) {
-            for (id in widgetIds) {
-                val personId = if (provider == PersonWidgetProvider::class.java) {
-                    prefs.getLong(VouchWidgetProvider.personKey(id), -1)
-                } else null
-                manager.updateAppWidget(id, renderer.render(
-                    id = id,
-                    shortcuts = provider == ShortcutsWidgetProvider::class.java,
-                    balance = WidgetBalance.from(vouches, personId),
-                    personName = personId?.let { people[it] },
-                    isPerson = personId != null,
-                    options = manager.getAppWidgetOptions(id)
-                ))
+        val glanceManager = GlanceAppWidgetManager(context)
+        val providers = listOf(BalanceWidgetProvider(), PersonWidgetProvider(), ShortcutsWidgetProvider())
+        for (provider in providers) {
+            for (id in manager.getAppWidgetIds(ComponentName(context, provider.javaClass))) {
+                provider.glanceAppWidget.update(context, glanceManager.getGlanceIdBy(id))
             }
         }
     }

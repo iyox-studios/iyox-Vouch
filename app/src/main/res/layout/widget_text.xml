@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Glance does not expose includeFontPadding. Keep the original compact typography. -->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/WidgetText"
+    android:id="@+id/widget_text"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content" />
