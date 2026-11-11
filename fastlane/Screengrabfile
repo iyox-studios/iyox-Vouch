@@ -18,4 +18,4 @@ tests_apk_path('app/build/outputs/apk/androidTest/debug/app-debug-androidTest.ap
 
 skip_open_summary(true)
 use_timestamp_suffix(false)
-exit_on_test_failure(false)
+exit_on_test_failure(true)

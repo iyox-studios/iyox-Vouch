@@ -116,6 +116,8 @@ kotlin {
 
 
 dependencies {
+    // Keep the app runtime aligned with coroutines-test in the instrumentation APK.
+    implementation(libs.kotlinx.coroutines.android)
     implementation(libs.androidx.glance.appwidget)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.core.ktx)
