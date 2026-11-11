@@ -66,6 +66,26 @@ Examples:
   - Do not hardcode user-facing strings in UI code. Use `stringResource(R.string...)`.
   - Add new strings to `app/src/main/res/values/strings.xml`.
 
+## Icons
+
+The Material Symbols assets in `app/src/main/res/drawable/ic_*.xml` come from
+Google's [material-design-icons](https://github.com/google/material-design-icons)
+repository, revision `10ecc14790612ca8fd164e3f4ffe9c16fc50d5b7`. They use Apache-2.0;
+the attribution and full license are packaged in
+[material_symbols_license.txt](app/src/main/res/raw/material_symbols_license.txt).
+Each icon XML records its source.
+
+Use Material Symbols Outlined, weight 400, optical size 24dp. Navigation selected
+states use FILL=1; other icons use FILL=0. Compose controls tint, so remove theme
+tint from imported assets. Preserve `android:autoMirrored="true"` for mirrored
+icons and enable it where appropriate for directional navigation.
+
+To add an icon, download Android XML from [Google Fonts Icons](https://fonts.google.com/icons)
+and place it in `app/src/main/res/drawable/ic_name.xml`. Use it in Compose with
+`Icon(painter = painterResource(R.drawable.ic_name), contentDescription = ...)`.
+Use the same style, weight, and size as the existing icons. SVG downloads must
+first be imported as vector drawables using Android Studio's **New > Vector Asset > Local file**.
+
 ## Translating
 
 Adding or updating translations requires no coding, just some git knowledge:
