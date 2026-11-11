@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- API 24–30 use rounded drawables; outline clipping is an additional API 31+ enhancement. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:ignore="UseAppTint,UnusedAttribute"
+    android:id="@+id/widget_person_actions"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="8dp"
+    android:orientation="horizontal"
+    android:visibility="gone"
+    android:baselineAligned="false">
+    <FrameLayout
+        android:id="@+id/person_add_action"
+        android:layout_width="0dp" android:layout_weight="1"
+        android:layout_height="48dp"
+        android:background="@drawable/widget_action_outline"
+        android:clipToOutline="true"
+        android:foreground="@drawable/widget_action_feedback"
+        android:contentDescription="@string/action_add_vouch">
+        <ImageView
+            android:id="@+id/person_add_background"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@drawable/widget_action_tile"
+            android:scaleType="fitXY"
+            android:tint="@color/widget_primary_container"
+            android:importantForAccessibility="no" />
+        <ImageView
+            android:id="@+id/person_add_icon"
+            android:layout_width="match_parent"
+            android:layout_height="28dp"
+            android:layout_gravity="center"
+            android:paddingStart="4dp"
+            android:paddingEnd="4dp"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_add"
+            android:tint="@color/widget_on_primary_container"
+            android:importantForAccessibility="no" />
+    </FrameLayout>
+    <TextView android:layout_width="6dp" android:layout_height="6dp" />
+    <FrameLayout
+        android:id="@+id/person_share_action"
+        android:layout_width="0dp" android:layout_weight="1"
+        android:layout_height="48dp"
+        android:background="@drawable/widget_action_outline"
+        android:clipToOutline="true"
+        android:foreground="@drawable/widget_action_feedback"
+        android:contentDescription="@string/share_vouch_summary_title">
+        <ImageView
+            android:id="@+id/person_share_background"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@drawable/widget_action_tile"
+            android:scaleType="fitXY"
+            android:tint="@color/widget_primary_container"
+            android:importantForAccessibility="no" />
+        <ImageView
+            android:id="@+id/person_share_icon"
+            android:layout_width="match_parent"
+            android:layout_height="28dp"
+            android:layout_gravity="center"
+            android:paddingStart="4dp"
+            android:paddingEnd="4dp"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_share"
+            android:tint="@color/widget_on_primary_container"
+            android:importantForAccessibility="no" />
+    </FrameLayout>
+    <TextView android:layout_width="6dp" android:layout_height="6dp" />
+    <FrameLayout
+        android:id="@+id/person_settle_action"
+        android:layout_width="0dp" android:layout_weight="1"
+        android:layout_height="48dp"
+        android:background="@drawable/widget_action_outline"
+        android:clipToOutline="true"
+        android:foreground="@drawable/widget_action_feedback"
+        android:contentDescription="@string/widget_settle_all">
+        <ImageView
+            android:id="@+id/person_settle_background"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@drawable/widget_action_tile"
+            android:scaleType="fitXY"
+            android:tint="@color/widget_primary_container"
+            android:importantForAccessibility="no" />
+        <ImageView
+            android:id="@+id/person_settle_icon"
+            android:layout_width="match_parent"
+            android:layout_height="28dp"
+            android:layout_gravity="center"
+            android:paddingStart="4dp"
+            android:paddingEnd="4dp"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_done_all"
+            android:tint="@color/widget_on_primary_container"
+            android:importantForAccessibility="no" />
+    </FrameLayout>
+</LinearLayout>

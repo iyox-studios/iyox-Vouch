@@ -39,25 +39,33 @@ fun IyoxVouchTheme(
     content: @Composable () -> Unit
 ) {
     val context = LocalContext.current
-    val colorScheme: ColorScheme = when (colorTheme) {
-        AppColorTheme.DYNAMIC -> {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-            } else {
-                if (darkTheme) PurpleDarkColorScheme else PurpleLightColorScheme
-            }
-        }
-        AppColorTheme.PURPLE -> if (darkTheme) PurpleDarkColorScheme else PurpleLightColorScheme
-        AppColorTheme.BLUE -> if (darkTheme) BlueDarkColorScheme else BlueLightColorScheme
-        AppColorTheme.GREEN -> if (darkTheme) GreenDarkColorScheme else GreenLightColorScheme
-        AppColorTheme.TEAL -> if (darkTheme) TealDarkColorScheme else TealLightColorScheme
-        AppColorTheme.ORANGE -> if (darkTheme) OrangeDarkColorScheme else OrangeLightColorScheme
-        AppColorTheme.ROSE -> if (darkTheme) RoseDarkColorScheme else RoseLightColorScheme
-    }
+    val colorScheme = resolveAppColorScheme(context, darkTheme, colorTheme)
 
     MaterialExpressiveTheme(
         colorScheme = colorScheme,
+        shapes = AppShapes,
         typography = Typography,
         content = content
     )
+}
+
+/** Shared by Compose and home-screen RemoteViews so all app palettes stay in sync. */
+fun resolveAppColorScheme(
+    context: android.content.Context,
+    darkTheme: Boolean,
+    colorTheme: AppColorTheme
+): ColorScheme = when (colorTheme) {
+    AppColorTheme.DYNAMIC -> {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+        } else {
+            if (darkTheme) PurpleDarkColorScheme else PurpleLightColorScheme
+        }
+    }
+    AppColorTheme.PURPLE -> if (darkTheme) PurpleDarkColorScheme else PurpleLightColorScheme
+    AppColorTheme.BLUE -> if (darkTheme) BlueDarkColorScheme else BlueLightColorScheme
+    AppColorTheme.GREEN -> if (darkTheme) GreenDarkColorScheme else GreenLightColorScheme
+    AppColorTheme.TEAL -> if (darkTheme) TealDarkColorScheme else TealLightColorScheme
+    AppColorTheme.ORANGE -> if (darkTheme) OrangeDarkColorScheme else OrangeLightColorScheme
+    AppColorTheme.ROSE -> if (darkTheme) RoseDarkColorScheme else RoseLightColorScheme
 }

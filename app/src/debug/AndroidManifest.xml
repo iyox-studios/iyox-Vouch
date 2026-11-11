@@ -17,4 +17,7 @@
         android:maxSdkVersion="32"
         tools:ignore="ScopedStorage" />
 
+    <application>
+        <activity android:name=".widget.WidgetHostTestActivity" android:exported="true" />
+    </application>
 </manifest>

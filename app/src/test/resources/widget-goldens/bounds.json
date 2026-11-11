@@ -1,0 +1,536 @@
+{
+  "balance-110-110-dark": [
+    {
+      "text": "Total Balance",
+      "left": 40,
+      "top": 15,
+      "width": 58,
+      "height": 14,
+      "size": 12
+    },
+    {
+      "text": "€125.00",
+      "left": 12,
+      "top": 36,
+      "width": 86,
+      "height": 40,
+      "size": 23
+    }
+  ],
+  "balance-110-110-light": [
+    {
+      "text": "Total Balance",
+      "left": 40,
+      "top": 15,
+      "width": 58,
+      "height": 14,
+      "size": 12
+    },
+    {
+      "text": "€125.00",
+      "left": 12,
+      "top": 36,
+      "width": 86,
+      "height": 40,
+      "size": 23
+    }
+  ],
+  "balance-110-260-dark": [
+    {
+      "text": "Total Balance",
+      "left": 40,
+      "top": 15,
+      "width": 58,
+      "height": 14,
+      "size": 12
+    },
+    {
+      "text": "€125.00",
+      "left": 12,
+      "top": 36,
+      "width": 86,
+      "height": 40,
+      "size": 23
+    },
+    {
+      "text": "2 Vouches",
+      "left": 12,
+      "top": 80,
+      "width": 82,
+      "height": 22,
+      "size": 12
+    },
+    {
+      "text": "€175.00",
+      "left": 46,
+      "top": 176,
+      "width": 46,
+      "height": 24,
+      "size": 13
+    },
+    {
+      "text": "€50.00",
+      "left": 46,
+      "top": 218,
+      "width": 46,
+      "height": 24,
+      "size": 14
+    }
+  ],
+  "balance-110-260-light": [
+    {
+      "text": "Total Balance",
+      "left": 40,
+      "top": 15,
+      "width": 58,
+      "height": 14,
+      "size": 12
+    },
+    {
+      "text": "€125.00",
+      "left": 12,
+      "top": 36,
+      "width": 86,
+      "height": 40,
+      "size": 23
+    },
+    {
+      "text": "2 Vouches",
+      "left": 12,
+      "top": 80,
+      "width": 82,
+      "height": 22,
+      "size": 12
+    },
+    {
+      "text": "€175.00",
+      "left": 46,
+      "top": 176,
+      "width": 46,
+      "height": 24,
+      "size": 13
+    },
+    {
+      "text": "€50.00",
+      "left": 46,
+      "top": 218,
+      "width": 46,
+      "height": 24,
+      "size": 14
+    }
+  ],
+  "balance-180-180-dark": [
+    {
+      "text": "Total Balance",
+      "left": 40,
+      "top": 15,
+      "width": 128,
+      "height": 14,
+      "size": 12
+    },
+    {
+      "text": "€125.00",
+      "left": 12,
+      "top": 36,
+      "width": 156,
+      "height": 40,
+      "size": 34
+    },
+    {
+      "text": "€175.00",
+      "left": 46,
+      "top": 96,
+      "width": 116,
+      "height": 24,
+      "size": 18
+    },
+    {
+      "text": "€50.00",
+      "left": 46,
+      "top": 138,
+      "width": 116,
+      "height": 24,
+      "size": 18
+    }
+  ],
+  "balance-180-180-light": [
+    {
+      "text": "Total Balance",
+      "left": 40,
+      "top": 15,
+      "width": 128,
+      "height": 14,
+      "size": 12
+    },
+    {
+      "text": "€125.00",
+      "left": 12,
+      "top": 36,
+      "width": 156,
+      "height": 40,
+      "size": 34
+    },
+    {
+      "text": "€175.00",
+      "left": 46,
+      "top": 96,
+      "width": 116,
+      "height": 24,
+      "size": 18
+    },
+    {
+      "text": "€50.00",
+      "left": 46,
+      "top": 138,
+      "width": 116,
+      "height": 24,
+      "size": 18
+    }
+  ],
+  "balance-280-260-dark": [
+    {
+      "text": "Total Balance",
+      "left": 40,
+      "top": 15,
+      "width": 138,
+      "height": 14,
+      "size": 12
+    },
+    {
+      "text": "€125.00",
+      "left": 12,
+      "top": 36,
+      "width": 166,
+      "height": 40,
+      "size": 34
+    },
+    {
+      "text": "2 Vouches",
+      "left": 186,
+      "top": 12,
+      "width": 82,
+      "height": 22,
+      "size": 12
+    },
+    {
+      "text": "Given",
+      "left": 52,
+      "top": 194,
+      "width": 75,
+      "height": 16,
+      "size": 14
+    },
+    {
+      "text": "€175.00",
+      "left": 22,
+      "top": 218,
+      "width": 105,
+      "height": 20,
+      "size": 17
+    },
+    {
+      "text": "Received",
+      "left": 183,
+      "top": 194,
+      "width": 75,
+      "height": 16,
+      "size": 14
+    },
+    {
+      "text": "€50.00",
+      "left": 153,
+      "top": 218,
+      "width": 105,
+      "height": 20,
+      "size": 17
+    }
+  ],
+  "balance-280-260-light": [
+    {
+      "text": "Total Balance",
+      "left": 40,
+      "top": 15,
+      "width": 138,
+      "height": 14,
+      "size": 12
+    },
+    {
+      "text": "€125.00",
+      "left": 12,
+      "top": 36,
+      "width": 166,
+      "height": 40,
+      "size": 34
+    },
+    {
+      "text": "2 Vouches",
+      "left": 186,
+      "top": 12,
+      "width": 82,
+      "height": 22,
+      "size": 12
+    },
+    {
+      "text": "Given",
+      "left": 52,
+      "top": 194,
+      "width": 75,
+      "height": 16,
+      "size": 14
+    },
+    {
+      "text": "€175.00",
+      "left": 22,
+      "top": 218,
+      "width": 105,
+      "height": 20,
+      "size": 17
+    },
+    {
+      "text": "Received",
+      "left": 183,
+      "top": 194,
+      "width": 75,
+      "height": 16,
+      "size": 14
+    },
+    {
+      "text": "€50.00",
+      "left": 153,
+      "top": 218,
+      "width": 105,
+      "height": 20,
+      "size": 17
+    }
+  ],
+  "person-110-110-dark": [
+    {
+      "text": "Alex",
+      "left": 40,
+      "top": 12,
+      "width": 58,
+      "height": 19,
+      "size": 16
+    },
+    {
+      "text": "€125.00",
+      "left": 12,
+      "top": 36,
+      "width": 86,
+      "height": 40,
+      "size": 23
+    }
+  ],
+  "person-110-110-light": [
+    {
+      "text": "Alex",
+      "left": 40,
+      "top": 12,
+      "width": 58,
+      "height": 19,
+      "size": 16
+    },
+    {
+      "text": "€125.00",
+      "left": 12,
+      "top": 36,
+      "width": 86,
+      "height": 40,
+      "size": 23
+    }
+  ],
+  "person-110-260-dark": [
+    {
+      "text": "Alex",
+      "left": 40,
+      "top": 12,
+      "width": 58,
+      "height": 19,
+      "size": 16
+    },
+    {
+      "text": "€125.00",
+      "left": 12,
+      "top": 36,
+      "width": 86,
+      "height": 40,
+      "size": 23
+    },
+    {
+      "text": "2 Vouches",
+      "left": 12,
+      "top": 80,
+      "width": 82,
+      "height": 22,
+      "size": 12
+    }
+  ],
+  "person-110-260-light": [
+    {
+      "text": "Alex",
+      "left": 40,
+      "top": 12,
+      "width": 58,
+      "height": 19,
+      "size": 16
+    },
+    {
+      "text": "€125.00",
+      "left": 12,
+      "top": 36,
+      "width": 86,
+      "height": 40,
+      "size": 23
+    },
+    {
+      "text": "2 Vouches",
+      "left": 12,
+      "top": 80,
+      "width": 82,
+      "height": 22,
+      "size": 12
+    }
+  ],
+  "person-180-180-dark": [
+    {
+      "text": "Alex",
+      "left": 40,
+      "top": 12,
+      "width": 128,
+      "height": 19,
+      "size": 16
+    },
+    {
+      "text": "€125.00",
+      "left": 12,
+      "top": 36,
+      "width": 156,
+      "height": 40,
+      "size": 34
+    },
+    {
+      "text": "2 Vouches",
+      "left": 12,
+      "top": 80,
+      "width": 82,
+      "height": 22,
+      "size": 12
+    }
+  ],
+  "person-180-180-light": [
+    {
+      "text": "Alex",
+      "left": 40,
+      "top": 12,
+      "width": 128,
+      "height": 19,
+      "size": 16
+    },
+    {
+      "text": "€125.00",
+      "left": 12,
+      "top": 36,
+      "width": 156,
+      "height": 40,
+      "size": 34
+    },
+    {
+      "text": "2 Vouches",
+      "left": 12,
+      "top": 80,
+      "width": 82,
+      "height": 22,
+      "size": 12
+    }
+  ],
+  "person-280-260-dark": [
+    {
+      "text": "Alex",
+      "left": 40,
+      "top": 12,
+      "width": 138,
+      "height": 19,
+      "size": 16
+    },
+    {
+      "text": "€125.00",
+      "left": 12,
+      "top": 36,
+      "width": 166,
+      "height": 40,
+      "size": 34
+    },
+    {
+      "text": "2 Vouches",
+      "left": 186,
+      "top": 12,
+      "width": 82,
+      "height": 22,
+      "size": 12
+    }
+  ],
+  "person-280-260-light": [
+    {
+      "text": "Alex",
+      "left": 40,
+      "top": 12,
+      "width": 138,
+      "height": 19,
+      "size": 16
+    },
+    {
+      "text": "€125.00",
+      "left": 12,
+      "top": 36,
+      "width": 166,
+      "height": 40,
+      "size": 34
+    },
+    {
+      "text": "2 Vouches",
+      "left": 186,
+      "top": 12,
+      "width": 82,
+      "height": 22,
+      "size": 12
+    }
+  ],
+  "shortcuts-132-72-dark": [],
+  "shortcuts-132-72-light": [],
+  "shortcuts-360-72-dark": [
+    {
+      "text": "New vouch",
+      "left": 56,
+      "top": 29,
+      "width": 110,
+      "height": 14,
+      "size": 12
+    },
+    {
+      "text": "New group vouch",
+      "left": 230,
+      "top": 29,
+      "width": 110,
+      "height": 14,
+      "size": 12
+    }
+  ],
+  "shortcuts-360-72-light": [
+    {
+      "text": "New vouch",
+      "left": 56,
+      "top": 29,
+      "width": 110,
+      "height": 14,
+      "size": 12
+    },
+    {
+      "text": "New group vouch",
+      "left": 230,
+      "top": 29,
+      "width": 110,
+      "height": 14,
+      "size": 12
+    }
+  ]
+}

@@ -22,7 +22,7 @@ import com.iyox.vouch.core.utils.ToastManager
 import com.iyox.vouch.feature.settings.SettingsViewModel
 import com.iyox.vouch.feature.settings.ToastEvent
 import com.iyox.vouch.navigation.AppNavigation
-import com.iyox.vouch.navigation.VouchShortcut
+import com.iyox.vouch.navigation.ShortcutRequest
 import com.iyox.vouch.ui.components.ImportConfirmationDialog
 import com.iyox.vouch.ui.components.VouchSnackbarHost
 import com.iyox.vouch.ui.theme.IyoxVouchTheme
@@ -31,7 +31,7 @@ import com.iyox.vouch.ui.theme.IyoxVouchTheme
 fun VouchApp(
     pendingImportUri: Uri? = null,
     onImportUriConsumed: () -> Unit = {},
-    pendingShortcut: VouchShortcut? = null,
+    pendingShortcut: ShortcutRequest? = null,
     onShortcutConsumed: () -> Unit = {}
 ) {
     val appContext = LocalContext.current.applicationContext

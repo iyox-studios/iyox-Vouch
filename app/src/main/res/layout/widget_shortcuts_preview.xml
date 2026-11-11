@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- RemoteViews require platform tinting. Newer attributes have explicit legacy fallbacks. -->
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:ignore="UseAppTint,UnusedAttribute,UseCompoundDrawables"
+    android:id="@android:id/background"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_shortcut_round"
+    android:clipToOutline="true"
+    android:foreground="@drawable/widget_shortcut_card_feedback">
+    <ImageView
+        android:id="@+id/widget_background"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:src="@drawable/widget_shortcut_round"
+        android:scaleType="fitXY"
+        android:importantForAccessibility="no"
+        android:tint="@color/widget_surface" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp"
+        android:orientation="horizontal">
+        <FrameLayout
+            android:id="@+id/add_action"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent"
+            android:foreground="@drawable/widget_action_feedback"
+            android:background="@drawable/widget_action_outline"
+            android:clipToOutline="true"
+            android:contentDescription="@string/action_add_vouch">
+            <ImageView
+                android:id="@+id/add_background"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/widget_action_tile"
+                android:scaleType="fitXY"
+                android:importantForAccessibility="no"
+                android:tint="@color/widget_primary_container" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:padding="8dp">
+                <ImageView
+                    android:id="@+id/add_icon"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:src="@drawable/ic_add"
+                    android:importantForAccessibility="no"
+                    android:tint="@color/widget_on_primary_container" />
+                <TextView
+                    android:id="@+id/add_label"
+                    android:visibility="gone"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:includeFontPadding="false"
+                    android:layout_marginStart="8dp"
+                    android:text="@string/widget_new_vouch"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:maxLines="2"
+                    android:ellipsize="end"
+                    android:importantForAccessibility="no"
+                    android:textColor="@color/widget_on_primary_container" />
+            </LinearLayout>
+        </FrameLayout>
+        <TextView
+            android:layout_width="12dp"
+            android:layout_height="1dp" />
+        <FrameLayout
+            android:id="@+id/group_action"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent"
+            android:foreground="@drawable/widget_action_feedback"
+            android:background="@drawable/widget_action_outline"
+            android:clipToOutline="true"
+            android:contentDescription="@string/action_add_group_vouch">
+            <ImageView
+                android:id="@+id/group_background"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/widget_action_tile"
+                android:scaleType="fitXY"
+                android:importantForAccessibility="no"
+                android:tint="@color/widget_tertiary_container" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:padding="8dp">
+                <ImageView
+                    android:id="@+id/group_icon"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:src="@drawable/ic_group_add"
+                    android:importantForAccessibility="no"
+                    android:tint="@color/widget_on_tertiary_container" />
+                <TextView
+                    android:id="@+id/group_label"
+                    android:visibility="gone"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:includeFontPadding="false"
+                    android:layout_marginStart="8dp"
+                    android:text="@string/widget_new_group"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:maxLines="2"
+                    android:ellipsize="end"
+                    android:importantForAccessibility="no"
+                    android:textColor="@color/widget_on_tertiary_container" />
+            </LinearLayout>
+        </FrameLayout>
+    </LinearLayout>
+</FrameLayout>

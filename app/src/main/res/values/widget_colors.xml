@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Initial/picker colors; live widgets use the app's selected palette. -->
+    <color name="widget_surface">#F3EDF7</color>
+    <color name="widget_on_surface">#1C1B1F</color>
+    <color name="widget_primary">#6750A4</color>
+    <color name="widget_primary_container">#EADDFF</color>
+    <color name="widget_on_primary_container">#21005D</color>
+    <color name="widget_error_container">#F9DEDC</color>
+    <color name="widget_on_error_container">#410E0B</color>
+    <color name="widget_press">#186750A4</color>
+    <color name="widget_tertiary_container">#FFD8E4</color>
+    <color name="widget_on_tertiary_container">#31111D</color>
+    <color name="widget_surface_high">#ECE6F0</color>
+</resources>

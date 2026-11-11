@@ -66,7 +66,7 @@ data class NavigationItem(
 fun AppNavigation(
     snackbarHost: @Composable (() -> Unit) = {},
     settingsViewModel: SettingsViewModel = hiltViewModel(),
-    pendingShortcut: VouchShortcut? = null,
+    pendingShortcut: ShortcutRequest? = null,
     onShortcutConsumed: () -> Unit = {}
 ) {
     val navController = rememberNavController()
@@ -126,12 +126,27 @@ fun AppNavigation(
             settingsViewModel.isOnboardingCompleted()
         ) {
             pagerState.scrollToPage(0)
-            when (pendingShortcut) {
-                VouchShortcut.ADD_VOUCH -> navController.navigate(SingleVouchRoute()) {
+            when (pendingShortcut.shortcut) {
+                VouchShortcut.ADD_VOUCH -> navController.navigate(SingleVouchRoute(personName = pendingShortcut.personName)) {
                     popUpTo<VouchesRoute>()
                 }
                 VouchShortcut.ADD_GROUP_VOUCH -> navController.navigate(GroupVouchRoute()) {
                     popUpTo<VouchesRoute>()
+                }
+                VouchShortcut.VIEW_PERSON -> pendingShortcut.personName?.let {
+                    navController.navigate(ViewPersonRoute(personName = it)) {
+                        popUpTo<VouchesRoute>()
+                    }
+                }
+                VouchShortcut.SETTLE_PERSON -> pendingShortcut.personName?.let {
+                    navController.navigate(ViewPersonRoute(personName = it, settleAll = true)) {
+                        popUpTo<VouchesRoute>()
+                    }
+                }
+                VouchShortcut.SHARE_PERSON -> pendingShortcut.personName?.let {
+                    navController.navigate(ViewPersonRoute(personName = it, share = true)) {
+                        popUpTo<VouchesRoute>()
+                    }
                 }
             }
             onShortcutConsumed()
@@ -341,6 +356,8 @@ fun AppNavigation(
                 ) {
                     PersonScreen(
                         personName = route.personName,
+                        settleAllOnOpen = route.settleAll,
+                        shareOnOpen = route.share,
                         onNavigateBack = {
                             navController.popBackStack()
                         },

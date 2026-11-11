@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- CENTER_INSIDE keeps the original integer-pixel centering and never enlarges person icons. -->
+<ImageView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_action_icon"
+    android:layout_width="match_parent"
+    android:layout_height="28dp"
+    android:paddingStart="4dp"
+    android:paddingEnd="4dp"
+    android:scaleType="centerInside"
+    android:importantForAccessibility="no" />

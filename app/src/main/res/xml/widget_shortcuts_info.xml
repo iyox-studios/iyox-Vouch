@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Modern cell/preview attributes complement the dp sizing used by legacy launchers. -->
+<appwidget-provider
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:ignore="UnusedAttribute"
+    android:minWidth="132dp"
+    android:minHeight="72dp"
+    android:minResizeWidth="132dp"
+    android:minResizeHeight="72dp"
+    android:targetCellWidth="2"
+    android:targetCellHeight="1"
+    android:resizeMode="horizontal"
+    android:updatePeriodMillis="1800000"
+    android:initialLayout="@layout/glance_default_loading_layout"
+    android:previewLayout="@layout/widget_shortcuts_preview"
+    android:description="@string/widget_shortcuts_description"
+    android:widgetCategory="home_screen" />

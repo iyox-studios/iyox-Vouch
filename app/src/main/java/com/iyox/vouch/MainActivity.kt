@@ -8,17 +8,13 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.biometric.BiometricManager
-import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
-import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_WEAK
-import androidx.biometric.BiometricPrompt
 import androidx.compose.runtime.mutableStateOf
-import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.appcompat.app.AppCompatActivity
+import com.iyox.vouch.core.utils.authenticateForApp
 import com.iyox.vouch.core.utils.PreferenceKeys
 import dagger.hilt.android.AndroidEntryPoint
-import com.iyox.vouch.navigation.VouchShortcut
+import com.iyox.vouch.navigation.ShortcutRequest
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -26,7 +22,7 @@ class MainActivity : AppCompatActivity() {
     private var isAuthenticated = false
     private var isIntentConsumed = false
     private val pendingImportUri = mutableStateOf<Uri?>(null)
-    private val pendingShortcut = mutableStateOf<VouchShortcut?>(null)
+    private val pendingShortcut = mutableStateOf<ShortcutRequest?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
@@ -35,7 +31,7 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
 
         if (savedInstanceState != null) {
-            pendingShortcut.value = VouchShortcut.fromAction(savedInstanceState.getString(KEY_PENDING_SHORTCUT))
+            pendingShortcut.value = ShortcutRequest.restoreFrom(savedInstanceState)
             isAuthenticated = savedInstanceState.getBoolean(KEY_IS_AUTHENTICATED, false)
             isIntentConsumed = savedInstanceState.getBoolean(KEY_IS_INTENT_CONSUMED, false)
         }
@@ -70,7 +66,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putString(KEY_PENDING_SHORTCUT, pendingShortcut.value?.action)
+        pendingShortcut.value?.saveTo(outState)
         outState.putBoolean(KEY_IS_AUTHENTICATED, isAuthenticated)
         outState.putBoolean(KEY_IS_INTENT_CONSUMED, isIntentConsumed)
     }
@@ -93,7 +89,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun handleIntentData(intent: Intent?) {
         if (isIntentConsumed) return
-        VouchShortcut.fromAction(intent?.action)?.let {
+        ShortcutRequest.fromIntent(intent)?.let {
             pendingShortcut.value = it
             isIntentConsumed = true
             return
@@ -117,7 +113,9 @@ class MainActivity : AppCompatActivity() {
             VouchApp(
                 pendingImportUri = pendingImportUri.value,
                 pendingShortcut = pendingShortcut.value,
-                onShortcutConsumed = { pendingShortcut.value = null },
+                onShortcutConsumed = {
+                    pendingShortcut.value = null
+                },
                 onImportUriConsumed = { consumePendingImport() }
             )
         }
@@ -135,32 +133,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun authenticateUser() {
-        val biometricManager = BiometricManager.from(this)
-        if (biometricManager.canAuthenticate(BIOMETRIC_STRONG or BIOMETRIC_WEAK) == BiometricManager.BIOMETRIC_SUCCESS) {
-            val executor = ContextCompat.getMainExecutor(this)
-            val biometricPrompt = BiometricPrompt(
-                this, executor, object : BiometricPrompt.AuthenticationCallback() {
-                    override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                        super.onAuthenticationSucceeded(result)
-                        isAuthenticated = true
-                        handleIntentData(intent)
-                        showApp()
-                    }
-
-                    override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                        super.onAuthenticationError(errorCode, errString)
-                        finish()
-                    }
-                })
-
-            val promptInfo = BiometricPrompt.PromptInfo.Builder()
-                .setTitle(getString(R.string.biometric_title))
-                .setSubtitle(getString(R.string.biometric_subtitle))
-                .setNegativeButtonText(getString(R.string.action_cancel))
-                .build()
-
-            biometricPrompt.authenticate(promptInfo)
-        } else {
+        authenticateForApp {
             isAuthenticated = true
             handleIntentData(intent)
             showApp()
@@ -168,7 +141,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     companion object {
-        private const val KEY_PENDING_SHORTCUT = "pending_shortcut"
         private const val KEY_IS_AUTHENTICATED = "is_authenticated"
         private const val KEY_IS_INTENT_CONSUMED = "is_intent_consumed"
     }

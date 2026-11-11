@@ -90,6 +90,12 @@ android {
         generateLocaleConfig = true
         localeFilters += listOf("en-rUS", "de-rDE")
     }
+    bundle {
+        language {
+            // App language changes must work without downloading another language split.
+            enableSplit = false
+        }
+    }
     testOptions {
         unitTests {
             isIncludeAndroidResources = true
@@ -110,6 +116,7 @@ kotlin {
 
 
 dependencies {
+    implementation(libs.androidx.glance.appwidget)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

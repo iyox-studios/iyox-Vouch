@@ -20,6 +20,7 @@ import com.iyox.vouch.core.backup.InvalidSignatureException
 import com.iyox.vouch.core.currency.CurrencyManager
 import com.iyox.vouch.core.utils.PreferenceKeys
 import com.iyox.vouch.ui.theme.AppColorTheme
+import com.iyox.vouch.ui.theme.AppThemeSettings
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -89,20 +90,8 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    private fun resolveInitialColorTheme(): AppColorTheme {
-        val stored = prefs.getString(PreferenceKeys.KEY_COLOR_THEME, null)
-        if (stored != null) {
-            return AppColorTheme.fromKey(stored)
-        }
-        if (prefs.contains(PreferenceKeys.KEY_DYNAMIC_COLORS)) {
-            val isDynamic = prefs.getBoolean(PreferenceKeys.KEY_DYNAMIC_COLORS, true)
-            return if (isDynamic) AppColorTheme.DYNAMIC else AppColorTheme.PURPLE
-        }
-        return AppColorTheme.DYNAMIC
-    }
-
     private val _theme = MutableStateFlow(resolveInitialTheme())
-    private val _colorTheme = MutableStateFlow(resolveInitialColorTheme())
+    private val _colorTheme = MutableStateFlow(AppThemeSettings.read(context).colorTheme)
     private val _languageTag = MutableStateFlow(currentLanguageTag())
     private val _biometricEnabled = MutableStateFlow(prefs.getBoolean(PreferenceKeys.KEY_BIOMETRIC_ENABLED, false))
     private val _hapticsEnabled = MutableStateFlow(prefs.getBoolean(PreferenceKeys.KEY_HAPTICS_ENABLED, true))
