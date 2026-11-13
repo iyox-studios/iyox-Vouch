@@ -208,7 +208,9 @@ fun AppNavigation(
             enterTransition = { EnterTransition.None },
             exitTransition = { ExitTransition.None },
             popEnterTransition = { EnterTransition.None },
-            popExitTransition = { ExitTransition.None }
+            popExitTransition = { ExitTransition.None },
+            predictivePopEnterTransition = { EnterTransition.None },
+            predictivePopExitTransition = { ExitTransition.None }
         ) {
             composable<OnboardingRoute> {
                 OnboardingScreen(
