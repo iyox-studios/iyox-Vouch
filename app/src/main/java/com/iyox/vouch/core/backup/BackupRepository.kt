@@ -53,7 +53,7 @@ class BackupRepository @Inject constructor(
 
     private val json: Json = Json {
         prettyPrint = true
-        isLenient = true
+        isLenient = false
         ignoreUnknownKeys = true
         encodeDefaults = true
     }
@@ -184,7 +184,13 @@ class BackupRepository @Inject constructor(
         }
     }
 
-    private fun parsePayload(rawJsonText: String): Result<ParsedBackup> {
+    private fun parsePayload(rawJsonText: String): Result<ParsedBackup> = try {
+        parseValidatedPayload(rawJsonText)
+    } catch (e: IllegalArgumentException) {
+        Result.failure(e)
+    }
+
+    private fun parseValidatedPayload(rawJsonText: String): Result<ParsedBackup> {
         val cleanJson = rawJsonText.removePrefix("\uFEFF").trim()
         if (cleanJson.isEmpty()) {
             return Result.failure(IllegalArgumentException("Backup file is empty"))
@@ -209,6 +215,16 @@ class BackupRepository @Inject constructor(
                     else -> null
                 }
 
+                listOf("_app_signature", "app_signature", "signature", "type", "version").forEach { key ->
+                    if (rootElement.containsKey(key)) {
+                        require(rootElement[key]?.asStringOrNull() != null) { "Invalid $key" }
+                    }
+                }
+                listOf("_app_signature", "app_signature", "signature").forEach { key ->
+                    if (rootElement.containsKey(key) && rootElement[key]?.asStringOrNull() != IyoxEnvelope.APP_SIGNATURE) {
+                        throw InvalidSignatureException()
+                    }
+                }
                 if (signature != null && signature != IyoxEnvelope.APP_SIGNATURE) {
                     return Result.failure(InvalidSignatureException("Invalid app signature: $signature"))
                 }
@@ -253,6 +269,15 @@ class BackupRepository @Inject constructor(
                 return Result.failure(IllegalArgumentException("Invalid JSON format: expected object or array"))
             }
         }
+
+        require(version == IyoxEnvelope.VERSION_1_0) { "Unsupported backup version: $version" }
+        val entries = when (dataElement) {
+            is JsonArray -> dataElement.toList()
+            is JsonObject -> listOf(dataElement)
+            else -> throw IllegalArgumentException("Backup data must be an object or array")
+        }
+        if (type == IyoxEnvelope.TYPE_SINGLE) require(entries.size == 1) { "Expected exactly one vouch" }
+        entries.forEach { validateExportVouch(it) }
 
         return when (type) {
             IyoxEnvelope.TYPE_BACKUP -> {
@@ -310,6 +335,49 @@ class BackupRepository @Inject constructor(
             }
             else -> Result.failure(UnsupportedBackupTypeException(type))
         }
+    }
+
+    /** Reject the entire payload before any replacement transaction begins. */
+    private fun validateExportVouch(element: JsonElement) {
+        require(element is JsonObject) { "Vouch entry must be an object" }
+        val vouch = if (element.containsKey("vouch")) {
+            requireNotNull(element["vouch"] as? JsonObject) { "Invalid vouch object" }
+        } else element
+        require(parseAmount(vouch["amount"]) != null) { "Missing or invalid amount" }
+        if (vouch.containsKey("id")) require(vouch["id"]?.asLongOrNull() != null) { "Invalid id" }
+        if (vouch.containsKey("description")) require(vouch["description"]?.asStringOrNull() != null) { "Invalid description" }
+        fun validateBoolean(obj: JsonObject, key: String) {
+            if (!obj.containsKey(key)) return
+            val raw = (obj[key] as? JsonPrimitive)?.takeUnless { it is JsonNull }?.content?.lowercase(Locale.ROOT)
+            require(raw in listOf("true", "false", "1", "0", "yes", "no")) { "Invalid $key" }
+        }
+        validateBoolean(vouch, "given")
+        if (vouch.containsKey("timestamp")) {
+            val raw = (vouch["timestamp"] as? JsonPrimitive)?.takeUnless { it is JsonNull }?.content
+            require(raw != null && (raw.toLongOrNull() != null || parseDateString(raw) != null)) { "Invalid timestamp" }
+        }
+        val persons = if (element.containsKey("persons")) element["persons"] else vouch["persons"]
+        require(persons == null || persons is JsonArray) { "Persons must be an array" }
+        val names = (persons as? JsonArray).orEmpty().map { person ->
+            val name = when (person) {
+                is JsonObject -> {
+                    val nameElement = when {
+                        person.containsKey("name") -> person["name"]
+                        person.containsKey("personName") -> person["personName"]
+                        person.containsKey("person_name") -> person["person_name"]
+                        else -> (person["person"] as? JsonObject)?.get("name")
+                    }
+                    require(parseAmount(person["amount"]) != null) { "Missing or invalid person amount" }
+                    listOf("settled", "isCustom", "isSelf").forEach { validateBoolean(person, it) }
+                    nameElement?.asStringOrNull()
+                }
+                is JsonPrimitive -> person.asStringOrNull()
+                else -> null
+            }?.trim()
+            require(!name.isNullOrEmpty()) { "Invalid person name" }
+            name
+        }
+        require(names.distinct().size == names.size) { "Duplicate person in vouch" }
     }
 
     private fun parseExportVouch(element: JsonElement): ExportVouch? {
@@ -375,22 +443,11 @@ class BackupRepository @Inject constructor(
     }
 
     private fun parseAmount(element: JsonElement?): Long? {
-        if (element == null || element is JsonNull) return null
+        val raw = (element as? JsonPrimitive)?.takeUnless { it is JsonNull }?.content ?: return null
+        if (!Regex("[+-]?[0-9]+(?:\\.[0-9]{1,2})?").matches(raw)) return null
         return try {
-            if (element is JsonPrimitive) {
-                val rawStr = element.content.trim()
-                if (rawStr.contains(".")) {
-                    val parts = rawStr.split(".")
-                    val whole = parts[0].toLongOrNull() ?: 0L
-                    val frac = (parts.getOrNull(1) ?: "").padEnd(2, '0').take(2).toLongOrNull() ?: 0L
-                    (whole * 100L) + frac
-                } else {
-                    rawStr.toLongOrNull()
-                }
-            } else null
-        } catch (_: Exception) {
-            null
-        }
+            if ('.' in raw) java.math.BigDecimal(raw).movePointRight(2).longValueExact() else raw.toLong()
+        } catch (_: Exception) { null }
     }
 
     private fun parseTimestamp(element: JsonElement?): Long {
@@ -419,10 +476,12 @@ class BackupRepository @Inject constructor(
         for (pattern in patterns) {
             try {
                 val sdf = SimpleDateFormat(pattern, Locale.US).apply {
+                    isLenient = false
                     timeZone = TimeZone.getTimeZone("UTC")
                 }
-                val date = sdf.parse(str)
-                if (date != null) return date.time
+                val position = java.text.ParsePosition(0)
+                val date = sdf.parse(str, position)
+                if (date != null && position.index == str.length) return date.time
             } catch (_: Exception) {
                 // Try next pattern
             }
@@ -448,7 +507,7 @@ class BackupRepository @Inject constructor(
     }
 
     private fun JsonElement.asStringOrNull(): String? =
-        (this as? JsonPrimitive)?.takeUnless { it is JsonNull }?.content
+        (this as? JsonPrimitive)?.takeIf { it.isString }?.content
 
     private fun JsonElement.asLongOrNull(): Long? =
         (this as? JsonPrimitive)?.takeUnless { it is JsonNull }?.content?.toLongOrNull()
