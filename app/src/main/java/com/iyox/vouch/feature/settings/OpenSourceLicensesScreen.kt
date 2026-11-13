@@ -54,7 +54,7 @@ import com.iyox.vouch.ui.components.EmptySearchContent
 import com.iyox.vouch.ui.components.VouchBackButton
 import com.mikepenz.aboutlibraries.Libs
 import com.mikepenz.aboutlibraries.entity.Library
-import com.mikepenz.aboutlibraries.util.withContext
+import com.mikepenz.aboutlibraries.util.withJson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -72,7 +72,8 @@ fun OpenSourceLicensesScreen(
     LaunchedEffect(Unit) {
         val loaded = withContext(Dispatchers.IO) {
             try {
-                Libs.Builder().withContext(context).build()
+                // Reference the resource directly so release resource shrinking keeps it.
+                Libs.Builder().withJson(context, R.raw.aboutlibraries).build()
             } catch (_: Exception) {
                 null
             }
