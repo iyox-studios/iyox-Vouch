@@ -34,6 +34,7 @@
             jdk21
             androidSdk
             chromium
+	        gh
           ];
 
           env = {
