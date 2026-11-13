@@ -47,3 +47,6 @@ data object CurrencySearchRoute
 
 @Serializable
 data object OpenSourceLicensesRoute
+
+@Serializable
+data object PrivacyPolicyRoute

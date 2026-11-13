@@ -118,7 +118,8 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = viewModel(),
     onNavigateToOnboarding: () -> Unit = {},
     onNavigateToCurrencySearch: () -> Unit = {},
-    onNavigateToLicenses: () -> Unit = {}
+    onNavigateToLicenses: () -> Unit = {},
+    onNavigateToPrivacyPolicy: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
@@ -384,6 +385,13 @@ fun SettingsScreen(
                 title = stringResource(R.string.settings_open_source_licenses),
                 subtitle = stringResource(R.string.settings_open_source_licenses_subtitle),
                 onClick = onNavigateToLicenses
+            )
+
+            SettingItem(
+                icon = R.drawable.ic_description,
+                title = stringResource(R.string.settings_privacy_policy),
+                subtitle = stringResource(R.string.settings_privacy_policy_subtitle),
+                onClick = onNavigateToPrivacyPolicy
             )
 
             SettingItem(

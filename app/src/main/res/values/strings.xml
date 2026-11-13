@@ -50,6 +50,8 @@
     <string name="settings_export_data">Export</string>
     <string name="settings_import_data">Import</string>
     <string name="settings_app_version">App Version</string>
+    <string name="settings_privacy_policy">Privacy policy</string>
+    <string name="settings_privacy_policy_subtitle">How your data is stored, shared and deleted</string>
 
     <string name="action_save">Save</string>
     <string name="action_update">Update</string>

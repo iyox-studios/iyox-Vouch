@@ -25,6 +25,13 @@ fun getSecret(key: String): String? {
     return project.findProperty(key) as? String
 }
 
+val privacyPolicyAssets = layout.buildDirectory.dir("generated/privacyPolicyAssets")
+val preparePrivacyPolicyAssets = tasks.register<Sync>("preparePrivacyPolicyAssets") {
+    description = "Bundles the English Markdown privacy policy as an asset for offline viewing."
+    from(rootProject.file("PRIVACY.md"))
+    into(privacyPolicyAssets)
+}
+
 android {
     namespace = "com.iyox.vouch"
     compileSdk {
@@ -86,6 +93,7 @@ android {
     buildFeatures {
         compose = true
     }
+    sourceSets.getByName("main").assets.directories.add(privacyPolicyAssets.get().asFile.absolutePath)
     androidResources {
         generateLocaleConfig = true
         localeFilters += listOf("en-rUS", "de-rDE")
@@ -102,6 +110,8 @@ android {
         }
     }
 }
+
+tasks.named("preBuild") { dependsOn(preparePrivacyPolicyAssets) }
 
 kotlin {
     compilerOptions {

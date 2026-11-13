@@ -48,6 +48,8 @@
     <string name="settings_export_data">Exportieren</string>
     <string name="settings_import_data">Importieren</string>
     <string name="settings_app_version">App-Version</string>
+    <string name="settings_privacy_policy">Datenschutzerklärung</string>
+    <string name="settings_privacy_policy_subtitle">Speicherung, Weitergabe und Löschung deiner Daten</string>
 
     <string name="action_save">Speichern</string>
     <string name="action_update">Aktualisieren</string>

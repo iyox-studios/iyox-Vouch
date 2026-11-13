@@ -44,6 +44,7 @@ import com.iyox.vouch.feature.person.PersonScreen
 import com.iyox.vouch.feature.persons.PersonsScreen
 import com.iyox.vouch.feature.persons.PersonsViewModel
 import com.iyox.vouch.feature.settings.OpenSourceLicensesScreen
+import com.iyox.vouch.feature.settings.PrivacyPolicyScreen
 import com.iyox.vouch.feature.settings.SettingsScreen
 import com.iyox.vouch.feature.settings.SettingsViewModel
 import com.iyox.vouch.feature.settled.SettledSpaceScreen
@@ -106,7 +107,8 @@ fun AppNavigation(
             iconSelected = R.drawable.ic_settings_filled,
             isSelected = { dest, page ->
                 (dest?.hasRoute<VouchesRoute>() == true && page == 2) ||
-                    dest?.hasRoute<OpenSourceLicensesRoute>() == true
+                    dest?.hasRoute<OpenSourceLicensesRoute>() == true ||
+                    dest?.hasRoute<PrivacyPolicyRoute>() == true
             }
         )
     )
@@ -290,6 +292,9 @@ fun AppNavigation(
                                     },
                                     onNavigateToLicenses = {
                                         navController.navigate(OpenSourceLicensesRoute)
+                                    },
+                                    onNavigateToPrivacyPolicy = {
+                                        navController.navigate(PrivacyPolicyRoute)
                                     }
                                 )
                             }
@@ -441,6 +446,13 @@ fun AppNavigation(
                         }
                     )
                 }
+            }
+
+            composable<PrivacyPolicyRoute> {
+                PrivacyPolicyScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())
+                )
             }
 
             dialog<CurrencySearchRoute>(

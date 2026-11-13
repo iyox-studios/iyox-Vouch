@@ -45,6 +45,12 @@ iyox Vouch is a personal debt and IOU tracking application presented in [Materia
 > [!NOTE]
 > A complete list of all third-party libraries, transitive dependencies, and their full license texts is viewable directly in the app under **Settings → Open Source Licenses**.
 
+## Privacy
+
+Read the [privacy policy](PRIVACY.md).
+The same document is bundled with the app and available offline under **Settings → Privacy policy**.
+Publish the policy as a readable webpage before using its public URL in Play Console.
+
 ## Contributing
 
 Contributions are always welcome.
