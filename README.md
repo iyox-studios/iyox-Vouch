@@ -6,6 +6,8 @@
 
 iyox Vouch is a personal debt and IOU tracking application presented in [Material You Expressive](https://m3.material.io/) style.
 
+[<img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play Store" height="75">](https://play.google.com/store/apps/details?id=com.iyox.vouch)
+
 </div>
 
 ---
