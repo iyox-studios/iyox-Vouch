@@ -12,7 +12,8 @@
 # Glance pulls in WorkManager 2.7.1, whose consumer rules keep InputMerger
 # classes but omit their reflection-created constructors under R8 full mode.
 # Without this constructor, widget rendering jobs fail and leave the loading UI.
--keep class * extends androidx.work.InputMerger {
+# Match the runtime-only WorkManager base class without requiring a compile-time reference.
+-keep class * extends androidx.work.*InputMerger {
     public <init>();
 }
 

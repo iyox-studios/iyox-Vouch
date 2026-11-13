@@ -281,14 +281,7 @@ class BackupRepository @Inject constructor(
 
         return when (type) {
             IyoxEnvelope.TYPE_BACKUP -> {
-                val vouches = mutableListOf<ExportVouch>()
-                if (dataElement is JsonArray) {
-                    for (elem in dataElement) {
-                        parseExportVouch(elem)?.let { vouches.add(it) }
-                    }
-                } else if (dataElement is JsonObject) {
-                    parseExportVouch(dataElement)?.let { vouches.add(it) }
-                }
+                val vouches = entries.mapNotNull { parseExportVouch(it) }
 
                 val uniquePersons = vouches.flatMap { it.persons }
                     .mapNotNull { it.name.trim().takeIf { n -> n.isNotEmpty() } }
@@ -358,7 +351,7 @@ class BackupRepository @Inject constructor(
         }
         val persons = if (element.containsKey("persons")) element["persons"] else vouch["persons"]
         require(persons == null || persons is JsonArray) { "Persons must be an array" }
-        val names = (persons as? JsonArray).orEmpty().map { person ->
+        val names = persons.orEmpty().map { person ->
             val name = when (person) {
                 is JsonObject -> {
                     val nameElement = when {

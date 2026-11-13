@@ -5,7 +5,6 @@ import android.app.UiModeManager
 import android.content.Context
 import android.content.res.Configuration
 import android.os.Build
-import android.os.LocaleList
 import android.util.TypedValue
 import android.widget.RemoteViews
 import androidx.appcompat.app.AppCompatDelegate
@@ -13,6 +12,7 @@ import androidx.compose.material3.ColorScheme
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.app.LocaleManagerCompat
+import androidx.core.os.ConfigurationCompat
 import androidx.glance.color.ColorProvider as DayNightColorProvider
 import androidx.glance.unit.ColorProvider
 import com.iyox.vouch.R
@@ -27,7 +27,7 @@ internal fun widgetContext(context: Context): Context {
         ?: LocaleManagerCompat.getApplicationLocales(context)
     if (locales.isEmpty) return context
     val configuration = Configuration(context.resources.configuration)
-    configuration.setLocales(LocaleList.forLanguageTags(locales.toLanguageTags()))
+    ConfigurationCompat.setLocales(configuration, locales)
     return context.createConfigurationContext(configuration)
 }
 

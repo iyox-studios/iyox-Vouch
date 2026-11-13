@@ -1,7 +1,6 @@
 package com.iyox.vouch.feature.settings
 
 import android.text.method.LinkMovementMethod
-import android.text.TextUtils
 import android.text.util.Linkify
 import android.widget.TextView
 import androidx.compose.foundation.layout.Column
@@ -23,6 +22,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.text.HtmlCompat
+import androidx.core.text.htmlEncode
 import com.iyox.vouch.R
 import com.iyox.vouch.ui.components.VouchBackButton
 
@@ -41,7 +41,7 @@ fun PrivacyPolicyScreen(
                 block.startsWith("# ") -> "h1" to block.removePrefix("# ")
                 else -> "p" to block
             }
-            "<$tag>${TextUtils.htmlEncode(text)}</$tag>"
+            "<$tag>${text.htmlEncode()}</$tag>"
         }
         HtmlCompat.fromHtml(
             html,
