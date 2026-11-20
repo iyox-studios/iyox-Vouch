@@ -104,10 +104,6 @@ Adding or updating translations requires no coding, just some git knowledge:
 2. Make your changes and verify that builds, relevant tests, and `./gradlew qodanaScan` pass without new findings.
 3. Open a pull request against `main` with a short summary of what you changed and why.
 
-## AI-Assisted Contributions
-
-AI tools are welcome to assist development, but you are fully responsible for your submitted changes. Please ensure all code is reviewed, understood, and thoroughly tested before opening a pull request.
-
 ## License
 
 By contributing, you agree that your contributions will be licensed under the project's **[GNU General Public License v3.0](LICENSE)**
